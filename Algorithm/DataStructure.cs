@@ -79,11 +79,16 @@ namespace Algorithm
 
             public bool IsReadOnly => false;
 
-            public Func<T[], T[]> sort = Sort.QuickSort;
+            public Func<T[], T[]> sort;
 
             Node<T> front = null;
             Node<T> back = null;
             int count = 0;
+
+            public LinkedList()
+            {
+                sort = Sort.QuickSort;
+            }
 
             public LinkedList(Func<T[], T[]> sort)
             {

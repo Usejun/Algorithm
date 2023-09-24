@@ -14,11 +14,8 @@ namespace Algorithm
 
             var linkedList = new DataStructure.LinkedList<int>();
 
-            linkedList.AddBack(0);
-            linkedList.AddBack(1);
-            linkedList.AddBack(3);
-            linkedList.AddBack(2);
-
+            
+            
             Utility.Print(string.Join(" ", linkedList));
             Utility.Print(string.Join(" ", linkedList.Sorted()));
         }
