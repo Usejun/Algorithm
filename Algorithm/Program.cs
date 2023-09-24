@@ -12,10 +12,11 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            var linkedList = new DataStructure.LinkedList<int>();
+            var linkedList = new DataStructure.LinkedList<int>
+            {
+                0, 2, 4, 2, 3, 1, 5, 7, 3, 2, 7, 1, 0              
+            };
 
-            
-            
             Utility.Print(string.Join(" ", linkedList));
             Utility.Print(string.Join(" ", linkedList.Sorted()));
         }
