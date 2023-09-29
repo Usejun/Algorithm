@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Algorithm
 {
-    public static class Sort
+    public static class Sorts
     {
         /// <summary>
         /// 선택 정렬, 시간복잡도 : N^2

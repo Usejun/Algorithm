@@ -69,10 +69,28 @@ namespace Algorithm
                 this.after = after;
                 this.before = before;
             }
+
+            public void Clear()
+            {
+                after = null;
+                before = null;
+            }
+            
+            public void Before(Node<T> beforeNode)
+            {
+                before = beforeNode;
+                beforeNode.after = this;
+            }
+
+            public void After(Node<T> afterNode)
+            {
+                after = afterNode;
+                afterNode.before = this;
+            }
         }
 
         // 양방향 링크드 리스트
-        public class LinkedList<T> : IEnumerable<T>, IList<T>, ICollection<T>, IEnumerable, IExpandArray<T>
+        public class LinkedList<T> : IEnumerable<T>, IList<T>, ICollection<T>, IEnumerable, IExpandArray<T>, IEnumerate<T>
         {
             public int Count => count;
             public bool IsEmpty => count == 0;
@@ -83,11 +101,11 @@ namespace Algorithm
 
             Node<T> front = null;
             Node<T> back = null;
-            int count = 0;
+            int count = 0;            
 
             public LinkedList()
             {
-                sort = Sort.QuickSort;
+                sort = Sorts.QuickSort;
             }
 
             public LinkedList(Func<T[], T[]> sort)
@@ -102,12 +120,13 @@ namespace Algorithm
 
             public void AddFront(T value)
             {
-                Node<T> node = new Node<T>(value, before: front);
-                if (front is null)
+                Node<T> node = new Node<T>(value);
+                if (front == null)
                     front = node;
                 else
                 {
-                    front.after = node;
+                    front.After(node);
+                    node.Before(front);
                     front = node;
                 }
 
@@ -125,12 +144,13 @@ namespace Algorithm
 
             public void AddBack(T value)
             {
-                Node<T> node = new Node<T>(value, after: back);
+                Node<T> node = new Node<T>(value);
                 if (back is null)
                     back = node;
                 else
                 {
-                    back.before = node;
+                    back.Before(node);
+                    node.After(back);
                     back = node;
                 }
 
@@ -148,13 +168,51 @@ namespace Algorithm
 
             public void Insert(int index, T value)
             {
-                Node<T> beforeNode = GetNode(index);
-                Node<T> newNode = new Node<T>(value, after: beforeNode, before: beforeNode.before);
+                if (index < 0)
+                    throw new Exception();
+                
+                if (AvailableRange(index))
+                {
+                    AddBack(value);
+                    return;
+                }
 
-                beforeNode.before.after = newNode;
-                beforeNode.before = newNode;
+                Node<T> startNode = GetNode(index);
+                Node<T> endNode = GetNode(index + 1);
+                Node<T> newNode = new Node<T>(value);
+                
+                startNode.Before(newNode);
+                endNode.Before(newNode);
 
                 count++;
+            }
+
+            public void Insert(int index, params T[] values)
+            {
+                if (AvailableRange(index))
+                    throw new Exception();                
+
+                if (index == count)
+                {
+                    AddBack(values);
+                    return;
+                }
+
+                Node<T> startNode = GetNode(index);
+                Node<T> endNode = GetNode(index + 1);
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    Node<T> newNode = new Node<T>(values[i]);
+                    startNode.Before(newNode);
+                    newNode.After(startNode);
+                    startNode = newNode;
+                }
+
+                startNode.Before(endNode);
+                endNode.After(startNode);
+
+                count += values.Length;
             }
 
             public bool Remove(T item)
@@ -223,6 +281,23 @@ namespace Algorithm
                 count--;
             }
 
+            public void RemoveRange(int start, int end)
+            {
+                if (end < start || count - (end - start + 1) < 0)
+                    throw new Exception();
+
+                Node<T> startNode = GetNode(start);
+                Node<T> endNode = GetNode(end);
+
+                startNode.after.before = endNode.before;
+                endNode.before.after = startNode.after;
+
+                startNode.Clear();
+                endNode.Clear();
+
+                count -= end - start + 1; 
+            }
+
             public int IndexOf(T value)
             {
                 int index = 0;
@@ -252,24 +327,10 @@ namespace Algorithm
                 count = 0;
             }
 
-            Node<T> GetNode(int index)
-            {
-                Node<T> node = front;
-                for (int i = 0; i < index; i++)
-                    node = node.before;
-
-                return node;
-            }
-
             public IEnumerator<T> GetEnumerator()
             {
                 for (Node<T> i = front; i != null; i = i.before)
                     yield return i.value;              
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
             }
 
             public void CopyTo(T[] array, int arrayIndex)
@@ -280,7 +341,7 @@ namespace Algorithm
 
             public T[] Sorted()
             {
-                return Sort.QuickSort(ToArray());
+                return Sorts.QuickSort(ToArray());
             }
 
             public T[] ToArray()
@@ -296,6 +357,52 @@ namespace Algorithm
             public List<T> ToList()
             {
                 return ToArray().ToList();               
+            }
+
+            public Tuple<int, T>[] ToEnumerate()
+            {
+                Tuple<int, T>[] tuples = new Tuple<int, T>[Count];
+
+                for (int i = 0; i < Count; i++)
+                    tuples[i] = Tuple.Create(i, this[i]);
+
+                return tuples;
+            }
+
+            public void Sort()
+            {
+                T[] sorted = Sorted();
+                Clear();
+                AddBack(sorted);
+            }
+
+            bool AvailableRange(int index)
+            {
+                return !IsEmpty && 0 > index && index < count;
+            }
+
+            Node<T> GetNode(int index)
+            {
+                Node<T> node = front;
+                for (int i = 0; i < index; i++)
+                    node = node.before;
+
+                return node;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            Tuple<int, T>[] IEnumerate<T>.ToEnumerate()
+            {
+                return ToEnumerate();
+            }
+
+            void IExpandArray<T>.Sort()
+            {
+                Sort();
             }
 
             public T this[int index]

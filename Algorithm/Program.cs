@@ -12,13 +12,20 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            var linkedList = new DataStructure.LinkedList<int>
-            {
-                0, 2, 4, 2, 3, 1, 5, 7, 3, 2, 7, 1, 0              
-            };
+            var linkedList = new DataStructure.LinkedList<int>();
 
-            Utility.Print(string.Join(" ", linkedList));
-            Utility.Print(string.Join(" ", linkedList.Sorted()));
+            linkedList.AddBack(0);
+
+            linkedList.Insert(1, new int[] { 1, 5, 2, 3, 4, 5, 1, 2, 3, 4 });
+
+            linkedList.RemoveRange(1, 3);
+
+            linkedList.Sort();
+
+            foreach ((int i, int v) in linkedList.ToEnumerate())
+            {
+                Utility.Print($"{i} {v}");
+            }
         }
     }
 }

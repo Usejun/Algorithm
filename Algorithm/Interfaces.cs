@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Algorithm
 {
@@ -9,5 +10,12 @@ namespace Algorithm
         List<T> ToList();
 
         T[] Sorted();
+
+        void Sort();
+    }
+
+    interface IEnumerate<T>
+    {
+        Tuple<int, T>[] ToEnumerate();
     }
 }
