@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Text;
 using System.IO;
 using System.Linq;
-using System.Collections;
+using System.Text;
+using System.Collections.Generic;
 
 namespace Algorithm
 {
-    public static class Utility
+    public static class Util
     {
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
 
@@ -50,7 +50,7 @@ namespace Algorithm
             }
         }
 
-        public static void Print(IEnumerable enumerable, string end = "\n", string separator = " ")
+        public static void Print<T>(IEnumerable<T> enumerable, string end = "\n", string separator = " ")
         {
             Print(string.Join(separator, enumerable), end:end);
         }

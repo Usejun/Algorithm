@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Algorithm
 {
     public static class Trees
     {
-        public class SegmentTree<T> where T : struct
+        public class SegmentTree<T> 
+            where T : IComparable<T>
         {
             T[] array;
             T[] tree;

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Algorithm.DataStructure;
-using static Algorithm.Utility;
+using static Algorithm.Util;
 using static Algorithm.Mathf;
 using System.Collections;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Dynamic;
 
 namespace Algorithm
 {
@@ -414,7 +416,8 @@ namespace Algorithm
         }
 
         // 우선순위 큐의 노드
-        public class PriorityQueueNode<T, T1> : IComparable<PriorityQueueNode<T, T1>>, IComparable<T1>
+        public class PriorityQueueNode<T, T1> : IComparable<PriorityQueueNode<T, T1>>
+            where T1 : IComparable<T1>
         {
             // 노드의 값
             public T Value;
@@ -438,16 +441,18 @@ namespace Algorithm
         }
 
         // 우선순위 큐
-        public class PriorityQueue<T, T1> where T1 : IComparable
+        public class PriorityQueue<T, T1> : IEnumerable<PriorityQueueNode<T, T1>>
+            where T1 : IComparable<T1>
         {
             public int Count => queue.Count;
-
             public PriorityQueueNode<T, T1> Max => queue.Max;
-
             public PriorityQueueNode<T, T1> Min => queue.Min;
-           
-            SortedSet<PriorityQueueNode<T, T1>> queue;
 
+            public bool IsReadOnly => false;
+
+            public PriorityQueueNode<T, T1> this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+            SortedSet<PriorityQueueNode<T, T1>> queue;
             Dictionary<T, List<T1>> keyValues;
 
             readonly bool isReverse = false;
@@ -479,12 +484,16 @@ namespace Algorithm
                 keyValues[key].Add(priority);
             }
 
+            public void Enqueue(PriorityQueueNode<T, T1> node)
+            {
+                queue.Add(node);
+            }
+
             public PriorityQueueNode<T, T1> Dequeue()
             {
                 PriorityQueueNode<T, T1> node = isReverse ? queue.Max : queue.Min;
 
                 queue.Remove(isReverse ? queue.Max : queue.Min);
-
                 keyValues[node.Value].Remove(node.Priority);
 
                 return node;
@@ -505,10 +514,39 @@ namespace Algorithm
                 return isReverse ? queue.Max : queue.Min;
             }
 
+            public void Clear()
+            {
+                queue.Clear();
+                keyValues.Clear();                
+            }
+
+            public void Add(PriorityQueueNode<T, T1> node)
+            {
+                Enqueue(node);
+            }
+
+            public bool Remove(PriorityQueueNode<T, T1> node)
+            {
+                return queue.Remove(node);
+            }
+
+            public IEnumerator<PriorityQueueNode<T, T1>> GetEnumerator()
+            {
+                var pq = isReverse ? queue.Reverse().ToArray() : queue.ToArray();                             
+
+                foreach (var node in pq)
+                    yield return node;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
         }
 
         // 스택 First in Last Out
-        public class Stack<T>
+        public class Stack<T> : IEnumerable<T>
+            where T : IComparable<T>
         {
             T[] source;
 
@@ -564,10 +602,22 @@ namespace Algorithm
                 front = Length - 1;
                 source = newArray;
             }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                for (int i = front - 1; i >= 0; i--)
+                    yield return source[i];
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
         }
 
         // 큐 First in First Out
-        public class Queue<T>
+        public class Queue<T> : IEnumerable<T>
+            where T : IComparable<T>
         {
             T[] source;
 
@@ -628,6 +678,19 @@ namespace Algorithm
                 source = newArray;
                 front = newFront;
                 back = 0;
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                for (int i = back; i != front; i = (i + 1) % Length)
+                {
+                    yield return source[i]; 
+                }
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
             }
         }
 
