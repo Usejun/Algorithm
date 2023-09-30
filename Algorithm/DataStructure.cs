@@ -414,7 +414,7 @@ namespace Algorithm
         }
 
         // 우선순위 큐의 노드
-        public class PriorityQueueNode<T, T1>
+        public class PriorityQueueNode<T, T1> : IComparable<PriorityQueueNode<T, T1>>, IComparable<T1>
         {
             // 노드의 값
             public T Value;
@@ -426,109 +426,84 @@ namespace Algorithm
                 Value = value;
                 Priority = priority;
             }
+
+            public int CompareTo(PriorityQueueNode<T, T1> other) => CompareTo(other.Priority);
+
+            public int CompareTo(T1 other) => (Priority as IComparable<T1>).CompareTo(other);
+
+            public override string ToString()
+            {
+                return $"Value : {Value}, Priority : {Priority}";
+            }
         }
 
-        // 우선순위 큐 [ 트리 구조 ]
-        public class PriorityQueue<T, T1>
+        // 우선순위 큐
+        public class PriorityQueue<T, T1> where T1 : IComparable
         {
-            // tree 구조를 가진 List를 구현
-            List<PriorityQueueNode<T, T1>> source = new List<PriorityQueueNode<T, T1>>();
+            public int Count => queue.Count;
 
-            // 노드의 우선도를 비교할 인터페이스
-            IComparer<T1> comparer;
+            public PriorityQueueNode<T, T1> Max => queue.Max;
 
-            // 큐 안에 들어있는 노드의 갯수
-            public int Count => source.Count;
+            public PriorityQueueNode<T, T1> Min => queue.Min;
+           
+            SortedSet<PriorityQueueNode<T, T1>> queue;
 
-            // 큐의 우선순위 정렬 순서를 정하는 생성자
-            public PriorityQueue(bool isReverse = false)
+            Dictionary<T, List<T1>> keyValues;
+
+            readonly bool isReverse = false;
+
+            public PriorityQueue()
             {
-                if (typeof(T1).GetInterface(nameof(IComparable<T1>)) == null)
-                    throw new ArgumentException("IComparable가 존재하지 않는 형식입니다.");
-
-                if (isReverse)
-                    comparer = new Reverse<T1>(Comparer<T1>.Default);
-                else
-                    comparer = Comparer<T1>.Default;
+                Init();
             }
 
-            public void Enqueue(T value, T1 priority)
+            public PriorityQueue(bool isReverse)
             {
-                // List안에 노드를 넣음
-                source.Add(new PriorityQueueNode<T, T1>(value, priority));
+                this.isReverse = isReverse;
+                Init();
+            }
 
-                int currentIndex = source.Count - 1;
+            private void Init()
+            {
+                queue = new SortedSet<PriorityQueueNode<T, T1>>();
+                keyValues = new Dictionary<T, List<T1>>();
+            }
 
-                while (currentIndex > 0)
-                {
-                    // 현재 노드의 부모 노드를 가져옴
-                    int parentIndex = (currentIndex - 1) / 2;
+            public void Enqueue(T key, T1 priority)
+            {
+                queue.Add(new PriorityQueueNode<T, T1>(key, priority));
 
-                    // 노드들의 우선도를 비교함
-                    if (comparer.Compare(source[currentIndex].Priority, source[parentIndex].Priority) >= 0)
-                        break;
+                if (!keyValues.ContainsKey(key))
+                    keyValues.Add(key, new List<T1>());
 
-                    // 만약 비교한 값이 정렬 순서와 맞지 않다면 부모 노드와 자식 노드를 바꿔줌
-                    Swap(currentIndex, parentIndex);
-
-                    // 현재 노드의 인덱스는 부모 노드의 인덱스로 변경함
-                    currentIndex = parentIndex;
-                }
-
+                keyValues[key].Add(priority);
             }
 
             public PriorityQueueNode<T, T1> Dequeue()
             {
-                if (source.Count == 0)
-                    throw new Exception();
+                PriorityQueueNode<T, T1> node = isReverse ? queue.Max : queue.Min;
 
-                var item = source[0];
-                int currentIndex = 0;
-                int lastIndex = source.Count - 1;
+                queue.Remove(isReverse ? queue.Max : queue.Min);
 
-                source[0] = source[lastIndex];
-                source.RemoveAt(lastIndex);
+                keyValues[node.Value].Remove(node.Priority);
 
-                while (true)
-                {
-                    int leftChild = currentIndex * 2 + 1;
-                    int rightChild = currentIndex * 2 + 2;
-                    int smallestChild = currentIndex;
+                return node;
+            }
 
-                    if (leftChild < source.Count && comparer.Compare(source[leftChild].Priority, source[smallestChild].Priority) < 0)
-                        smallestChild = leftChild;
-                    if (rightChild < source.Count && comparer.Compare(source[rightChild].Priority, source[smallestChild].Priority) < 0)
-                        smallestChild = rightChild;
-                    if (smallestChild == currentIndex)
-                        break;
+            public bool Contains(PriorityQueueNode<T, T1> node)
+            {
+                return queue.Contains(node);
+            }
 
-                    Swap(currentIndex, smallestChild);
-                    currentIndex = smallestChild;
-                }
-
-                return item;
+            public bool ContainsKey(T key)
+            {
+                return keyValues.ContainsKey(key);
             }
 
             public PriorityQueueNode<T, T1> Peek()
             {
-                if (source.Count == 0)
-                    throw new Exception();
-                else
-                    return source[0];
+                return isReverse ? queue.Max : queue.Min;
             }
-
-            public void Swap(int x, int y) => (source[x], source[y]) = (source[y], source[x]);
-
-        }
-
-        // 정렬 순서를 바꿔주는 클래스
-        public class Reverse<T> : IComparer<T>
-        {
-            private readonly IComparer<T> originalComparer;
-
-            public Reverse(IComparer<T> originalComparer) => this.originalComparer = originalComparer;
-
-            public int Compare(T x, T y) => originalComparer.Compare(y, x);
 
         }
 

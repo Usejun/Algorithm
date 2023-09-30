@@ -12,20 +12,20 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            var linkedList = new DataStructure.LinkedList<int>();
+            var pq = new DataStructure.PriorityQueue<string, int>(true);            
 
-            linkedList.AddBack(0);
+            pq.Enqueue("개구리", 0);
+            pq.Enqueue("@!#!@#", 213);
+            pq.Enqueue("!@#!@#", 2222);
 
-            linkedList.Insert(1, new int[] { 1, 5, 2, 3, 4, 5, 1, 2, 3, 4 });
-
-            linkedList.RemoveRange(1, 3);
-
-            linkedList.Sort();
-
-            foreach ((int i, int v) in linkedList.ToEnumerate())
+            if (pq.ContainsKey("개구리"))
             {
-                Utility.Print($"{i} {v}");
+                Utility.Print("개구리가 있잖아!");
             }
+
+            Utility.Print(pq.Dequeue());
+            Utility.Print(pq.Dequeue());
+            Utility.Print(pq.Dequeue());
         }
     }
 }
