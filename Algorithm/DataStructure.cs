@@ -1,38 +1,109 @@
 ﻿using System;
+using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using Algorithm.DataStructure;
 using static Algorithm.Util;
 using static Algorithm.Mathf;
-using System.Collections;
-using System.Linq;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
-using System.Dynamic;
 
 namespace Algorithm
 {
     namespace DataStructure
     {
-        // 가변 배열
-        public class DynamicArray<T>
+        // 기본 추상 형식 배열
+        public abstract class Collections<T> : IEnumerable<T>, IEnumerable, IEnumerate<T>
+        { 
+            public int Count => count;
+            public bool IsReadOnly { get; protected set; }
+
+            protected T[] source;
+            protected int count;
+
+            public virtual void Add(T value)
+            {
+                source[count++] = value;
+            }
+            public T[] ToArray()
+            {
+                return source;  
+            }
+            public List<T> ToList()
+            {
+                return source.ToList();
+            }
+            public IEnumerator<T> GetEnumerator()
+            {
+                foreach (T i in source)
+                    yield return i; 
+            }
+            public (int, T)[] ToEnumerate()
+            {
+                (int, T)[] enumerate = new (int, T)[count];
+
+                for (int i = 0; i < count; i++)
+                    enumerate[i] = (i, source[i]);
+
+                return enumerate;                    
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            (int, T)[] IEnumerate<T>.ToEnumerate()
+            {
+                return ToEnumerate();
+            }
+
+
+            public T this[int index]
+            {
+                get
+                {
+                    if (index < 0 || index >= count)
+                        throw new Exception("Out of Range");
+                    return source[index];
+                }
+                set
+                {
+                    if (index < 0 || index >= count)
+                        throw new Exception("Out of Range");
+                    source[index] = value;
+                }
+            }
+        }
+
+        // 기본 추상 형식 노드
+        public abstract class Node<T>
         {
-            T[] source;
+            public T Value;
 
-            int count = 0;
+            public Node(T value)
+            {
+                Value = value;
+            }
+        }
 
+        // 가변 배열
+        public class DynamicArray<T> : Collections<T>
+        {
             int Length => source.Length;
             bool IsFull => count == Length - 1;
 
-            public DynamicArray(int initializeSize = 100)
+            public Func<T[], T[]> Sorter { get; set; }
+
+            public DynamicArray(int initializeSize = 100, Func<T[], T[]> sort = null)
             {
+                Sorter = sort ?? Sorts.QuickSort;
                 source = new T[initializeSize];
             }
 
-            public void Add(T value)
+            public override void Add(T value)
             {
                 if (IsFull)
                     Expand();
 
-                source[count++] = value;
+                base.Add(value);
             }
 
             public void Add(params T[] values)
@@ -40,7 +111,7 @@ namespace Algorithm
                 foreach (T value in values)
                     Add(value);
             }
-
+        
             public void Expand()
             {
                 T[] newSource = new T[Length * 2];
@@ -50,26 +121,27 @@ namespace Algorithm
 
                 source = newSource;
             }
-
-            public T this[int index]
-            {
-                get => source[index];
-                set => source[index] = value;
-            }
+            
         }
 
         // 기본 노드
-        public class Node<T>
+        public class LinkedNode<T> : Node<T>
         {
-            public T value;
-            public Node<T> after;
-            public Node<T> before;
+            public LinkedNode<T> after;
+            public LinkedNode<T> before;
 
-            public Node(T value = default, Node<T> after = null, Node<T> before = null)
+            public LinkedNode(T value) : base(value) { }
+            
+            public void Before(LinkedNode<T> beforeNode)
             {
-                this.value = value;
-                this.after = after;
-                this.before = before;
+                before = beforeNode;
+                beforeNode.after = this;
+            }
+
+            public void After(LinkedNode<T> afterNode)
+            {
+                after = afterNode;
+                afterNode.before = this;
             }
 
             public void Clear()
@@ -77,22 +149,10 @@ namespace Algorithm
                 after = null;
                 before = null;
             }
-            
-            public void Before(Node<T> beforeNode)
-            {
-                before = beforeNode;
-                beforeNode.after = this;
-            }
-
-            public void After(Node<T> afterNode)
-            {
-                after = afterNode;
-                afterNode.before = this;
-            }
         }
 
         // 양방향 링크드 리스트
-        public class LinkedList<T> : IEnumerable<T>, IList<T>, ICollection<T>, IEnumerable, IExpandArray<T>, IEnumerate<T>
+        public class LinkedList<T> : IEnumerable<T>, IList<T>, ICollection<T>, IEnumerable, IEnumerate<T>
         {
             public int Count => count;
             public bool IsEmpty => count == 0;
@@ -101,8 +161,8 @@ namespace Algorithm
 
             public Func<T[], T[]> sort;
 
-            Node<T> front = null;
-            Node<T> back = null;
+            LinkedNode<T> front = null;
+            LinkedNode<T> back = null;
             int count = 0;            
 
             public LinkedList()
@@ -122,7 +182,7 @@ namespace Algorithm
 
             public void AddFront(T value)
             {
-                Node<T> node = new Node<T>(value);
+                LinkedNode<T> node = new LinkedNode<T>(value);
                 if (front == null)
                     front = node;
                 else
@@ -146,7 +206,7 @@ namespace Algorithm
 
             public void AddBack(T value)
             {
-                Node<T> node = new Node<T>(value);
+                LinkedNode<T> node = new LinkedNode<T>(value);
                 if (back is null)
                     back = node;
                 else
@@ -179,9 +239,9 @@ namespace Algorithm
                     return;
                 }
 
-                Node<T> startNode = GetNode(index);
-                Node<T> endNode = GetNode(index + 1);
-                Node<T> newNode = new Node<T>(value);
+                LinkedNode<T> startNode = GetNode(index);
+                LinkedNode<T> endNode = GetNode(index + 1);
+                LinkedNode<T> newNode = new LinkedNode<T>(value);
                 
                 startNode.Before(newNode);
                 endNode.Before(newNode);
@@ -200,12 +260,12 @@ namespace Algorithm
                     return;
                 }
 
-                Node<T> startNode = GetNode(index);
-                Node<T> endNode = GetNode(index + 1);
+                LinkedNode<T> startNode = GetNode(index);
+                LinkedNode<T> endNode = GetNode(index + 1);
 
                 for (int i = 0; i < values.Length; i++)
                 {
-                    Node<T> newNode = new Node<T>(values[i]);
+                    LinkedNode<T> newNode = new LinkedNode<T>(values[i]);
                     startNode.Before(newNode);
                     newNode.After(startNode);
                     startNode = newNode;
@@ -276,7 +336,7 @@ namespace Algorithm
                 if (count == 0)
                     throw new Exception();
 
-                Node<T> node = GetNode(index);
+                LinkedNode<T> node = GetNode(index);
 
                 node.before.after = node.after;
                 node.after.before = node.before;
@@ -288,8 +348,8 @@ namespace Algorithm
                 if (end < start || count - (end - start + 1) < 0)
                     throw new Exception();
 
-                Node<T> startNode = GetNode(start);
-                Node<T> endNode = GetNode(end);
+                LinkedNode<T> startNode = GetNode(start);
+                LinkedNode<T> endNode = GetNode(end);
 
                 startNode.after.before = endNode.before;
                 endNode.before.after = startNode.after;
@@ -303,9 +363,9 @@ namespace Algorithm
             public int IndexOf(T value)
             {
                 int index = 0;
-                Node<T> node = front;
+                LinkedNode<T> node = front;
 
-                while (value != (dynamic)node.value)
+                while (value != (dynamic)node.Value)
                 {
                     if (node.after == null)
                         return -1;
@@ -331,8 +391,8 @@ namespace Algorithm
 
             public IEnumerator<T> GetEnumerator()
             {
-                for (Node<T> i = front; i != null; i = i.before)
-                    yield return i.value;              
+                for (LinkedNode<T> i = front; i != null; i = i.before)
+                    yield return i.Value;              
             }
 
             public void CopyTo(T[] array, int arrayIndex)
@@ -361,12 +421,12 @@ namespace Algorithm
                 return ToArray().ToList();               
             }
 
-            public Tuple<int, T>[] ToEnumerate()
+            public (int, T)[] ToEnumerate()
             {
-                Tuple<int, T>[] tuples = new Tuple<int, T>[Count];
+                (int, T)[] tuples = new (int, T)[Count];
 
                 for (int i = 0; i < Count; i++)
-                    tuples[i] = Tuple.Create(i, this[i]);
+                    tuples[i] = (i, this[i]);
 
                 return tuples;
             }
@@ -383,9 +443,9 @@ namespace Algorithm
                 return !IsEmpty && 0 > index && index < count;
             }
 
-            Node<T> GetNode(int index)
+            LinkedNode<T> GetNode(int index)
             {
-                Node<T> node = front;
+                LinkedNode<T> node = front;
                 for (int i = 0; i < index; i++)
                     node = node.before;
 
@@ -397,20 +457,15 @@ namespace Algorithm
                 return GetEnumerator();
             }
 
-            Tuple<int, T>[] IEnumerate<T>.ToEnumerate()
+            (int, T)[] IEnumerate<T>.ToEnumerate()
             {
                 return ToEnumerate();
             }
 
-            void IExpandArray<T>.Sort()
-            {
-                Sort();
-            }
-
             public T this[int index]
             {
-                get => GetNode(index).value;
-                set => GetNode(index).value = value;
+                get => GetNode(index).Value;
+                set => GetNode(index).Value = value;
             }
 
         }
@@ -448,14 +503,10 @@ namespace Algorithm
             public PriorityQueueNode<T, T1> Max => queue.Max;
             public PriorityQueueNode<T, T1> Min => queue.Min;
 
-            public bool IsReadOnly => false;
-
-            public PriorityQueueNode<T, T1> this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
             SortedSet<PriorityQueueNode<T, T1>> queue;
             Dictionary<T, List<T1>> keyValues;
 
-            readonly bool isReverse = false;
+            private bool isReverse;
 
             public PriorityQueue()
             {

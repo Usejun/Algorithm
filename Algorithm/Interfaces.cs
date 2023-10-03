@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 namespace Algorithm
 {
-    interface IExpandArray<T>
+    interface IEnumerate<T>
     {
-        T[] ToArray();
+        (int, T)[] ToEnumerate();
+    }
 
-        List<T> ToList();
+    interface ISort<T>
+        where T : IComparable<T>
+    {
+        Func<T[], T[]> Sorter { get; set; }
+
+        void Sort();
 
         T[] Sorted();
 
-        void Sort();
-    }
-
-    interface IEnumerate<T>
-    {
-        Tuple<int, T>[] ToEnumerate();
     }
 }
