@@ -9,71 +9,28 @@ using static Algorithm.Mathf;
 namespace Algorithm
 {
     namespace DataStructure
-    {
-        // 기본 추상 형식 배열
-        public abstract class Collections<T> : IEnumerable<T>, IEnumerable, IEnumerate<T>
-        { 
-            public int Count => count;
-            public bool IsReadOnly { get; protected set; }
-
-            protected T[] source;
-            protected int count;
-
-            public virtual void Add(T value)
+    {      
+        //기본 배열 추상 클래스
+        public abstract class Collection<T> : IEnumerate<T>
+        {
+            public abstract T[] ToArray();
+            public virtual List<T> ToList()
             {
-                source[count++] = value;
+                return ToArray().ToList();
             }
-            public T[] ToArray()
+            public virtual (int, T)[] ToEnumerate()
             {
-                return source;  
-            }
-            public List<T> ToList()
-            {
-                return source.ToList();
-            }
-            public IEnumerator<T> GetEnumerator()
-            {
-                foreach (T i in source)
-                    yield return i; 
-            }
-            public (int, T)[] ToEnumerate()
-            {
-                (int, T)[] enumerate = new (int, T)[count];
+                T[] values = ToArray();
+                (int, T)[] enumerate = new (int, T)[values.Length];
 
-                for (int i = 0; i < count; i++)
-                    enumerate[i] = (i, source[i]);
+                for (int i = 0; i < values.Length; i++)
+                    enumerate[i] = (i + 1, values[i]);
 
-                return enumerate;                    
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-            (int, T)[] IEnumerate<T>.ToEnumerate()
-            {
-                return ToEnumerate();
-            }
-
-
-            public T this[int index]
-            {
-                get
-                {
-                    if (index < 0 || index >= count)
-                        throw new Exception("Out of Range");
-                    return source[index];
-                }
-                set
-                {
-                    if (index < 0 || index >= count)
-                        throw new Exception("Out of Range");
-                    source[index] = value;
-                }
+                return enumerate;
             }
         }
 
-        // 기본 추상 형식 노드
+        //기본 노드 추상 클래스
         public abstract class Node<T>
         {
             public T Value;
@@ -85,12 +42,33 @@ namespace Algorithm
         }
 
         // 가변 배열
-        public class DynamicArray<T> : Collections<T>
+        public class DynamicArray<T> : Collection<T>, IEnumerate<T>, IEnumerable<T>
         {
+            public int Count => count;
+            public bool IsFull => count == Length - 1;
+            public bool IsReadOnly => false;
+
+            T[] source;
+            int count = 0;
             int Length => source.Length;
-            bool IsFull => count == Length - 1;
 
             public Func<T[], T[]> Sorter { get; set; }
+
+            public T this[int index]
+            {
+                get
+                {
+                    if (index < 0 && index >= count)
+                        throw new Exception("Out of Range");
+                    return source[index];
+                }
+                set
+                {
+                    if (index < 0 && index >= count)
+                        throw new Exception("Out of Range");
+                    source[index] = value;
+                }
+            }
 
             public DynamicArray(int initializeSize = 100, Func<T[], T[]> sort = null)
             {
@@ -98,12 +76,12 @@ namespace Algorithm
                 source = new T[initializeSize];
             }
 
-            public override void Add(T value)
+            public void Add(T value)
             {
                 if (IsFull)
                     Expand();
 
-                base.Add(value);
+                source[count++] = value;
             }
 
             public void Add(params T[] values)
@@ -112,7 +90,7 @@ namespace Algorithm
                     Add(value);
             }
         
-            public void Expand()
+            void Expand()
             {
                 T[] newSource = new T[Length * 2];
 
@@ -121,7 +99,38 @@ namespace Algorithm
 
                 source = newSource;
             }
-            
+
+            public override T[] ToArray()
+            {
+                return source.Take(count).ToArray();
+            }
+
+            public override List<T> ToList()
+            {
+                return ToArray().ToList();
+            }
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                foreach (T value in source)
+                    yield return value;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                foreach (T value in source)
+                    yield return value;
+            }
+
+            (int, T)[] IEnumerate<T>.ToEnumerate()
+            {
+                (int, T)[] enumerate = new (int, T)[count];
+
+                for (int i = 0; i < count; i++)
+                    enumerate[i] = (i + 1, source[i]);     
+                
+                return enumerate;
+            }
         }
 
         // 기본 노드
@@ -152,29 +161,22 @@ namespace Algorithm
         }
 
         // 양방향 링크드 리스트
-        public class LinkedList<T> : IEnumerable<T>, IList<T>, ICollection<T>, IEnumerable, IEnumerate<T>
+        public class LinkedList<T> : Collection<T>, ICollection<T>, IList<T>
         {
             public int Count => count;
             public bool IsEmpty => count == 0;
-
             public bool IsReadOnly => false;
-
-            public Func<T[], T[]> sort;
 
             LinkedNode<T> front = null;
             LinkedNode<T> back = null;
-            int count = 0;            
+
+            int count = 0;
 
             public LinkedList()
             {
-                sort = Sorts.QuickSort;
+
             }
 
-            public LinkedList(Func<T[], T[]> sort)
-            {
-                this.sort = sort;
-            }
-            
             public void Add(T item)
             {
                 AddBack(item);
@@ -401,41 +403,20 @@ namespace Algorithm
                     array[i] = this[i];
             }
 
-            public T[] Sorted()
+            public LinkedNode<T>[] ToNodeArray()
             {
-                return Sorts.QuickSort(ToArray());
+                LinkedNode<T>[] values = new LinkedNode<T>[count];
+
+                for (int i = 0; i < count; i++)
+                    values[i] = GetNode(i);
+
+                return values;
+                
             }
 
-            public T[] ToArray()
+            public override T[] ToArray()
             {
-                T[] array = new T[Count];
-
-                for (int i = 0; i < Count; i++)
-                    array[i] = this[i];
-
-                return array;
-            }
-
-            public List<T> ToList()
-            {
-                return ToArray().ToList();               
-            }
-
-            public (int, T)[] ToEnumerate()
-            {
-                (int, T)[] tuples = new (int, T)[Count];
-
-                for (int i = 0; i < Count; i++)
-                    tuples[i] = (i, this[i]);
-
-                return tuples;
-            }
-
-            public void Sort()
-            {
-                T[] sorted = Sorted();
-                Clear();
-                AddBack(sorted);
+                return ToNodeArray().Select(node => node.Value).ToArray();
             }
 
             bool AvailableRange(int index)
@@ -455,11 +436,6 @@ namespace Algorithm
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return GetEnumerator();
-            }
-
-            (int, T)[] IEnumerate<T>.ToEnumerate()
-            {
-                return ToEnumerate();
             }
 
             public T this[int index]
@@ -596,7 +572,7 @@ namespace Algorithm
         }
 
         // 스택 First in Last Out
-        public class Stack<T> : IEnumerable<T>
+        public class Stack<T> : Collection<T>, IEnumerable<T>, IEnumerate<T>, ISort<T>
             where T : IComparable<T>
         {
             T[] source;
@@ -608,6 +584,7 @@ namespace Algorithm
             public int Count => count;
             public bool IsEmpty => front == 0;
             public bool IsFull => front == Length - 1;
+            public Func<T[], T[]> Sorter { get; private set; }
 
             int Length => source.Length;
 
@@ -654,20 +631,58 @@ namespace Algorithm
                 source = newArray;
             }
 
-            public IEnumerator<T> GetEnumerator()
+            public override T[] ToArray()
             {
-                for (int i = front - 1; i >= 0; i--)
-                    yield return source[i];
+                T[] values = new T[count];
+
+                for (int i = front - 1; i > 0; i++)                
+                    values[i] = source[i];
+                
+                return values;
+
+            }
+
+            public override List<T> ToList()
+            {
+                return ToArray().ToList();
+            }
+
+            public void Sort()
+            {
+                source = Sorter(source.Take(count).ToArray());
+                size = count;
+            }
+
+            public T[] Sorted()
+            {
+                return Sorter(source); 
+            }
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                foreach (T value in source)
+                    yield return value;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                foreach (T value in source)
+                    yield return value;
+            }
+
+            (int, T)[] IEnumerate<T>.ToEnumerate()
+            {
+                (int, T)[] enumerate = new (int, T)[count];
+
+                for (int i = 0; i < count; i++)
+                    enumerate[i] = (i + 1, source[i]);
+
+                return enumerate;
             }
         }
 
         // 큐 First in First Out
-        public class Queue<T> : IEnumerable<T>
+        public class Queue<T> : Collection<T>, IEnumerable<T>, IEnumerate<T>, ISort<T>
             where T : IComparable<T>
         {
             T[] source;
@@ -680,6 +695,8 @@ namespace Algorithm
             public int Count => count;
             public bool IsEmpty => front == back;
             public bool IsFull => (front + 1) % Length == back;
+            public Func<T[], T[]> Sorter { get; private set; }
+
             int Length => source.Length;
 
             public Queue(int initializeSize = 100)
@@ -713,6 +730,39 @@ namespace Algorithm
             public T Peek()
             {
                 return source[front];
+            }
+
+            public override T[] ToArray()
+            {
+                T[] values = new T[count];
+
+                int i = 0, j = front;
+
+                while (i < count)
+                {
+                    values[i] = source[j];
+                    j = (j + 1) % Length;
+                }
+
+                return values;
+
+            }
+
+            public override List<T> ToList()
+            {
+                return ToArray().ToList();
+            }
+
+            public void Sort()
+            {
+                source = Sorted();
+                front = 0;
+                back = count;
+            }
+
+            public T[] Sorted()
+            {
+                return Sorter(ToArray());
             }
 
             void Expand()
