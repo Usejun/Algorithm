@@ -472,7 +472,7 @@ namespace Algorithm
         }
 
         // 우선순위 큐
-        public class PriorityQueue<T, T1> : IEnumerable<PriorityQueueNode<T, T1>>
+        public class PriorityQueue<T, T1> : Collection<T1>
             where T1 : IComparable<T1>
         {
             public int Count => queue.Count;
@@ -482,7 +482,7 @@ namespace Algorithm
             SortedSet<PriorityQueueNode<T, T1>> queue;
             Dictionary<T, List<T1>> keyValues;
 
-            private bool isReverse;
+            readonly bool isReverse;
 
             public PriorityQueue()
             {
@@ -557,18 +557,34 @@ namespace Algorithm
                 return queue.Remove(node);
             }
 
-            public IEnumerator<PriorityQueueNode<T, T1>> GetEnumerator()
+            public override T1[] ToArray()
             {
-                var pq = isReverse ? queue.Reverse().ToArray() : queue.ToArray();                             
-
-                foreach (var node in pq)
-                    yield return node;
+                return ToValueArray();
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
+            public T[] ToKeyArray()
             {
-                return GetEnumerator();
+                T[] array = new T[Count];
+                int index = 0;
+
+                foreach (var key in keyValues.Keys)
+                        array[index++] = key;
+
+                return array;
             }
+
+            public T1[] ToValueArray()
+            {
+                T1[] array = new T1[Count];
+                int index = 0;
+
+                foreach (var values in keyValues.Values)
+                    foreach (var value in values)
+                        array[index++] = value;
+                
+                return array;
+            }
+
         }
 
         // 스택 First in Last Out
