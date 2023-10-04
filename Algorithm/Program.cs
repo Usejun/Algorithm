@@ -1,9 +1,8 @@
 ﻿using System;
 using Algorithm;
 using System.Text;
-using System.Collections;
 using Algorithm.DataStructure;
-using System.Collections.Generic;
+using System.Linq;
 
 namespace Algorithm
 {   
@@ -25,15 +24,37 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            DynamicArray<int> array = new DynamicArray<int>(10);
+            PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
+            Stack<Point> stack = new Stack<Point>();
+            Queue<int> queue = new Queue<int>();
 
-            for (int i = 0; i < 100; i++)
-            {
-                array.Add(i);
-            }
+            int[,,] v = new int[,,] { { { 0, 0 }, { 1, 1 }, { 2, 2 } }, { { 0, 0 }, { 1, 1 }, { 2, 2 } }, { { 0, 0 }, { 1, 1 }, { 2, 2 } } };
 
-            Console.WriteLine(string.Join(" ", array.ToArray()));
+            pq.Enqueue("potato", 3);
+            pq.Enqueue("감자", 1);
+            pq.Enqueue("poteto", 2);
 
+            stack.Push(new Point() { x = 1, y = 2 });
+            stack.Push(new Point() { x = 2, y = 3 });
+            stack.Push(new Point() { x = 3, y = 4 });
+
+            queue.Enqueue(3);
+            queue.Enqueue(4);
+            queue.Enqueue(2);
+            queue.Enqueue(1);
+            queue.Enqueue(8);
+           
+            Util.Print(stack.ToArray());
+
+            Util.Print(stack.ToEnumerate(), sep:"\n");
+
+            Util.Print(v, sep:" ");
+
+            Util.Print(pq.Dequeue().Value);
+            Util.Print(pq.Dequeue().Value);
+            Util.Print(pq.Dequeue().Value);
+
+            Util.Print(Util.Sort(queue));
         }
     }
 }

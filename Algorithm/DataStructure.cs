@@ -79,7 +79,7 @@ namespace Algorithm
             public void Add(T value)
             {
                 if (IsFull)
-                    Expand();
+                    Resize();
 
                 source[count++] = value;
             }
@@ -90,7 +90,7 @@ namespace Algorithm
                     Add(value);
             }
         
-            void Expand()
+            void Resize()
             {
                 T[] newSource = new T[Length * 2];
 
@@ -584,12 +584,10 @@ namespace Algorithm
                 
                 return array;
             }
-
         }
 
         // 스택 First in Last Out
-        public class Stack<T> : Collection<T>, IEnumerable<T>, IEnumerate<T>, ISort<T>
-            where T : IComparable<T>
+        public class Stack<T> : Collection<T>, IEnumerable<T>
         {
             T[] source;
 
@@ -613,7 +611,7 @@ namespace Algorithm
             public void Push(T value)
             {
                 if (IsFull)
-                    Expand();
+                    Resize();
 
                 source[front++] = value;
                 count++;
@@ -635,7 +633,7 @@ namespace Algorithm
                 return source[front - 1];
             }
 
-            void Expand()
+            void Resize()
             {
                 T[] newArray = new T[Length + size];
                 int newFront = Length - 1;
@@ -650,9 +648,10 @@ namespace Algorithm
             public override T[] ToArray()
             {
                 T[] values = new T[count];
+                int index = front - 1;
 
-                for (int i = front - 1; i > 0; i++)                
-                    values[i] = source[i];
+                for (int i = 0; index >= 0 && i < count; i++)                
+                    values[i] = source[index--];
                 
                 return values;
 
@@ -663,43 +662,21 @@ namespace Algorithm
                 return ToArray().ToList();
             }
 
-            public void Sort()
-            {
-                source = Sorter(source.Take(count).ToArray());
-                size = count;
-            }
-
-            public T[] Sorted()
-            {
-                return Sorter(source); 
-            }
-
             IEnumerator<T> IEnumerable<T>.GetEnumerator()
             {
-                foreach (T value in source)
+                foreach (T value in source.Take(count))
                     yield return value;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                foreach (T value in source)
+                foreach (T value in source.Take(count))
                     yield return value;
-            }
-
-            (int, T)[] IEnumerate<T>.ToEnumerate()
-            {
-                (int, T)[] enumerate = new (int, T)[count];
-
-                for (int i = 0; i < count; i++)
-                    enumerate[i] = (i + 1, source[i]);
-
-                return enumerate;
             }
         }
 
         // 큐 First in First Out
-        public class Queue<T> : Collection<T>, IEnumerable<T>, IEnumerate<T>, ISort<T>
-            where T : IComparable<T>
+        public class Queue<T> : Collection<T>, IEnumerable<T>
         {
             T[] source;
 
@@ -724,7 +701,7 @@ namespace Algorithm
             public void Enqueue(T value)
             {
                 if (IsFull)
-                    Expand();
+                    Resize();
 
                 source[front] = value;
                 front = (front + 1) % Length;
@@ -752,11 +729,11 @@ namespace Algorithm
             {
                 T[] values = new T[count];
 
-                int i = 0, j = front;
+                int i = 0, j = back;
 
                 while (i < count)
                 {
-                    values[i] = source[j];
+                    values[i++] = source[j];
                     j = (j + 1) % Length;
                 }
 
@@ -769,19 +746,7 @@ namespace Algorithm
                 return ToArray().ToList();
             }
 
-            public void Sort()
-            {
-                source = Sorted();
-                front = 0;
-                back = count;
-            }
-
-            public T[] Sorted()
-            {
-                return Sorter(ToArray());
-            }
-
-            void Expand()
+            void Resize()
             {
                 T[] newArray = new T[Length + size];
                 int newFront = 0;
@@ -797,17 +762,20 @@ namespace Algorithm
                 back = 0;
             }
 
-            public IEnumerator<T> GetEnumerator()
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
             {
                 for (int i = back; i != front; i = (i + 1) % Length)
                 {
-                    yield return source[i]; 
+                    yield return source[i];
                 }
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                for (int i = back; i != front; i = (i + 1) % Length)
+                {
+                    yield return source[i];
+                }
             }
         }
 

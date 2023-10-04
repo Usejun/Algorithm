@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using Algorithm;
 using System.Linq;
 using System.Text;
+using Algorithm.DataStructure;
 using System.Collections.Generic;
 
 namespace Algorithm
@@ -9,14 +11,7 @@ namespace Algorithm
     public static class Util
     {
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
-
-        public static void Print(object text = default, string end = "\n")
-        {
-            writer.Write(text?.ToString() ?? "");
-            writer.Write(end);
-            writer.Flush();
-        }
-
+        
         public static void Print(string text, string end = "\n")
         {
             writer.Write(text);
@@ -24,7 +19,14 @@ namespace Algorithm
             writer.Flush();
         }
 
-        public static void Print(Array array, string end = "\n", string separator = " ")
+        public static void Print(object value, string end = "\n")
+        {
+            writer.Write(value?.ToString() ?? "");
+            writer.Write(end);
+            writer.Flush();
+        }
+
+        public static void Print(Array array, string end = "\n", string sep = " ")
         {
             Put(0, new int[array.Rank]);
 
@@ -35,9 +37,9 @@ namespace Algorithm
                     for (int i = 0; i < array.GetLength(dimension); i++)
                     {
                         indices[dimension] = i;
-                        Print(array.GetValue(indices), end: separator);
+                        Print(array.GetValue(indices), end: sep);
                     }
-                    Print(end: end);
+                    Print("", end);
                 }
                 else
                 {
@@ -50,24 +52,26 @@ namespace Algorithm
             }
         }
 
-        public static void Print<T>(IEnumerable<T> enumerable, string end = "\n", string separator = " ")
-        {
-            Print(string.Join(separator, enumerable), end:end);
-        }
-
         public static string Input()
         {
             return Console.ReadLine();            
         }
 
-        public static string[] Inputs(char separator = ' ')
+        public static string[] Inputs(char sep = ' ')
         {
-            return Input().Split(separator);
+            return Input().Split(sep);
         }
 
-        public static T[] Inputs<T>(Func<string, T> parser, char separator = ' ')
+        public static T[] Inputs<T>(Func<string, T> parser, char sep = ' ')
         {
-            return Inputs(separator).Select(parser).ToArray();
+            return Inputs(sep).Select(parser).ToArray();
         }   
+
+        public static T[] Sort<T>(Collection<T> collection, Func<T[], T[]> sorter = null)
+            where T : IComparable<T>
+        {
+            sorter = sorter ?? Sorts.QuickSort;
+            return sorter(collection.ToArray());
+        }
     }
 }
