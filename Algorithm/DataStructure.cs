@@ -42,7 +42,7 @@ namespace Algorithm
         }
 
         // 가변 배열
-        public class DynamicArray<T> : Collection<T>, IEnumerate<T>, IEnumerable<T>
+        public class DynamicArray<T> : Collection<T>, IEnumerable<T>
         {
             public int Count => count;
             public bool IsFull => count == Length - 1;
@@ -120,16 +120,6 @@ namespace Algorithm
             {
                 foreach (T value in source)
                     yield return value;
-            }
-
-            (int, T)[] IEnumerate<T>.ToEnumerate()
-            {
-                (int, T)[] enumerate = new (int, T)[count];
-
-                for (int i = 0; i < count; i++)
-                    enumerate[i] = (i + 1, source[i]);     
-                
-                return enumerate;
             }
         }
 
@@ -304,9 +294,9 @@ namespace Algorithm
                 count--;
             }
 
-            public void RemoveFront(int n)
+            public void RemoveFront(int count)
             {
-                while (n-- > 0)
+                while (count-- > 0)
                     RemoveFront();
             }
 
@@ -327,9 +317,9 @@ namespace Algorithm
                 count--;
             }
 
-            public void RemoveBack(int n)
+            public void RemoveBack(int count)
             {
-                while (n-- > 0)
+                while (count-- > 0)
                     RemoveBack();
             }
 
@@ -472,7 +462,7 @@ namespace Algorithm
         }
 
         // 우선순위 큐
-        public class PriorityQueue<T, T1> : Collection<T1>
+        public class PriorityQueue<T, T1> : Collection<T>
             where T1 : IComparable<T1>
         {
             public int Count => queue.Count;
@@ -501,19 +491,31 @@ namespace Algorithm
                 keyValues = new Dictionary<T, List<T1>>();
             }
 
-            public void Enqueue(T key, T1 priority)
+            public void Enqueue(T value, T1 priority)
             {
-                queue.Add(new PriorityQueueNode<T, T1>(key, priority));
+                queue.Add(new PriorityQueueNode<T, T1>(value, priority));
 
-                if (!keyValues.ContainsKey(key))
-                    keyValues.Add(key, new List<T1>());
+                if (!keyValues.ContainsKey(value))
+                    keyValues.Add(value, new List<T1>());
 
-                keyValues[key].Add(priority);
+                keyValues[value].Add(priority);
             }
 
             public void Enqueue(PriorityQueueNode<T, T1> node)
             {
                 queue.Add(node);
+            }
+
+            public void Enqueue(params (T, T1)[] nodes)
+            {
+                foreach ((T value, T1 priority) in nodes)
+                    Enqueue(value, priority);
+            }
+
+            public void Enqueue(params PriorityQueueNode<T, T1>[] nodes)
+            {
+                foreach (PriorityQueueNode<T, T1> node in nodes)
+                    Enqueue(node);
             }
 
             public PriorityQueueNode<T, T1> Dequeue()
@@ -524,6 +526,21 @@ namespace Algorithm
                 keyValues[node.Value].Remove(node.Priority);
 
                 return node;
+            }
+
+            public PriorityQueueNode<T, T1>[] Dequeue(int count)
+            {
+                PriorityQueueNode<T, T1>[] nodes = new PriorityQueueNode<T, T1>[count];
+
+                for (int i = 0; i < count; i++)                
+                    nodes[i] = Dequeue();
+                
+                return nodes;
+            }
+
+            public void DequeueEnqueue()
+            {
+                Enqueue(Dequeue());
             }
 
             public bool Contains(PriorityQueueNode<T, T1> node)
@@ -557,12 +574,12 @@ namespace Algorithm
                 return queue.Remove(node);
             }
 
-            public override T1[] ToArray()
+            public override T[] ToArray()
             {
                 return ToValueArray();
             }
 
-            public T[] ToKeyArray()
+            public T[] ToValueArray()
             {
                 T[] array = new T[Count];
                 int index = 0;
@@ -573,7 +590,7 @@ namespace Algorithm
                 return array;
             }
 
-            public T1[] ToValueArray()
+            public T1[] ToPriorityArray()
             {
                 T1[] array = new T1[Count];
                 int index = 0;
@@ -777,6 +794,11 @@ namespace Algorithm
                     yield return source[i];
                 }
             }
+        }
+
+        public class Dictionary<T, T1> : Collection<T1>
+        {
+
         }
 
     }

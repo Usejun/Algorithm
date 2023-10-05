@@ -28,6 +28,8 @@ namespace Algorithm
 
         public static void Print(Array array, string end = "\n", string sep = " ")
         {
+            int count = array.Length;
+
             Put(0, new int[array.Rank]);
 
             void Put(int dimension, int[] indices)
@@ -37,7 +39,8 @@ namespace Algorithm
                     for (int i = 0; i < array.GetLength(dimension); i++)
                     {
                         indices[dimension] = i;
-                        Print(array.GetValue(indices), end: sep);
+                        count--;
+                        Print(array.GetValue(indices), end: count == 0 ? "" : sep);
                     }
                     Print("", end);
                 }
@@ -50,6 +53,11 @@ namespace Algorithm
                     }
                 }
             }
+        }
+
+        public static void Print<T>(Collection<T> collection, string end = "\n", string sep = " ")
+        {
+            Print(collection.ToArray(), end, sep);
         }
 
         public static string Input()
