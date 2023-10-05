@@ -11,9 +11,11 @@ namespace Algorithm
     namespace DataStructure
     {      
         //기본 배열 추상 클래스
-        public abstract class Collection<T> : IEnumerate<T>
+        public abstract class Collection<T> : IEnumerate<T>, IEnumerable<T>, ICollection<T>
         {
-            public abstract T[] ToArray();
+            public virtual bool IsReadOnly => false;
+            public virtual int Count => ToArray().Length;
+
             public virtual List<T> ToList()
             {
                 return ToArray().ToList();
@@ -27,6 +29,35 @@ namespace Algorithm
                     enumerate[i] = (i + 1, values[i]);
 
                 return enumerate;
+            }
+            public virtual IEnumerator<T> GetEnumerator()
+            {
+                foreach (T item in ToArray())
+                    yield return item;              
+            }
+            public virtual bool Contains(T value)
+            {
+                return ToArray().Contains(value);
+            }
+            public virtual void CopyTo(T[] array, int index)
+            {
+                T[] source = ToArray();
+
+                if (source.Length <= index)
+                    throw new ArgumentException("Out of Range");
+
+                for (int i = index; i < array.Length; i++)
+                    array[i] = source[i];                
+            }
+
+            public abstract T[] ToArray();
+            public abstract void Add(T value);
+            public abstract bool Remove(T value);
+            public abstract void Clear();           
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
             }
         }
 
@@ -42,11 +73,10 @@ namespace Algorithm
         }
 
         // 가변 배열
-        public class DynamicArray<T> : Collection<T>, IEnumerable<T>
+        public class DynamicArray<T> : Collection<T>, ICollection<T>
         {
-            public int Count => count;
+            public override int Count => count;
             public bool IsFull => count == Length - 1;
-            public bool IsReadOnly => false;
 
             T[] source;
             int count = 0;
@@ -76,7 +106,7 @@ namespace Algorithm
                 source = new T[initializeSize];
             }
 
-            public void Add(T value)
+            public override void Add(T value)
             {
                 if (IsFull)
                     Resize();
@@ -89,7 +119,23 @@ namespace Algorithm
                 foreach (T value in values)
                     Add(value);
             }
+
+            public override void Clear()
+            {
+                source = new T[Length];
+                count = 0;
+            }
         
+            public override bool Remove(T value)
+            {
+                if (!source.Contains(value))
+                    return false;
+
+                source = source.Except(new T[] { value }).ToArray();
+                count--;
+                return true;
+            }
+
             void Resize()
             {
                 T[] newSource = new T[Length * 2];
@@ -103,24 +149,7 @@ namespace Algorithm
             public override T[] ToArray()
             {
                 return source.Take(count).ToArray();
-            }
-
-            public override List<T> ToList()
-            {
-                return ToArray().ToList();
-            }
-
-            IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            {
-                foreach (T value in source)
-                    yield return value;
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                foreach (T value in source)
-                    yield return value;
-            }
+            }            
         }
 
         // 기본 노드
@@ -153,9 +182,8 @@ namespace Algorithm
         // 양방향 링크드 리스트
         public class LinkedList<T> : Collection<T>, ICollection<T>, IList<T>
         {
-            public int Count => count;
+            public override int Count => count;
             public bool IsEmpty => count == 0;
-            public bool IsReadOnly => false;
 
             LinkedNode<T> front = null;
             LinkedNode<T> back = null;
@@ -167,7 +195,7 @@ namespace Algorithm
 
             }
 
-            public void Add(T item)
+            public override void Add(T item)
             {
                 AddBack(item);
             }
@@ -269,11 +297,12 @@ namespace Algorithm
                 count += values.Length;
             }
 
-            public bool Remove(T item)
+            public override bool Remove(T item)
             {
-                if (front == null || back == null)
+                if (front == null || back == null || Contains(item))
                     return false;
-                RemoveBack();
+                RemoveAt(IndexOf(item));
+                count--;
                 return true;
             }
 
@@ -369,28 +398,16 @@ namespace Algorithm
                 return index;
             }
 
-            public bool Contains(T value)
+            public override bool Contains(T value)
             {
                 return IndexOf(value) != -1;
             }
 
-            public void Clear()
+            public override void Clear()
             {
                 front = null;
                 back = null;
                 count = 0;
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                for (LinkedNode<T> i = front; i != null; i = i.before)
-                    yield return i.Value;              
-            }
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                for (int i = arrayIndex; i < array.Length; i++)
-                    array[i] = this[i];
             }
 
             public LinkedNode<T>[] ToNodeArray()
@@ -421,11 +438,6 @@ namespace Algorithm
                     node = node.before;
 
                 return node;
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
             }
 
             public T this[int index]
@@ -462,10 +474,10 @@ namespace Algorithm
         }
 
         // 우선순위 큐
-        public class PriorityQueue<T, T1> : Collection<T>
+        public class PriorityQueue<T, T1> : Collection<PriorityQueueNode<T, T1>>
             where T1 : IComparable<T1>
         {
-            public int Count => queue.Count;
+            public override int Count => queue.Count;
             public PriorityQueueNode<T, T1> Max => queue.Max;
             public PriorityQueueNode<T, T1> Min => queue.Min;
 
@@ -543,11 +555,6 @@ namespace Algorithm
                 Enqueue(Dequeue());
             }
 
-            public bool Contains(PriorityQueueNode<T, T1> node)
-            {
-                return queue.Contains(node);
-            }
-
             public bool ContainsKey(T key)
             {
                 return keyValues.ContainsKey(key);
@@ -558,47 +565,31 @@ namespace Algorithm
                 return isReverse ? queue.Max : queue.Min;
             }
 
-            public void Clear()
+            public override void Clear()
             {
                 queue.Clear();
                 keyValues.Clear();                
             }
 
-            public void Add(PriorityQueueNode<T, T1> node)
+            public override void Add(PriorityQueueNode<T, T1> value)
             {
-                Enqueue(node);
+                Enqueue(value);
             }
 
-            public bool Remove(PriorityQueueNode<T, T1> node)
+            public override bool Remove(PriorityQueueNode<T, T1> value)
             {
-                return queue.Remove(node);
+                return queue.Remove(value);
             }
 
-            public override T[] ToArray()
+            public override PriorityQueueNode<T, T1>[] ToArray()
             {
-                return ToValueArray();
-            }
-
-            public T[] ToValueArray()
-            {
-                T[] array = new T[Count];
+                PriorityQueueNode<T, T1>[] array = new PriorityQueueNode<T, T1>[Count];
                 int index = 0;
 
-                foreach (var key in keyValues.Keys)
-                        array[index++] = key;
+                foreach (var value in keyValues.Keys)
+                    foreach (var priority in keyValues[value])
+                        array[index++] = new PriorityQueueNode<T, T1>(value, priority);
 
-                return array;
-            }
-
-            public T1[] ToPriorityArray()
-            {
-                T1[] array = new T1[Count];
-                int index = 0;
-
-                foreach (var values in keyValues.Values)
-                    foreach (var value in values)
-                        array[index++] = value;
-                
                 return array;
             }
         }
@@ -612,10 +603,9 @@ namespace Algorithm
             int count = 0;
             int size = 0;
 
-            public int Count => count;
+            public override int Count => count;
             public bool IsEmpty => front == 0;
             public bool IsFull => front == Length - 1;
-            public Func<T[], T[]> Sorter { get; private set; }
 
             int Length => source.Length;
 
@@ -648,6 +638,29 @@ namespace Algorithm
             public T Peek()
             {
                 return source[front - 1];
+            }
+
+            public override void Add(T value)
+            {
+                Push(value);
+            }
+
+            public override bool Remove(T value)
+            {
+                if (!ToArray().Contains(value))
+                    return false;
+
+                source = source.Except(new T[] { value }).ToArray();
+                front--;
+                count--;
+                return true;
+            }
+
+            public override void Clear()
+            {
+                source = new T[size];
+                count = 0;
+                front = 0;
             }
 
             void Resize()
@@ -702,10 +715,9 @@ namespace Algorithm
             int count = 0;
             int size = 0;
 
-            public int Count => count;
+            public override int Count => count;
             public bool IsEmpty => front == back;
             public bool IsFull => (front + 1) % Length == back;
-            public Func<T[], T[]> Sorter { get; private set; }
 
             int Length => source.Length;
 
@@ -742,6 +754,32 @@ namespace Algorithm
                 return source[front];
             }
 
+            public override void Add(T value)
+            {
+                Enqueue(value);
+            }
+
+            public override bool Remove(T value)
+            {
+                if (!ToArray().Contains(value))
+                    return false;
+
+                source = ToArray().Except(new T[] { value }).ToArray();
+                front = source.Length;
+                back = 0;
+                count--;
+
+                return true;
+            }
+
+            public override void Clear()
+            {
+                source = new T[size];
+                front = 0;
+                back = 0;
+                count = 0;
+            }
+
             public override T[] ToArray()
             {
                 T[] values = new T[count];
@@ -756,11 +794,6 @@ namespace Algorithm
 
                 return values;
 
-            }
-
-            public override List<T> ToList()
-            {
-                return ToArray().ToList();
             }
 
             void Resize()
@@ -796,9 +829,39 @@ namespace Algorithm
             }
         }
 
-        public class Dictionary<T, T1> : Collection<T1>
+        public class HashList<T, T1> : Collection<T1>            
         {
+            LinkedList<LinkedList<T1>> list;
 
+            public HashList()
+            {
+                list = new LinkedList<LinkedList<T1>>();                
+            }
+
+            public override T1[] ToArray()
+            {
+                DynamicArray<T1> array = new DynamicArray<T1>();
+
+                foreach (LinkedList<T1> linkedList in list)
+                    array.Add(linkedList.ToArray());
+
+                return array.ToArray();
+            }
+
+            public override void Add(T1 value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool Remove(T1 value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void Clear()
+            {
+                throw new NotImplementedException();
+            }
         }
 
     }

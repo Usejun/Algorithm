@@ -1,8 +1,8 @@
 ﻿using System;
 using Algorithm;
+using System.Linq;
 using System.Text;
 using Algorithm.DataStructure;
-using System.Linq;
 
 namespace Algorithm
 {   
@@ -32,8 +32,7 @@ namespace Algorithm
 
             Util.Print(pq);
 
-            Util.Print(pq.ToValueArray());
-            Util.Print(pq.ToPriorityArray());
+            Util.Print(pq.ToArray());
         }
     }
 }
