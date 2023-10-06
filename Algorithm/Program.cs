@@ -25,14 +25,21 @@ namespace Algorithm
             Console.OutputEncoding = Encoding.Unicode;
 
             PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
+            Stack<int> s = new Stack<int>();
+
+            s.Push(1);
+            s.Push(2);
+            s.Push(3);
+            s.Push(4);
 
             pq.Enqueue("potato", 3);
             pq.Enqueue("감자", 1);
             pq.Enqueue("poteto", 2);
 
-            Util.Print(pq);
+            Util.Print(pq, sep:"\n");
+            Util.Print(s);
 
-            Util.Print(pq.ToArray());
+            var (name, priority) = pq.Dequeue();
         }
     }
 }

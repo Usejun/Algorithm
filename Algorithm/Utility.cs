@@ -73,13 +73,6 @@ namespace Algorithm
         public static T[] Inputs<T>(Func<string, T> parser, char sep = ' ')
         {
             return Inputs(sep).Select(parser).ToArray();
-        }   
-
-        public static T[] Sort<T>(Collection<T> collection, Func<T[], T[]> sorter = null)
-            where T : IComparable<T>
-        {
-            sorter = sorter ?? Sorts.QuickSort;
-            return sorter(collection.ToArray());
-        }
+        }           
     }
 }

@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using Algorithm.DataStructure;
 using static Algorithm.Util;
 using static Algorithm.Mathf;
+using System.Runtime.CompilerServices;
 
 namespace Algorithm
 {
     namespace DataStructure
-    {      
+    {              
         //기본 배열 추상 클래스
         public abstract class Collection<T> : IEnumerate<T>, IEnumerable<T>, ICollection<T>
-        {
+        { 
             public virtual bool IsReadOnly => false;
             public virtual int Count => ToArray().Length;
 
@@ -73,7 +74,7 @@ namespace Algorithm
         }
 
         // 가변 배열
-        public class DynamicArray<T> : Collection<T>, ICollection<T>
+        public class DynamicArray<T> : Collection<T>
         {
             public override int Count => count;
             public bool IsFull => count == Length - 1;
@@ -81,8 +82,6 @@ namespace Algorithm
             T[] source;
             int count = 0;
             int Length => source.Length;
-
-            public Func<T[], T[]> Sorter { get; set; }
 
             public T this[int index]
             {
@@ -100,9 +99,8 @@ namespace Algorithm
                 }
             }
 
-            public DynamicArray(int initializeSize = 100, Func<T[], T[]> sort = null)
+            public DynamicArray(int initializeSize = 100)
             {
-                Sorter = sort ?? Sorts.QuickSort;
                 source = new T[initializeSize];
             }
 
@@ -180,7 +178,7 @@ namespace Algorithm
         }
 
         // 양방향 링크드 리스트
-        public class LinkedList<T> : Collection<T>, ICollection<T>, IList<T>
+        public class LinkedList<T> : Collection<T>, IList<T>
         {
             public override int Count => count;
             public bool IsEmpty => count == 0;
@@ -449,19 +447,22 @@ namespace Algorithm
         }
 
         // 우선순위 큐의 노드
-        public class PriorityQueueNode<T, T1> : IComparable<PriorityQueueNode<T, T1>>
+        public class PriorityQueueNode<T, T1> : Node<T>, IComparable<PriorityQueueNode<T, T1>>
             where T1 : IComparable<T1>
         {
-            // 노드의 값
-            public T Value;
             // 노드의 우선도
             public T1 Priority;
 
-            public PriorityQueueNode(T value, T1 priority)
+            public PriorityQueueNode(T value, T1 priority) : base(value)
             {
-                Value = value;
                 Priority = priority;
             }
+
+            public void Deconstruct(out T value, out T1 priority)
+            {
+                value = Value;
+                priority = Priority;
+            } 
 
             public int CompareTo(PriorityQueueNode<T, T1> other) => CompareTo(other.Priority);
 
@@ -471,6 +472,7 @@ namespace Algorithm
             {
                 return $"Value : {Value}, Priority : {Priority}";
             }
+
         }
 
         // 우선순위 큐
@@ -530,7 +532,7 @@ namespace Algorithm
                     Enqueue(node);
             }
 
-            public PriorityQueueNode<T, T1> Dequeue()
+            public  PriorityQueueNode<T, T1> Dequeue()
             {
                 PriorityQueueNode<T, T1> node = isReverse ? queue.Max : queue.Min;
 
@@ -595,7 +597,7 @@ namespace Algorithm
         }
 
         // 스택 First in Last Out
-        public class Stack<T> : Collection<T>, IEnumerable<T>
+        public class Stack<T> : Collection<T>
         {
             T[] source;
 
@@ -691,22 +693,10 @@ namespace Algorithm
             {
                 return ToArray().ToList();
             }
-
-            IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            {
-                foreach (T value in source.Take(count))
-                    yield return value;
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                foreach (T value in source.Take(count))
-                    yield return value;
-            }
         }
 
         // 큐 First in First Out
-        public class Queue<T> : Collection<T>, IEnumerable<T>
+        public class Queue<T> : Collection<T>
         {
             T[] source;
 
@@ -811,24 +801,9 @@ namespace Algorithm
                 front = newFront;
                 back = 0;
             }
-
-            IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            {
-                for (int i = back; i != front; i = (i + 1) % Length)
-                {
-                    yield return source[i];
-                }
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                for (int i = back; i != front; i = (i + 1) % Length)
-                {
-                    yield return source[i];
-                }
-            }
         }
 
+        // 해쉬리스트 (딕셔너리)
         public class HashList<T, T1> : Collection<T1>            
         {
             LinkedList<LinkedList<T1>> list;
