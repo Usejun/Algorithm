@@ -82,18 +82,17 @@ namespace Algorithm
             public Node(T value)            {
                 Value = value;
             }
-
         }
 
         // 가변 배열
         public class DynamicArray<T> : Collection<T>
         {
             public override int Count => count;
-            public bool IsFull => count == Length - 1;
+            public virtual bool IsFull => count == Length - 1;
 
-            T[] source;
-            int count = 0;
-            int Length => source.Length;
+            protected T[] source;
+            protected int count = 0;
+            protected int Length => source.Length;
 
             public T this[int index]
             {
@@ -615,19 +614,14 @@ namespace Algorithm
         }
 
         // 스택 First in Last Out
-        public class Stack<T> : Collection<T>
+        public class Stack<T> : DynamicArray<T>
         {
-            T[] source;
-
             int front = 0;
-            int count = 0;
             int size = 0;
 
             public override int Count => count;
             public bool IsEmpty => front == 0;
-            public bool IsFull => front == Length - 1;
-
-            int Length => source.Length;
+            public override bool IsFull => front == Length - 1;
 
             public Stack(int initializeSize = 100)
             {
@@ -720,20 +714,15 @@ namespace Algorithm
         }
 
         // 큐 First in First Out
-        public class Queue<T> : Collection<T>
+        public class Queue<T> : DynamicArray<T>
         {
-            T[] source;
-
             int front = 0;
             int back = 0;
-            int count = 0;
             int size = 0;
 
             public override int Count => count;
             public bool IsEmpty => front == back;
-            public bool IsFull => (front + 1) % Length == back;
-
-            int Length => source.Length;
+            public override bool IsFull => (front + 1) % Length == back;
 
             public Queue(int initializeSize = 100)
             {

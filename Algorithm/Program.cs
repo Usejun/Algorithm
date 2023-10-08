@@ -3,7 +3,6 @@ using Algorithm;
 using System.Linq;
 using System.Text;
 using Algorithm.DataStructure;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Algorithm
@@ -16,8 +15,6 @@ namespace Algorithm
             Console.OutputEncoding = Encoding.Unicode;
             Stopwatch sw = new Stopwatch();
 
-            HashTable<string, Pair<string, int>> v = new HashTable<string, Pair<string, int>>();
-          
         }
     }
 }
