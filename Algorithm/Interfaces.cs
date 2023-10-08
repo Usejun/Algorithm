@@ -9,12 +9,12 @@ namespace Algorithm
     }
 
     interface ISort<T>
-        where T : IComparable<T>
     {
         Func<T[], T[]> Sorter { get; }
 
         void Sort();
 
         T[] Sorted();
+        
     }
 }

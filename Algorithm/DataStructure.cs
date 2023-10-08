@@ -5,12 +5,11 @@ using System.Collections.Generic;
 using Algorithm.DataStructure;
 using static Algorithm.Util;
 using static Algorithm.Mathf;
-using System.Runtime.CompilerServices;
 
 namespace Algorithm
 {
     namespace DataStructure
-    {              
+    {                      
         //기본 배열 추상 클래스
         public abstract class Collection<T> : IEnumerate<T>, IEnumerable<T>, ICollection<T>
         { 
@@ -31,6 +30,15 @@ namespace Algorithm
 
                 return enumerate;
             }
+            public virtual T[] Sorted(Func<T[], T[]> sorter = null)
+            {
+                if (typeof(T).GetInterfaces().Contains(typeof(IComparable<T>))
+                 || typeof(T).GetInterfaces().Contains(typeof(IComparable)))
+                    throw new Exception("This type does not have ICompable.");
+
+                sorter = sorter ?? Sorts.QuickSort;
+                return sorter(ToArray());
+            }
             public virtual IEnumerator<T> GetEnumerator()
             {
                 foreach (T item in ToArray())
@@ -50,11 +58,15 @@ namespace Algorithm
                 for (int i = index; i < array.Length; i++)
                     array[i] = source[i];                
             }
+            public virtual void Sort()
+            {
 
+            }
+            
             public abstract T[] ToArray();
             public abstract void Add(T value);
             public abstract bool Remove(T value);
-            public abstract void Clear();           
+            public abstract void Clear();
 
             IEnumerator IEnumerable.GetEnumerator()
             {
@@ -62,15 +74,15 @@ namespace Algorithm
             }
         }
 
-        //기본 노드 추상 클래스
-        public abstract class Node<T>
+        //기본 노드 클래스
+        public class Node<T>
         {
             public T Value;
 
-            public Node(T value)
-            {
+            public Node(T value)            {
                 Value = value;
             }
+
         }
 
         // 가변 배열
@@ -112,7 +124,13 @@ namespace Algorithm
                 source[count++] = value;
             }
 
-            public void Add(params T[] values)
+            public void AddRange(params T[] values)
+            {
+                foreach (T value in values)
+                    Add(value);
+            }
+
+            public void AddRange(IEnumerable<T> values)
             {
                 foreach (T value in values)
                     Add(value);
@@ -148,43 +166,43 @@ namespace Algorithm
             {
                 return source.Take(count).ToArray();
             }            
-        }
-
-        // 기본 노드
-        public class LinkedNode<T> : Node<T>
-        {
-            public LinkedNode<T> after;
-            public LinkedNode<T> before;
-
-            public LinkedNode(T value) : base(value) { }
-            
-            public void Before(LinkedNode<T> beforeNode)
-            {
-                before = beforeNode;
-                beforeNode.after = this;
-            }
-
-            public void After(LinkedNode<T> afterNode)
-            {
-                after = afterNode;
-                afterNode.before = this;
-            }
-
-            public void Clear()
-            {
-                after = null;
-                before = null;
-            }
-        }
+        }    
 
         // 양방향 링크드 리스트
         public class LinkedList<T> : Collection<T>, IList<T>
         {
+            // 연결형 노드
+            public class LinkedNode : Node<T>
+            {
+                public LinkedNode after;
+                public LinkedNode before;
+
+                public LinkedNode(T value) : base(value) { }
+
+                public void Before(LinkedNode beforeNode)
+                {
+                    before = beforeNode;
+                    beforeNode.after = this;
+                }
+
+                public void After(LinkedNode afterNode)
+                {
+                    after = afterNode;
+                    afterNode.before = this;
+                }
+
+                public void Clear()
+                {
+                    after = null;
+                    before = null;
+                }
+            }
+
             public override int Count => count;
             public bool IsEmpty => count == 0;
 
-            LinkedNode<T> front = null;
-            LinkedNode<T> back = null;
+            LinkedNode front = null;
+            LinkedNode back = null;
 
             int count = 0;
 
@@ -200,7 +218,7 @@ namespace Algorithm
 
             public void AddFront(T value)
             {
-                LinkedNode<T> node = new LinkedNode<T>(value);
+                LinkedNode node = new LinkedNode(value);
                 if (front == null)
                     front = node;
                 else
@@ -216,7 +234,7 @@ namespace Algorithm
                 count++;
             }
 
-            public void AddFront(params T[] values)
+            public void AddRangeFront(params T[] values)
             {
                 foreach (T value in values)
                     AddFront(value);              
@@ -224,7 +242,7 @@ namespace Algorithm
 
             public void AddBack(T value)
             {
-                LinkedNode<T> node = new LinkedNode<T>(value);
+                LinkedNode node = new LinkedNode(value);
                 if (back is null)
                     back = node;
                 else
@@ -240,7 +258,7 @@ namespace Algorithm
                 count++;
             }
 
-            public void AddBack(params T[] values)
+            public void AddRangeBack(params T[] values)
             {
                 foreach (T value in values)
                     AddBack(value);
@@ -257,9 +275,9 @@ namespace Algorithm
                     return;
                 }
 
-                LinkedNode<T> startNode = GetNode(index);
-                LinkedNode<T> endNode = GetNode(index + 1);
-                LinkedNode<T> newNode = new LinkedNode<T>(value);
+                LinkedNode startNode = GetNode(index);
+                LinkedNode endNode = GetNode(index + 1);
+                LinkedNode newNode = new LinkedNode(value);
                 
                 startNode.Before(newNode);
                 endNode.Before(newNode);
@@ -267,23 +285,23 @@ namespace Algorithm
                 count++;
             }
 
-            public void Insert(int index, params T[] values)
+            public void InsertRange(int index, params T[] values)
             {
                 if (AvailableRange(index))
                     throw new Exception();                
 
                 if (index == count)
                 {
-                    AddBack(values);
+                    AddRangeBack(values);
                     return;
                 }
 
-                LinkedNode<T> startNode = GetNode(index);
-                LinkedNode<T> endNode = GetNode(index + 1);
+                LinkedNode startNode = GetNode(index);
+                LinkedNode endNode = GetNode(index + 1);
 
                 for (int i = 0; i < values.Length; i++)
                 {
-                    LinkedNode<T> newNode = new LinkedNode<T>(values[i]);
+                    LinkedNode newNode = new LinkedNode(values[i]);
                     startNode.Before(newNode);
                     newNode.After(startNode);
                     startNode = newNode;
@@ -355,7 +373,7 @@ namespace Algorithm
                 if (count == 0)
                     throw new Exception();
 
-                LinkedNode<T> node = GetNode(index);
+                LinkedNode node = GetNode(index);
 
                 node.before.after = node.after;
                 node.after.before = node.before;
@@ -367,8 +385,8 @@ namespace Algorithm
                 if (end < start || count - (end - start + 1) < 0)
                     throw new Exception();
 
-                LinkedNode<T> startNode = GetNode(start);
-                LinkedNode<T> endNode = GetNode(end);
+                LinkedNode startNode = GetNode(start);
+                LinkedNode endNode = GetNode(end);
 
                 startNode.after.before = endNode.before;
                 endNode.before.after = startNode.after;
@@ -382,7 +400,7 @@ namespace Algorithm
             public int IndexOf(T value)
             {
                 int index = 0;
-                LinkedNode<T> node = front;
+                LinkedNode node = front;
 
                 while (value != (dynamic)node.Value)
                 {
@@ -408,9 +426,9 @@ namespace Algorithm
                 count = 0;
             }
 
-            public LinkedNode<T>[] ToNodeArray()
+            public LinkedNode[] ToNodeArray()
             {
-                LinkedNode<T>[] values = new LinkedNode<T>[count];
+                LinkedNode[] values = new LinkedNode[count];
 
                 for (int i = 0; i < count; i++)
                     values[i] = GetNode(i);
@@ -424,18 +442,18 @@ namespace Algorithm
                 return ToNodeArray().Select(node => node.Value).ToArray();
             }
 
-            bool AvailableRange(int index)
+            public LinkedNode GetNode(int index)
             {
-                return !IsEmpty && 0 > index && index < count;
-            }
-
-            LinkedNode<T> GetNode(int index)
-            {
-                LinkedNode<T> node = front;
+                LinkedNode node = front;
                 for (int i = 0; i < index; i++)
                     node = node.before;
 
                 return node;
+            }
+
+            bool AvailableRange(int index)
+            {
+                return !IsEmpty && 0 > index && index < count;
             }
 
             public T this[int index]
@@ -532,7 +550,7 @@ namespace Algorithm
                     Enqueue(node);
             }
 
-            public  PriorityQueueNode<T, T1> Dequeue()
+            public PriorityQueueNode<T, T1> Dequeue()
             {
                 PriorityQueueNode<T, T1> node = isReverse ? queue.Max : queue.Min;
 
@@ -693,6 +711,12 @@ namespace Algorithm
             {
                 return ToArray().ToList();
             }
+
+            public override void Sort()
+            {
+                source = Sorted();
+                size = source.Length;
+            }
         }
 
         // 큐 First in First Out
@@ -801,41 +825,198 @@ namespace Algorithm
                 front = newFront;
                 back = 0;
             }
+
+            public override void Sort()
+            {
+                source = Sorted();
+                size = source.Length;
+            }
+        }
+     
+        // Key Value 형식의 구조체
+        public struct Pair<TKey, TValue> : IEquatable<Pair<TKey, TValue>>
+        {
+            public TKey Key => key;
+            public TValue Value => value;
+
+            TKey key;
+            TValue value;
+
+            public Pair(TKey key, TValue value)
+            {
+                this.key = key;
+                this.value = value;
+            }
+
+            public void Deconstruct(out TKey key, out TValue value)
+            {
+                key = this.key;
+                value = this.value;
+            }
+
+            public static bool operator ==(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
+            {
+                return l.Key.Equals(r.Key) && l.Value.Equals(r.Value);
+            }
+
+            public static bool operator !=(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
+            {
+                return !(l.Key.Equals(r.Key)) || !(l.Value.Equals(r.Value));
+            }
+
+            public bool Equals(Pair<TKey, TValue> pair)
+            {
+                return key.Equals(pair.key) && value.Equals(pair.value);
+            }
+
+            public override string ToString()
+            {
+                return $"({key} : {value})";
+            }
+
         }
 
-        // 해쉬리스트 (딕셔너리)
-        public class HashList<T, T1> : Collection<T1>            
+        // 해쉬테이블 (딕셔너리)
+        public class HashTable<TKey, TValue> : Collection<Pair<TKey, TValue>>
+            where TKey : IComparable<TKey>
         {
-            LinkedList<LinkedList<T1>> list;
+            const int PRIMENUMBER = 5413;
 
-            public HashList()
+            public override int Count => count;
+
+            int size;
+
+            LinkedList<Pair<TKey, TValue>>[] list;
+
+            int count = 0;
+
+            public HashTable(int initializeSize = 10000)
             {
-                list = new LinkedList<LinkedList<T1>>();                
+                size = initializeSize;
+                list = new LinkedList<Pair<TKey, TValue>>[size];
+
+                for (int i = 0; i < size; i++)                
+                    list[i] = new LinkedList<Pair<TKey, TValue>>();                
             }
 
-            public override T1[] ToArray()
+            public void Add(TKey key, TValue value)
             {
-                DynamicArray<T1> array = new DynamicArray<T1>();
+                int hashCode = Hash(key);
+                Pair<TKey, TValue> node = new Pair<TKey, TValue>(key, value);
 
-                foreach (LinkedList<T1> linkedList in list)
-                    array.Add(linkedList.ToArray());
-
-                return array.ToArray();
+                if (!ContainsKey(key))
+                    list[hashCode].Add(node);
+                else
+                    this[key] = value;             
             }
 
-            public override void Add(T1 value)
+            public override void Add(Pair<TKey, TValue> pair)
             {
-                throw new NotImplementedException();
+                Add(pair.Key, pair.Value);
             }
 
-            public override bool Remove(T1 value)
+            public bool Remove(TKey key, TValue value)
             {
-                throw new NotImplementedException();
+                if (Contains(key, value))
+                {
+                    var removePair = new Pair<TKey, TValue>(key, value);
+                    return list[Hash(key)].Remove(removePair);
+                }
+                return false;
+            }
+
+            public override bool Remove(Pair<TKey, TValue> pair)
+            {
+                return Remove(pair.Key, pair.Value);
+            }            
+
+            private int Hash(TKey key)
+            {
+                int hash = key.GetHashCode();
+
+                hash = hash * PRIMENUMBER;
+
+                hash = hash < 0 ? -hash : hash;
+
+                return hash % (list.Length - 1);
+            }
+
+            public bool Contains(TKey key, TValue value)
+            {
+                return ContainsKey(key) && this[key].Equals(value);
+            }
+
+            public override bool Contains(Pair<TKey, TValue> pair)
+            {
+                return Contains(pair.Key, pair.Value);
+            }
+
+            public bool ContainsKey(TKey key)
+            {
+                return ToArray().Select(node => node.Key).Contains(key);
+            }
+
+            public bool ContainsValue(TValue value)
+            {
+                return ToArray().Select(node => node.Value).Contains(value);
             }
 
             public override void Clear()
             {
-                throw new NotImplementedException();
+                list = new LinkedList<Pair<TKey, TValue>>[size];
+                count = 0;
+            }
+         
+            public override Pair<TKey, TValue>[] ToArray()
+            {
+                DynamicArray<Pair<TKey, TValue>> array = new DynamicArray<Pair<TKey, TValue>>();
+
+                foreach (LinkedList<Pair<TKey, TValue>> linkedList in list)
+                    array.AddRange(linkedList);
+
+                return array.ToArray();
+            }
+
+            public TKey[] ToKeyArray()
+            {
+                return ToArray().Select(pair => pair.Key).ToArray();
+            } 
+
+            public TValue[] ToValueArray()
+            {
+                return ToArray().Select(pair => pair.Value).ToArray();
+            }
+
+            public TValue this[TKey key]
+            {
+                get
+                {
+                    if (!ContainsKey(key))
+                        throw new Exception("does not exist");
+
+                    var pairs = list[Hash(key)];
+
+                    foreach (var pair in pairs)
+                        if (pair.Key.Equals(key))
+                            return pair.Value;
+
+                    return default;
+                }
+                set
+                {
+                    if (!ContainsKey(key))
+                    {
+                        Add(key, value);
+                    }
+                    else
+                    {
+                        var newPair = new Pair<TKey, TValue>(key, value);
+                        var pairs = list[Hash(key)];
+                        var pair = pairs.GetNode(pairs.IndexOf(newPair));
+
+                        pair.Value = newPair;
+                    }
+                }
             }
         }
 
