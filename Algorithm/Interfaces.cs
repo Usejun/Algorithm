@@ -8,13 +8,10 @@ namespace Algorithm
         (int, T)[] ToEnumerate();
     }
 
-    interface ISort<T>
+    interface IHash<T>
     {
-        Func<T[], T[]> Sorter { get; }
+        int Prime { get; set; }
 
-        void Sort();
-
-        T[] Sorted();
-        
+        int Hash(T key);
     }
 }

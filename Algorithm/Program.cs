@@ -15,6 +15,12 @@ namespace Algorithm
             Console.OutputEncoding = Encoding.Unicode;
             Stopwatch sw = new Stopwatch();
 
+            Set<int> ints = new Set<int>();
+
+            ints[123] = false;
+
+            Console.WriteLine(ints[123]);
+
         }
     }
 }

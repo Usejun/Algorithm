@@ -14,12 +14,10 @@ namespace Algorithm
         public abstract class Collection<T> : IEnumerate<T>, IEnumerable<T>, ICollection<T>
         { 
             public virtual bool IsReadOnly => false;
-            public virtual int Count => ToArray().Length;
+            public virtual int Count => count;
 
-            public virtual List<T> ToList()
-            {
-                return ToArray().ToList();
-            }
+            protected int count = 0;
+
             public virtual (int, T)[] ToEnumerate()
             {
                 T[] values = ToArray();
@@ -84,14 +82,55 @@ namespace Algorithm
             }
         }
 
-        // 가변 배열
-        public class DynamicArray<T> : Collection<T>
+        // Key Value 형식의 구조체
+        public struct Pair<TKey, TValue> : IEquatable<Pair<TKey, TValue>>
         {
-            public override int Count => count;
+            public TKey Key => key;
+            public TValue Value => value;
+
+            TKey key;
+            TValue value;
+
+            public Pair(TKey key, TValue value)
+            {
+                this.key = key;
+                this.value = value;
+            }
+
+            public void Deconstruct(out TKey key, out TValue value)
+            {
+                key = this.key;
+                value = this.value;
+            }
+
+            public static bool operator ==(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
+            {
+                return l.Key.Equals(r.Key) && l.Value.Equals(r.Value);
+            }
+
+            public static bool operator !=(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
+            {
+                return !(l.Key.Equals(r.Key)) || !(l.Value.Equals(r.Value));
+            }
+
+            public bool Equals(Pair<TKey, TValue> pair)
+            {
+                return key.Equals(pair.key) && value.Equals(pair.value);
+            }
+
+            public override string ToString()
+            {
+                return $"({key} : {value})";
+            }
+
+        }
+
+        // 가변 배열
+        public class List<T> : Collection<T>
+        {
             public virtual bool IsFull => count == Length - 1;
 
             protected T[] source;
-            protected int count = 0;
             protected int Length => source.Length;
 
             public T this[int index]
@@ -110,7 +149,7 @@ namespace Algorithm
                 }
             }
 
-            public DynamicArray(int initializeSize = 100)
+            public List(int initializeSize = 100)
             {
                 source = new T[initializeSize];
             }
@@ -197,13 +236,10 @@ namespace Algorithm
                 }
             }
 
-            public override int Count => count;
             public bool IsEmpty => count == 0;
 
             LinkedNode front = null;
             LinkedNode back = null;
-
-            int count = 0;
 
             public LinkedList()
             {
@@ -401,6 +437,9 @@ namespace Algorithm
                 int index = 0;
                 LinkedNode node = front;
 
+                if (node == null)
+                    return -1;
+
                 while (value != (dynamic)node.Value)
                 {
                     if (node.after == null)
@@ -464,26 +503,26 @@ namespace Algorithm
         }
 
         // 우선순위 큐의 노드
-        public class PriorityQueueNode<T, T1> : Node<T>, IComparable<PriorityQueueNode<T, T1>>
-            where T1 : IComparable<T1>
+        public class PriorityQueueNode<TValue, TPriority> : Node<TValue>, IComparable<PriorityQueueNode<TValue, TPriority>>
+            where TPriority : IComparable<TPriority>
         {
             // 노드의 우선도
-            public T1 Priority;
+            public TPriority Priority;
 
-            public PriorityQueueNode(T value, T1 priority) : base(value)
+            public PriorityQueueNode(TValue value, TPriority priority) : base(value)
             {
                 Priority = priority;
             }
 
-            public void Deconstruct(out T value, out T1 priority)
+            public void Deconstruct(out TValue value, out TPriority priority)
             {
                 value = Value;
                 priority = Priority;
             } 
 
-            public int CompareTo(PriorityQueueNode<T, T1> other) => CompareTo(other.Priority);
+            public int CompareTo(PriorityQueueNode<TValue, TPriority> other) => CompareTo(other.Priority);
 
-            public int CompareTo(T1 other) => (Priority as IComparable<T1>).CompareTo(other);
+            public int CompareTo(TPriority other) => (Priority as IComparable<TPriority>).CompareTo(other);
 
             public override string ToString()
             {
@@ -493,15 +532,15 @@ namespace Algorithm
         }
 
         // 우선순위 큐
-        public class PriorityQueue<T, T1> : Collection<PriorityQueueNode<T, T1>>
-            where T1 : IComparable<T1>
+        public class PriorityQueue<TValue, TPriority> : Collection<PriorityQueueNode<TValue, TPriority>>
+            where TPriority : IComparable<TPriority>
         {
             public override int Count => queue.Count;
-            public PriorityQueueNode<T, T1> Max => queue.Max;
-            public PriorityQueueNode<T, T1> Min => queue.Min;
+            public PriorityQueueNode<TValue, TPriority> Max => queue.Max;
+            public PriorityQueueNode<TValue, TPriority> Min => queue.Min;
 
-            SortedSet<PriorityQueueNode<T, T1>> queue;
-            Dictionary<T, List<T1>> keyValues;
+            SortedSet<PriorityQueueNode<TValue, TPriority>> queue;
+            Dictionary<TPriority, List<TValue>> keyValues;
 
             readonly bool isReverse;
 
@@ -518,50 +557,50 @@ namespace Algorithm
 
             private void Init()
             {
-                queue = new SortedSet<PriorityQueueNode<T, T1>>();
-                keyValues = new Dictionary<T, List<T1>>();
+                queue = new SortedSet<PriorityQueueNode<TValue, TPriority>>();
+                keyValues = new Dictionary<TPriority, List<TValue>>();
             }
 
-            public void Enqueue(T value, T1 priority)
+            public void Enqueue(TValue value, TPriority priority)
             {
-                queue.Add(new PriorityQueueNode<T, T1>(value, priority));
+                queue.Add(new PriorityQueueNode<TValue, TPriority>(value, priority));
 
-                if (!keyValues.ContainsKey(value))
-                    keyValues.Add(value, new List<T1>());
+                if (!keyValues.ContainsKey(priority))
+                    keyValues.Add(priority, new List<TValue>());
 
-                keyValues[value].Add(priority);
+                keyValues[priority].Add(value);
             }
 
-            public void Enqueue(PriorityQueueNode<T, T1> node)
+            public void Enqueue(PriorityQueueNode<TValue, TPriority> node)
             {
-                queue.Add(node);
+                Enqueue(node.Value, node.Priority);
             }
 
-            public void Enqueue(params (T, T1)[] nodes)
+            public void EnqueueRange(params (TValue, TPriority)[] nodes)
             {
-                foreach ((T value, T1 priority) in nodes)
+                foreach ((TValue value, TPriority priority) in nodes)
                     Enqueue(value, priority);
             }
 
-            public void Enqueue(params PriorityQueueNode<T, T1>[] nodes)
+            public void EnqueueRange(params PriorityQueueNode<TValue, TPriority>[] nodes)
             {
-                foreach (PriorityQueueNode<T, T1> node in nodes)
-                    Enqueue(node);
+                foreach (PriorityQueueNode<TValue, TPriority> node in nodes)
+                    Enqueue(node.Value, node.Priority);
             }
 
-            public PriorityQueueNode<T, T1> Dequeue()
+            public PriorityQueueNode<TValue, TPriority> Dequeue()
             {
-                PriorityQueueNode<T, T1> node = isReverse ? queue.Max : queue.Min;
+                PriorityQueueNode<TValue, TPriority> node = isReverse ? queue.Max : queue.Min;
 
                 queue.Remove(isReverse ? queue.Max : queue.Min);
-                keyValues[node.Value].Remove(node.Priority);
+                keyValues[node.Priority].Remove(node.Value);
 
                 return node;
             }
 
-            public PriorityQueueNode<T, T1>[] Dequeue(int count)
+            public PriorityQueueNode<TValue, TPriority>[] Dequeue(int count)
             {
-                PriorityQueueNode<T, T1>[] nodes = new PriorityQueueNode<T, T1>[count];
+                PriorityQueueNode<TValue, TPriority>[] nodes = new PriorityQueueNode<TValue, TPriority>[count];
 
                 for (int i = 0; i < count; i++)                
                     nodes[i] = Dequeue();
@@ -569,17 +608,12 @@ namespace Algorithm
                 return nodes;
             }
 
-            public void DequeueEnqueue()
+            public bool ContainsKey(TPriority priority)
             {
-                Enqueue(Dequeue());
+                return keyValues.ContainsKey(priority);
             }
 
-            public bool ContainsKey(T key)
-            {
-                return keyValues.ContainsKey(key);
-            }
-
-            public PriorityQueueNode<T, T1> Peek()
+            public PriorityQueueNode<TValue, TPriority> Peek()
             {
                 return isReverse ? queue.Max : queue.Min;
             }
@@ -590,31 +624,31 @@ namespace Algorithm
                 keyValues.Clear();                
             }
 
-            public override void Add(PriorityQueueNode<T, T1> value)
+            public override void Add(PriorityQueueNode<TValue, TPriority> value)
             {
                 Enqueue(value);
             }
 
-            public override bool Remove(PriorityQueueNode<T, T1> value)
+            public override bool Remove(PriorityQueueNode<TValue, TPriority> value)
             {
                 return queue.Remove(value);
             }
 
-            public override PriorityQueueNode<T, T1>[] ToArray()
+            public override PriorityQueueNode<TValue, TPriority>[] ToArray()
             {
-                PriorityQueueNode<T, T1>[] array = new PriorityQueueNode<T, T1>[Count];
+                PriorityQueueNode<TValue, TPriority>[] array = new PriorityQueueNode<TValue, TPriority>[Count];
                 int index = 0;
 
-                foreach (var value in keyValues.Keys)
-                    foreach (var priority in keyValues[value])
-                        array[index++] = new PriorityQueueNode<T, T1>(value, priority);
+                foreach (var priority in keyValues.Keys)
+                    foreach (var value in keyValues[priority])
+                        array[index++] = new PriorityQueueNode<TValue, TPriority>(value, priority);
 
                 return array;
             }
         }
 
         // 스택 First in Last Out
-        public class Stack<T> : DynamicArray<T>
+        public class Stack<T> : List<T>
         {
             int front = 0;
             int size = 0;
@@ -701,11 +735,6 @@ namespace Algorithm
 
             }
 
-            public override List<T> ToList()
-            {
-                return ToArray().ToList();
-            }
-
             public override void Sort()
             {
                 source = Sorted();
@@ -714,7 +743,7 @@ namespace Algorithm
         }
 
         // 큐 First in First Out
-        public class Queue<T> : DynamicArray<T>
+        public class Queue<T> : List<T>
         {
             int front = 0;
             int back = 0;
@@ -822,70 +851,29 @@ namespace Algorithm
             }
         }
      
-        // Key Value 형식의 구조체
-        public struct Pair<TKey, TValue> : IEquatable<Pair<TKey, TValue>>
+        // 딕셔너리
+        public class Dictionary<TKey, TValue> : Collection<Pair<TKey, TValue>>
         {
-            public TKey Key => key;
-            public TValue Value => value;
-
-            TKey key;
-            TValue value;
-
-            public Pair(TKey key, TValue value)
-            {
-                this.key = key;
-                this.value = value;
-            }
-
-            public void Deconstruct(out TKey key, out TValue value)
-            {
-                key = this.key;
-                value = this.value;
-            }
-
-            public static bool operator ==(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
-            {
-                return l.Key.Equals(r.Key) && l.Value.Equals(r.Value);
-            }
-
-            public static bool operator !=(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
-            {
-                return !(l.Key.Equals(r.Key)) || !(l.Value.Equals(r.Value));
-            }
-
-            public bool Equals(Pair<TKey, TValue> pair)
-            {
-                return key.Equals(pair.key) && value.Equals(pair.value);
-            }
-
-            public override string ToString()
-            {
-                return $"({key} : {value})";
-            }
-
-        }
-
-        // 해쉬테이블 (딕셔너리)
-        public class HashTable<TKey, TValue> : Collection<Pair<TKey, TValue>>
-            where TKey : IComparable<TKey>
-        {
-            const int PRIMENUMBER = 5413;
-
-            public override int Count => count;
+            public TKey[] Keys => ToArray().Select(pair => pair.Key).ToArray();
+            public TValue[] Values => ToArray().Select(pair => pair.Value).ToArray();
 
             int size;
+            const int PRIME = 5413;
 
             LinkedList<Pair<TKey, TValue>>[] list;
 
-            int count = 0;
-
-            public HashTable(int initializeSize = 10000)
+            void Init(int size)
             {
-                size = initializeSize;
                 list = new LinkedList<Pair<TKey, TValue>>[size];
 
-                for (int i = 0; i < size; i++)                
-                    list[i] = new LinkedList<Pair<TKey, TValue>>();                
+                for (int i = 0; i < size; i++)
+                    list[i] = new LinkedList<Pair<TKey, TValue>>();
+            }
+
+            public Dictionary(int initializeSize = 10000)
+            {
+                size = initializeSize;
+                Init(size);               
             }
 
             public void Add(TKey key, TValue value)
@@ -919,17 +907,6 @@ namespace Algorithm
                 return Remove(pair.Key, pair.Value);
             }            
 
-            private int Hash(TKey key)
-            {
-                int hash = key.GetHashCode();
-
-                hash = hash * PRIMENUMBER;
-
-                hash = hash < 0 ? -hash : hash;
-
-                return hash % (list.Length - 1);
-            }
-
             public bool Contains(TKey key, TValue value)
             {
                 return ContainsKey(key) && this[key].Equals(value);
@@ -952,28 +929,17 @@ namespace Algorithm
 
             public override void Clear()
             {
-                list = new LinkedList<Pair<TKey, TValue>>[size];
-                count = 0;
+                Init(size);
             }
          
             public override Pair<TKey, TValue>[] ToArray()
             {
-                DynamicArray<Pair<TKey, TValue>> array = new DynamicArray<Pair<TKey, TValue>>();
+                List<Pair<TKey, TValue>> array = new List<Pair<TKey, TValue>>();
 
                 foreach (LinkedList<Pair<TKey, TValue>> linkedList in list)
                     array.AddRange(linkedList);
 
                 return array.ToArray();
-            }
-
-            public TKey[] ToKeyArray()
-            {
-                return ToArray().Select(pair => pair.Key).ToArray();
-            } 
-
-            public TValue[] ToValueArray()
-            {
-                return ToArray().Select(pair => pair.Value).ToArray();
             }
 
             public TValue this[TKey key]
@@ -1007,7 +973,102 @@ namespace Algorithm
                     }
                 }
             }
+
+            private int Hash(TKey key)
+            {
+                int hash = key.GetHashCode();
+
+                hash = hash * PRIME;
+
+                hash = hash < 0 ? -hash : hash;
+
+                return hash % (size - 1);
+            }
         }
 
+        // 셋 
+        public class Set<T> : Collection<T>
+        {
+            int size;
+            const int PRIME = 5413;
+
+            LinkedList<T>[] list;
+
+            void Init()
+            {
+                list = new LinkedList<T>[size];
+
+                for (int i = 0; i < size; i++)
+                    list[i] = new LinkedList<T>();
+            }
+
+            public Set(int initializeSize = 1000)
+            {
+                size = initializeSize;
+                Init();
+            }
+
+            public override void Add(T value)
+            {
+                if (this[value])
+                    return;
+
+                list[Hash(value)].Add(value);
+            }
+
+            public override void Clear()
+            {
+                Init();
+            }
+
+            public override bool Remove(T value)
+            {
+                if (this[value])
+                {
+                    list[Hash(value)].Remove(value);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            public override bool Contains(T value)
+            {
+                return list[Hash(value)].Contains(value);
+            }
+
+            public override T[] ToArray()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool this[T index]
+            {
+                get 
+                {
+                    return Contains(index);
+                }
+                set
+                {
+                    if (value && !Contains(index))
+                        Add(index);
+                    else if (!value)
+                        Remove(index);
+                }
+            }
+
+            private int Hash(T value)
+            {
+                int hash = value.GetHashCode();
+
+                hash *= PRIME;
+
+                hash = hash < 0 ? -hash : hash;
+
+                return hash % (size - 1);
+            }
+        }
     }
 }
