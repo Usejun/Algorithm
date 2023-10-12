@@ -137,7 +137,7 @@ namespace Algorithm
             {
                 get
                 {
-                    if (index < 0 && index >= count)
+                    if (index < 0 || index >= count)
                         throw new Exception("Out of Range");
                     return source[index];
                 }
@@ -185,7 +185,11 @@ namespace Algorithm
                 if (!source.Contains(value))
                     return false;
 
-                source = source.Except(new T[] { value }).ToArray();
+                for (int i = 0; i < count; i++)
+                    if (source[i].Equals(value))                   
+                        for (int j = i + 1; j < count; j++)
+                            source[j - 1] = source[j];
+
                 count--;
                 return true;
             }
@@ -199,6 +203,7 @@ namespace Algorithm
                     source[i] = source[i + 1];
 
                 source = source.Take(count - 1).ToArray();
+                count--;
 
                 return true;
 
@@ -548,11 +553,10 @@ namespace Algorithm
         public class PriorityQueue<TValue, TPriority> : Collection<PriorityQueueNode<TValue, TPriority>>
             where TPriority : IComparable<TPriority>
         {
-            public override int Count => queue.Count;
-            public PriorityQueueNode<TValue, TPriority> Max => queue.Max;
-            public PriorityQueueNode<TValue, TPriority> Min => queue.Min;
+            public override int Count => heap.Count;
+            public PriorityQueueNode<TValue, TPriority> Top => heap.Top;
 
-            SortedSet<PriorityQueueNode<TValue, TPriority>> queue;
+            Heap<PriorityQueueNode<TValue, TPriority>> heap;
             Dictionary<TPriority, List<TValue>> keyValues;
 
             readonly bool reverse;
@@ -565,23 +569,27 @@ namespace Algorithm
             public PriorityQueue(bool reverse)
             {
                 this.reverse = reverse;
-                Init();
+                Init(); 
             }
 
             private void Init()
             {
-                queue = new SortedSet<PriorityQueueNode<TValue, TPriority>>();
+                heap = new Heap<PriorityQueueNode<TValue, TPriority>>(reverse:reverse);
                 keyValues = new Dictionary<TPriority, List<TValue>>();
             }
 
             public void Enqueue(TValue value, TPriority priority)
             {
-                queue.Add(new PriorityQueueNode<TValue, TPriority>(value, priority));
+                heap.Add(new PriorityQueueNode<TValue, TPriority>(value, priority));
+                count++;
 
                 if (!keyValues.ContainsKey(priority))
+                {
                     keyValues.Add(priority, new List<TValue>());
+                }
 
-                keyValues[priority].Add(value);
+                keyValues[priority].Add(value);                    
+
             }
 
             public void Enqueue(PriorityQueueNode<TValue, TPriority> node)
@@ -603,10 +611,12 @@ namespace Algorithm
 
             public PriorityQueueNode<TValue, TPriority> Dequeue()
             {
-                PriorityQueueNode<TValue, TPriority> node = reverse ? queue.Max : queue.Min;
+                PriorityQueueNode<TValue, TPriority> node = heap.Top;
 
-                queue.Remove(reverse ? queue.Max : queue.Min);
+                heap.Pop();
                 keyValues[node.Priority].Remove(node.Value);
+
+                count--;
 
                 return node;
             }
@@ -626,14 +636,9 @@ namespace Algorithm
                 return keyValues.ContainsKey(priority);
             }
 
-            public PriorityQueueNode<TValue, TPriority> Peek()
-            {
-                return reverse ? queue.Max : queue.Min;
-            }
-
             public override void Clear()
             {
-                queue.Clear();
+                heap.Clear();
                 keyValues.Clear();                
             }
 
@@ -644,7 +649,7 @@ namespace Algorithm
 
             public override bool Remove(PriorityQueueNode<TValue, TPriority> value)
             {
-                return queue.Remove(value);
+                return heap.Remove(value);
             }
 
             public override PriorityQueueNode<TValue, TPriority>[] ToArray()
@@ -652,9 +657,9 @@ namespace Algorithm
                 PriorityQueueNode<TValue, TPriority>[] array = new PriorityQueueNode<TValue, TPriority>[Count];
                 int index = 0;
 
-                foreach (var priority in keyValues.Keys)
+                foreach (var priority in keyValues.Keys)                
                     foreach (var value in keyValues[priority])
-                        array[index++] = new PriorityQueueNode<TValue, TPriority>(value, priority);
+                        array[index++] = new PriorityQueueNode<TValue, TPriority>(value, priority);                
 
                 return array;
             }
@@ -1106,6 +1111,9 @@ namespace Algorithm
         // 힙
         public class Heap<T> : Collection<T>
         {
+            public T Top => heap[0];
+            
+
             List<T> heap;
 
             int size;
@@ -1117,7 +1125,7 @@ namespace Algorithm
             {
                 if (comparer == null
                     && !typeof(T).GetInterfaces().Contains(typeof(IComparable))
-                    && !typeof(T).GetInterfaces().Contains(typeof(IComparable)))
+                    && !typeof(T).GetInterfaces().Contains(typeof(IComparable<T>)))
                     throw new Exception("This type does not have ICompable.");                           
 
                 this.comparer = comparer ?? Comparer<T>.Default;
@@ -1142,10 +1150,15 @@ namespace Algorithm
                     (heap[now], heap[next]) = (heap[next], heap[now]);
                     now = next;
                 }
+
+                count++;
             }
 
             public T Pop()
             {
+                if (count == 0)
+                    throw new Exception("Empty Heap");                
+
                 T value = heap[0];
 
                 int last = heap.Count - 1;
@@ -1175,6 +1188,8 @@ namespace Algorithm
 
                 }
 
+                count--;
+
                 return value;
             }
 
@@ -1185,12 +1200,15 @@ namespace Algorithm
 
             public override bool Remove(T value)
             {
-                return heap.Remove(value);   
+                bool state = heap.Remove(value);
+                count = state ? count - 1 : count;
+                return state;
             }
 
             public override void Clear()
             {
                 heap = new List<T>(size);
+                count = 0;
             }
 
             public override T[] ToArray()

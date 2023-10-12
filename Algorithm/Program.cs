@@ -19,14 +19,7 @@ namespace Algorithm
         {
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
-            Stopwatch sw = new Stopwatch();
-
-            Heap<int> heap = new Heap<int>(reverse:true);
-
-
-            Util.Print(heap);
-           
-            
+            Stopwatch sw = new Stopwatch();                
         }
     }
 }
