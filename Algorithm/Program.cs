@@ -2,25 +2,32 @@
 using Algorithm;
 using System.Linq;
 using System.Text;
-using Algorithm.DataStructure;
 using System.Diagnostics;
+using Algorithm.DataStructure;
 
 namespace Algorithm
-{   
+{
     internal class Program
-    {       
+    {
+        public class Point
+        {
+            public int x; 
+            public int y;
+        }
+
         static void Main(string[] args)
         {
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
             Stopwatch sw = new Stopwatch();
 
-            Set<int> ints = new Set<int>();
+            Heap<int> heap = new Heap<int>(reverse:true);
 
-            ints[123] = false;
 
-            Console.WriteLine(ints[123]);
-
+            Util.Print(heap);
+           
+            
         }
     }
 }
+    

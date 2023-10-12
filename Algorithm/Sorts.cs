@@ -26,7 +26,7 @@ namespace Algorithm
                         (min, index) = (array[j], j);
 
                 // 배열을 순환하면 최솟값을 찾는다.
-                // 그 값을 인덱스 값을 얻어온다.
+                // 그 값의 인덱스 값을 얻어온다.
 
                 (array[i], array[index]) = (array[index], array[i]);
                 // 찾은 최솟값과 i번째 값의 위치를 바꿔준다.

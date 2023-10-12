@@ -30,8 +30,8 @@ namespace Algorithm
             }
             public virtual T[] Sorted(Func<T[], T[]> sorter = null)
             {
-                if (typeof(T).GetInterfaces().Contains(typeof(IComparable<T>))
-                 || typeof(T).GetInterfaces().Contains(typeof(IComparable)))
+                if (!typeof(T).GetInterfaces().Contains(typeof(IComparable))
+                 && !typeof(T).GetInterfaces().Contains(typeof(IComparable)))
                     throw new Exception("This type does not have ICompable.");
 
                 sorter = sorter ?? Sorts.QuickSort;
@@ -190,6 +190,20 @@ namespace Algorithm
                 return true;
             }
 
+            public bool RemoveAt(int index)
+            {
+                if (index < 0 || index >= count)
+                    return false;
+
+                for (int i = index; i < count - 1; i++)
+                    source[i] = source[i + 1];
+
+                source = source.Take(count - 1).ToArray();
+
+                return true;
+
+            }
+
             void Resize()
             {
                 T[] newSource = new T[Length * 2];
@@ -325,7 +339,7 @@ namespace Algorithm
                 if (AvailableRange(index))
                     throw new Exception();                
 
-                if (index == count)
+                if (count - index - 1 <= 0)
                 {
                     AddRangeBack(values);
                     return;
@@ -350,10 +364,9 @@ namespace Algorithm
 
             public override bool Remove(T item)
             {
-                if (front == null || back == null || Contains(item))
+                if (front == null || back == null || !Contains(item))
                     return false;
                 RemoveAt(IndexOf(item));
-                count--;
                 return true;
             }
 
@@ -409,9 +422,9 @@ namespace Algorithm
                     throw new Exception();
 
                 LinkedNode node = GetNode(index);
-
-                node.before.after = node.after;
-                node.after.before = node.before;
+                
+                node?.before?.After(node?.after);
+                node?.after?.Before(node?.before);
                 count--;
             }
 
@@ -542,16 +555,16 @@ namespace Algorithm
             SortedSet<PriorityQueueNode<TValue, TPriority>> queue;
             Dictionary<TPriority, List<TValue>> keyValues;
 
-            readonly bool isReverse;
+            readonly bool reverse;
 
             public PriorityQueue()
             {
                 Init();
             }
 
-            public PriorityQueue(bool isReverse)
+            public PriorityQueue(bool reverse)
             {
-                this.isReverse = isReverse;
+                this.reverse = reverse;
                 Init();
             }
 
@@ -590,9 +603,9 @@ namespace Algorithm
 
             public PriorityQueueNode<TValue, TPriority> Dequeue()
             {
-                PriorityQueueNode<TValue, TPriority> node = isReverse ? queue.Max : queue.Min;
+                PriorityQueueNode<TValue, TPriority> node = reverse ? queue.Max : queue.Min;
 
-                queue.Remove(isReverse ? queue.Max : queue.Min);
+                queue.Remove(reverse ? queue.Max : queue.Min);
                 keyValues[node.Priority].Remove(node.Value);
 
                 return node;
@@ -615,7 +628,7 @@ namespace Algorithm
 
             public PriorityQueueNode<TValue, TPriority> Peek()
             {
-                return isReverse ? queue.Max : queue.Min;
+                return reverse ? queue.Max : queue.Min;
             }
 
             public override void Clear()
@@ -849,7 +862,7 @@ namespace Algorithm
                 source = Sorted();
                 size = source.Length;
             }
-        }
+        }   
      
         // 딕셔너리
         public class Dictionary<TKey, TValue> : Collection<Pair<TKey, TValue>>
@@ -882,7 +895,10 @@ namespace Algorithm
                 Pair<TKey, TValue> node = new Pair<TKey, TValue>(key, value);
 
                 if (!ContainsKey(key))
+                {
                     list[hashCode].Add(node);
+                    count++;
+                }
                 else
                     this[key] = value;             
             }
@@ -897,6 +913,7 @@ namespace Algorithm
                 if (Contains(key, value))
                 {
                     var removePair = new Pair<TKey, TValue>(key, value);
+                    count--;
                     return list[Hash(key)].Remove(removePair);
                 }
                 return false;
@@ -974,23 +991,24 @@ namespace Algorithm
                 }
             }
 
-            private int Hash(TKey key)
+            protected int Hash(TKey key)
             {
                 int hash = key.GetHashCode();
 
-                hash = hash * PRIME;
+                hash *= PRIME;
 
                 hash = hash < 0 ? -hash : hash;
 
                 return hash % (size - 1);
             }
+
         }
 
         // 셋 
         public class Set<T> : Collection<T>
         {
-            int size;
-            const int PRIME = 5413;
+            protected int size;
+            public const int PRIME = 5413;
 
             LinkedList<T>[] list;
 
@@ -1014,6 +1032,13 @@ namespace Algorithm
                     return;
 
                 list[Hash(value)].Add(value);
+                count++;
+            }
+
+            public void AddRange(params T[] values)
+            {
+                foreach (var value in values)
+                    Add(value);
             }
 
             public override void Clear()
@@ -1023,10 +1048,10 @@ namespace Algorithm
 
             public override bool Remove(T value)
             {
-                if (this[value])
+                if (Contains(value))
                 {
-                    list[Hash(value)].Remove(value);
-                    return true;
+                    count--;
+                    return list[Hash(value)].Remove(value);
                 }
                 else
                 {
@@ -1036,12 +1061,19 @@ namespace Algorithm
 
             public override bool Contains(T value)
             {
-                return list[Hash(value)].Contains(value);
+                int hash = Hash(value);
+
+                return list[hash].Count != 0 && list[hash].Contains(value);
             }
 
             public override T[] ToArray()
             {
-                throw new NotImplementedException();
+                List<T> array = new List<T>();
+
+                foreach (var linked in list)
+                    array.AddRange(linked);
+
+                return array.ToArray();             
             }
 
             public bool this[T index]
@@ -1059,7 +1091,7 @@ namespace Algorithm
                 }
             }
 
-            private int Hash(T value)
+            protected virtual int Hash(object value)
             {
                 int hash = value.GetHashCode();
 
@@ -1068,6 +1100,114 @@ namespace Algorithm
                 hash = hash < 0 ? -hash : hash;
 
                 return hash % (size - 1);
+            }
+        }
+
+        // 힙
+        public class Heap<T> : Collection<T>
+        {
+            List<T> heap;
+
+            int size;
+            bool reverse;
+
+            IComparer<T> comparer;
+
+            public Heap(int initializeSize = 100, IComparer<T> comparer = null, bool reverse = false)
+            {
+                if (comparer == null
+                    && !typeof(T).GetInterfaces().Contains(typeof(IComparable))
+                    && !typeof(T).GetInterfaces().Contains(typeof(IComparable)))
+                    throw new Exception("This type does not have ICompable.");                           
+
+                this.comparer = comparer ?? Comparer<T>.Default;
+                size = initializeSize;
+                heap = new List<T>(size);
+                this.reverse = reverse;
+            }
+
+            public void Push(T value)
+            {
+                heap.Add(value);
+
+                int now = heap.Count - 1;
+
+                while (now > 0)
+                {
+                    int next = (now - 1) / 2;
+
+                    if (Comp(heap[now], heap[next]))
+                        break;
+
+                    (heap[now], heap[next]) = (heap[next], heap[now]);
+                    now = next;
+                }
+            }
+
+            public T Pop()
+            {
+                T value = heap[0];
+
+                int last = heap.Count - 1;
+                heap[0] = heap[last];
+                heap.RemoveAt(last);
+                last--;
+
+                int now = 0;
+
+                while (true)
+                {
+                    int l = 2 * now + 1;
+                    int r = 2 * now + 2;
+
+                    int next = now;
+
+                    if (l <= last && Comp(heap[next], heap[l]))
+                        next = l;
+                    if (r <= last && Comp(heap[next], heap[r]))
+                        next = r;
+                    if (next == now)
+                        break;
+
+                    (heap[now], heap[next]) = (heap[next], heap[now]);
+
+                    now = next;
+
+                }
+
+                return value;
+            }
+
+            public override void Add(T value)
+            {
+                Push(value);
+            }            
+
+            public override bool Remove(T value)
+            {
+                return heap.Remove(value);   
+            }
+
+            public override void Clear()
+            {
+                heap = new List<T>(size);
+            }
+
+            public override T[] ToArray()
+            {
+                return heap.ToArray();
+            }
+
+            public override bool Contains(T value)
+            {
+                return heap.Contains(value);
+            }
+
+            private bool Comp(T x, T y)
+            {
+                if (reverse ? comparer.Compare(x, y) < 0 : comparer.Compare(x, y) >= 0)
+                    return true;
+                return false;                                    
             }
         }
     }
