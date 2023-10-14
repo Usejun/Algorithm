@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+
 using Algorithm.DataStructure;
 using static Algorithm.Util;
 using static Algorithm.Mathf;
@@ -27,15 +28,6 @@ namespace Algorithm
                     enumerate[i] = (i + 1, values[i]);
 
                 return enumerate;
-            }
-            public virtual T[] Sorted(Func<T[], T[]> sorter = null)
-            {
-                if (!typeof(T).GetInterfaces().Contains(typeof(IComparable))
-                 && !typeof(T).GetInterfaces().Contains(typeof(IComparable)))
-                    throw new Exception("This type does not have ICompable.");
-
-                sorter = sorter ?? Sorts.QuickSort;
-                return sorter(ToArray());
             }
             public virtual IEnumerator<T> GetEnumerator()
             {
@@ -568,7 +560,7 @@ namespace Algorithm
                 Init(); 
             }
 
-            private void Init()
+            void Init()
             {
                 heap = new Heap<PriorityQueueNode<TValue, TPriority>>(reverse:reverse);
                 keyValues = new Dictionary<TPriority, List<TValue>>();
@@ -667,7 +659,6 @@ namespace Algorithm
             int front = 0;
             int size = 0;
 
-            public override int Count => count;
             public bool IsEmpty => front == 0;
             public override bool IsFull => front == Length;
 
@@ -709,12 +700,10 @@ namespace Algorithm
 
             public override bool Remove(T value)
             {
-                if (!ToArray().Contains(value))
+                if (Peek().Equals(value))
                     return false;
 
-                source = source.Except(new T[] { value }).ToArray();
-                front--;
-                count--;
+                Pop();
                 return true;
             }
 
@@ -748,14 +737,6 @@ namespace Algorithm
 
             }
 
-            public void Sort()
-            {
-                T[] sorted = Sorted().Reverse().ToArray();
-
-                for (int i = 0; i < sorted.Length; i++)                
-                    source[i] = sorted[i];                
-            }
-
         }
 
         // 큐 First in First Out
@@ -765,7 +746,6 @@ namespace Algorithm
             int back = 0;
             int size = 0;
 
-            public override int Count => count;
             public bool IsEmpty => front == back;
             public override bool IsFull => (back + 1) % Length == front;
 
@@ -809,14 +789,10 @@ namespace Algorithm
 
             public override bool Remove(T value)
             {
-                if (!ToArray().Contains(value))
+                if (Peek().Equals(value))
                     return false;
 
-                source = ToArray().Except(new T[] { value }).ToArray();
-                front = source.Length;
-                back = 0;
-                count--;
-
+                Dequeue();
                 return true;
             }
 
@@ -858,17 +834,6 @@ namespace Algorithm
                 front = 0;
                 back = i;
                 count = i;
-            }
-
-            public void Sort()
-            {
-                T[] sorted = Sorted();
-
-                for (int i = 0; i < sorted.Length; i++)                
-                    source[i] = sorted[i];                
-
-                front = 0;
-                back = count;
             }
         }   
      
@@ -1240,7 +1205,7 @@ namespace Algorithm
                 return heap.Contains(value);
             }
 
-            private bool Comp(T x, T y)
+            bool Comp(T x, T y)
             {
                 if (reverse ? comparer.Compare(x, y) < 0 : comparer.Compare(x, y) >= 0)
                     return true;

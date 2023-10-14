@@ -21,16 +21,19 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            Heap<int> heap = new Heap<int>();
-            heap.Add(3);
-            heap.Add(1);
-            heap.Add(1);
-            heap.Add(2);
-            heap.Add(3);
-            heap.Add(0);
+            Stack<int> s = new Stack<int>();
 
-            Util.Print(heap);           
-            
+            for (int i = 0; i < 10; i++)
+            {
+                s.Push(i);
+            }
+
+            Util.Print(s);
+
+            Mathf.Sort(s);
+
+            Util.Print(s);
+
         }
     }
 }

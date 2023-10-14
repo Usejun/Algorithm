@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Runtime.Remoting.Lifetime;
 
 namespace Algorithm
 {
@@ -8,21 +8,20 @@ namespace Algorithm
         /// <summary>
         /// 선택 정렬, 시간복잡도 : N^2
         /// </summary>
-        public static T[] SelectionSort<T>(T[] source)
+        public static void SelectionSort<T>(T[] array)
+            where T : IComparable<T>
         {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
             int index = 0;
-            dynamic min; // 최솟값
+            T min; // 최솟값
 
             for (int i = 0; i < array.Length; i++)
             {
-                min = (dynamic)array.Max() + 1;
+                min = Mathf.Max(array);
                 // 초기 최솟값은 그 배열의 최댓값 또는 입력될 수 중 가장
                 // 큰 수에서 1 큰 수로 정해둔다.
 
                 for (int j = i; j < array.Length; j++)
-                    if (min > array[j])
+                    if (min.CompareTo(array[j]) > 0)
                         (min, index) = (array[j], j);
 
                 // 배열을 순환하면 최솟값을 찾는다.
@@ -31,44 +30,33 @@ namespace Algorithm
                 (array[i], array[index]) = (array[index], array[i]);
                 // 찾은 최솟값과 i번째 값의 위치를 바꿔준다.
             }
-
-            return array;
         }
 
         /// <summary>
         /// 버블 정렬, 시간 복잡도 : N^2
         /// </summary>
-        public static T[] BobbleSort<T>(T[] source)
+        public static void BobbleSort<T>(T[] array)
+            where T : IComparable<T>
         {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
             int i, j;
 
             for (i = 1; i < array.Length; i++)
-            {
                 for (j = 0; j < array.Length - i; j++)
-                {
-                    if ((dynamic)array[j] > array[j + 1])
-                    {
-                        // j번째 값과 j+1번째 값중에서 j번째 값이 작으면
+                    if (array[j].CompareTo(array[j + 1]) > 0)
+
+                        // j번째 값과 j+1번째 값중에서 j + 1번째 값이 작으면
                         // 위치를 바꿔준다.
                         // 왼쪽부터 작은 순으로 정렬된다.
 
                         (array[j], array[j + 1]) = (array[j + 1], array[j]);
-                    }
-                }
-            }
-
-            return array;
         }
 
         /// <summary>
         /// 삽입 정렬, 시간 복잡도 : 최선의 경우 N, 최악의 경우 N^2
         /// </summary>
-        public static T[] InsertionSort<T>(T[] source)
+        public static void InsertionSort<T>(T[] array)
+            where T : IComparable<T>
         {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
             int i, j;
 
             // 배열을 돌면서 키 값을 결정한다.
@@ -77,7 +65,7 @@ namespace Algorithm
                 j = i;
                 // 키 값은 인덱스가 0보다 작고, 키 값의 오른쪽 값과 비교해
                 // 만약에 오른쪽 값보다 클 경우 두 값의 위치를 바꾼다.
-                while (j >= 0 && (dynamic)array[j] > array[j + 1])
+                while (j >= 0 && array[j].CompareTo(array[j + 1]) > 0)
                 {
                     (array[j], array[j + 1]) = (array[j + 1], array[j]);
 
@@ -85,18 +73,14 @@ namespace Algorithm
                     j--;
                 }
             }
-
-            return array;
         }
 
         /// <summary>
         /// 퀵 정렬, 시간 복잡도 : 평균 NlogN, 최악의 경우 N^2
         /// </summary>
-        public static T[] QuickSort<T>(T[] source)
+        public static void QuickSort<T>(T[] array)
+            where T : IComparable<T>
         {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
-
             void QuickSort(int start, int end)
             {
                 if (start >= end) return;
@@ -107,10 +91,10 @@ namespace Algorithm
                 while (i <= j)
                 {
                     // 피벗보다 작은 값을 찾는다.
-                    while (i <= end && (dynamic)array[i] <= array[key]) i++;
+                    while (i <= end && array[i].CompareTo(array[key]) <= 0) i++;
 
                     // 피벗보다 큰 값을 찾는다.
-                    while ((dynamic)array[j] >= array[key] && j > start) j--;
+                    while (array[j].CompareTo(array[key]) >= 0 && j > start) j--;
 
                     // 만약 작은 값의 인덱스와 큰 값의 인덱스가 교차 될 때
                     // 교차된 큰 값의 인덱스와 피벗의 인덱스를 바꿔준다. 
@@ -119,7 +103,6 @@ namespace Algorithm
                     // 작은 값과 큰 값의 위치를 바꿔준다.
                     else
                         (array[j], array[i]) = (array[i], array[j]);
-
                 }
 
 
@@ -129,64 +112,55 @@ namespace Algorithm
             }
 
             QuickSort(0, array.Length - 1);
-
-            return array;
         }
 
         /// <summary>
         /// 병합 정렬, 시간 복잡도 : NlogN
         /// </summary>
-        public static T[] MergeSort<T>(T[] source)
+        public static void MergeSort<T>(T[] array)
+            where T : IComparable<T>
         {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
+            // 임시 배열을 선언
+            T[] sorted = new T[array.Length + 1];
 
-            void Sort(T[] _source, int low, int high)
+            Sort(0, array.Length - 1);
+
+            void Merge(int left, int mid, int right)
             {
-                // 배열의 크기가 0, 1일 경우에는 정렬된 배열로 처리된다.
-                if (high - low < 2) return;
+                int i = left, j = mid + 1, k = left, l = 0;
 
-                // 배열를 균등하게 자르기 위해 중앙을 찾는다.
-                int mid = Mathf.Mid(high, low);
-
-                // 배열을 나누고 정렬한다.
-                Sort(_source, 0, mid);
-                Sort(_source, mid, high);
-                Merge(_source, low, mid, high);
-            }
-
-            void Merge(T[] _source, int low, int mid, int high)
-            {
-                // 배열의 값을 담을 임시 배열을 만든다.   
-                T[] _array = new T[high - low];
-                int t = 0, l = low, h = mid;
-
-                while (l < mid && h < high)
+                // 분할 정렬된 배열을 합치기
+                while (i <= mid && j <= right)
                 {
-                    // 두 개로 나눈 배열을 차례차례 비교해 합친다.
-                    if ((dynamic)_source[l] < _source[h])
-                        _array[t++] = _source[l++];
+                    if (array[i].CompareTo(array[j]) <= 0)
+                        sorted[k++] = array[i++];
                     else
-                        _array[t++] = _source[h++];
+                        sorted[k++] = array[j++];
                 }
 
-                // 만약에 두 개로 나눈 배열 중에 먼저 순환이 끝난 배열이 있다면 
-                // 아직 끝나지 않은 배열을 돌아준다.
+                // 남아 있던 값들도 복사
+                if (i > mid)
+                    for (l = j; l <= right; l++)
+                        sorted[k++] = array[l];
+                else
+                    for(l = i; l <= mid; l++)
+                        sorted[k++] = array[l];
 
-                while (l < mid)
-                    _array[t++] = _source[l++];
-
-                while (h < high)
-                    _array[t++] = _source[h++];
-
-                // 마지막으로 정렬된 배열을 복사해준다.
-                for (int i = low; i < high; i++)
-                    _source[i] = _array[i - low];
+                // 임시 배열에 저장한 값을 원본 배열에 다시 복사
+                for (l = left; l <= right; l++)
+                    array[l] = sorted[l];                
             }
 
-            Sort(array, 0, array.Length);
-
-            return array;
+            void Sort(int left, int right)
+            {
+                if (array.Length > 1 && left < right)
+                {
+                    int mid = Mathf.Mid(left, right);
+                    Sort(left, mid); // 중앙을 기준으로 나눠 정렬
+                    Sort(mid + 1, right);
+                    Merge(left, mid, right); // 마지막으로 정렬된 두 배열을 합치기
+                }
+            }           
         }
 
         public static T[] HeapSort<T>(T[] source)
