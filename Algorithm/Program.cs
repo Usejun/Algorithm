@@ -3,6 +3,7 @@ using Algorithm;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Threading;
 using Algorithm.DataStructure;
 
 namespace Algorithm
@@ -19,7 +20,17 @@ namespace Algorithm
         {
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
-            Stopwatch sw = new Stopwatch();                
+
+            Heap<int> heap = new Heap<int>();
+            heap.Add(3);
+            heap.Add(1);
+            heap.Add(1);
+            heap.Add(2);
+            heap.Add(3);
+            heap.Add(0);
+
+            Util.Print(heap);           
+            
         }
     }
 }

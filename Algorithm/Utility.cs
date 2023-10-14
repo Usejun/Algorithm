@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Algorithm.DataStructure;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Algorithm
 {
@@ -12,6 +13,10 @@ namespace Algorithm
     {
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
         
+        static readonly StringBuilder sb = new StringBuilder();
+
+        static readonly Stopwatch sw = new Stopwatch();
+
         public static void Print(string text, string end = "\n")
         {
             writer.Write(text);
@@ -60,6 +65,64 @@ namespace Algorithm
             Print(collection.ToArray(), end, sep);
         }
 
+        public static void Append(string text, string end = "\n")
+        {
+            sb.Append(text);
+            sb.Append(end);
+        }
+
+        public static void Append(object value, string end = "\n")
+        {
+            sb.Append(value?.ToString() ?? "");
+            sb.Append(end);
+        }
+
+        public static void Append(Array array, string end = "\n", string sep = " ")
+        {
+            int count = array.Length;
+
+            Put(0, new int[array.Rank]);
+
+            void Put(int dimension, int[] indices)
+            {
+                if (dimension == array.Rank - 1)
+                {
+                    for (int i = 0; i < array.GetLength(dimension); i++)
+                    {
+                        indices[dimension] = i;
+                        count--;
+                        Append(array.GetValue(indices), end: count == 0 ? "" : sep);
+                    }
+                    Append("", end);
+                }
+                else
+                {
+                    for (int i = 0; i < array.GetLength(dimension); i++)
+                    {
+                        indices[dimension] = i;
+                        Put(dimension + 1, indices);
+                    }
+                }
+            }
+        }
+
+        public static void Append<T>(Collection<T> collection, string end = "\n", string sep = " ")
+        {
+            sb.Append(string.Join(sep, collection.ToArray()));
+            sb.Append(end);
+        }
+
+        public static void Flush()
+        {
+            Print(sb, end:"");
+            Clear();
+        }
+
+        public static void Clear()
+        {
+            sb.Clear();
+        }
+
         public static string Input()
         {
             return Console.ReadLine();            
@@ -74,5 +137,17 @@ namespace Algorithm
         {
             return Inputs(sep).Select(parser).ToArray();
         }           
+
+        public static void Start()
+        {
+            sw.Restart();
+        }
+
+        public static void Stop(bool isPrint = false)
+        {
+            sw.Stop();
+
+            if (isPrint) Print(sw.ElapsedMilliseconds + "ms");                        
+        }
     }
 }

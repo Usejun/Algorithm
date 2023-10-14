@@ -56,10 +56,6 @@ namespace Algorithm
                 for (int i = index; i < array.Length; i++)
                     array[i] = source[i];                
             }
-            public virtual void Sort()
-            {
-
-            }
             
             public abstract T[] ToArray();
             public abstract void Add(T value);
@@ -673,7 +669,7 @@ namespace Algorithm
 
             public override int Count => count;
             public bool IsEmpty => front == 0;
-            public override bool IsFull => front == Length - 1;
+            public override bool IsFull => front == Length;
 
             public Stack(int initializeSize = 100)
             {
@@ -731,14 +727,13 @@ namespace Algorithm
 
             void Resize()
             {
-                T[] newArray = new T[Length + size];
-                int newFront = Length - 1;
+                T[] array = new T[Length + size];
+                int back = Length - 1;
 
                 while (!IsEmpty)
-                    newArray[--newFront] = Pop();
+                    array[back--] = Pop();
 
-                front = Length - 1;
-                source = newArray;
+                source = array.ToArray();
             }
 
             public override T[] ToArray()
@@ -753,11 +748,14 @@ namespace Algorithm
 
             }
 
-            public override void Sort()
+            public void Sort()
             {
-                source = Sorted();
-                size = source.Length;
+                T[] sorted = Sorted().Reverse().ToArray();
+
+                for (int i = 0; i < sorted.Length; i++)                
+                    source[i] = sorted[i];                
             }
+
         }
 
         // 큐 First in First Out
@@ -769,7 +767,7 @@ namespace Algorithm
 
             public override int Count => count;
             public bool IsEmpty => front == back;
-            public override bool IsFull => (front + 1) % Length == back;
+            public override bool IsFull => (back + 1) % Length == front;
 
             public Queue(int initializeSize = 100)
             {
@@ -782,8 +780,8 @@ namespace Algorithm
                 if (IsFull)
                     Resize();
 
-                source[front] = value;
-                front = (front + 1) % Length;
+                source[back] = value;
+                back = (back + 1) % Length;
                 count++;
             }
 
@@ -792,8 +790,8 @@ namespace Algorithm
                 if (IsEmpty)
                     throw new Exception("Stack is Empty");
 
-                T value = source[back];
-                back = (back + 1) % Length;
+                T value = source[front];
+                front = (front + 1) % Length;
                 count--;
 
                 return value;
@@ -834,9 +832,9 @@ namespace Algorithm
             {
                 T[] values = new T[count];
 
-                int i = 0, j = back;
+                int i = 0, j = front;
 
-                while (i < count)
+                while (j < back)
                 {
                     values[i++] = source[j];
                     j = (j + 1) % Length;
@@ -848,35 +846,42 @@ namespace Algorithm
 
             void Resize()
             {
-                T[] newArray = new T[Length + size];
-                int newFront = 0;
+                T[] array = new T[Length + size];
+                int i = 0;
 
                 while (!IsEmpty)
                 {
-                    newArray[newFront] = Dequeue();
-                    newFront = (newFront + 1) % newArray.Length;
+                    array[i++] = Dequeue();
                 }
 
-                source = newArray;
-                front = newFront;
-                back = 0;
+                source = array.ToArray();
+                front = 0;
+                back = i;
+                count = i;
             }
 
-            public override void Sort()
+            public void Sort()
             {
-                source = Sorted();
-                size = source.Length;
+                T[] sorted = Sorted();
+
+                for (int i = 0; i < sorted.Length; i++)                
+                    source[i] = sorted[i];                
+
+                front = 0;
+                back = count;
             }
         }   
      
         // 딕셔너리
-        public class Dictionary<TKey, TValue> : Collection<Pair<TKey, TValue>>
+        public class Dictionary<TKey, TValue> : Collection<Pair<TKey, TValue>>, IHash<TKey>
         {
             public TKey[] Keys => ToArray().Select(pair => pair.Key).ToArray();
             public TValue[] Values => ToArray().Select(pair => pair.Value).ToArray();
 
             int size;
             const int PRIME = 5413;
+
+            public int Prime { get => PRIME; }
 
             LinkedList<Pair<TKey, TValue>>[] list;
 
@@ -996,7 +1001,7 @@ namespace Algorithm
                 }
             }
 
-            protected int Hash(TKey key)
+            int Hash(TKey key)
             {
                 int hash = key.GetHashCode();
 
@@ -1007,15 +1012,21 @@ namespace Algorithm
                 return hash % (size - 1);
             }
 
+            int IHash<TKey>.Hashing(TKey key)
+            {
+                return Hash(key);
+            }
         }
 
         // 셋 
-        public class Set<T> : Collection<T>
+        public class Set<T> : Collection<T>, IHash<T>
         {
-            protected int size;
-            public const int PRIME = 5413;
+            int size;
+            const int PRIME = 5413;
 
             LinkedList<T>[] list;
+
+            public int Prime => throw new NotImplementedException();
 
             void Init()
             {
@@ -1096,7 +1107,7 @@ namespace Algorithm
                 }
             }
 
-            protected virtual int Hash(object value)
+            int Hash(T value)
             {
                 int hash = value.GetHashCode();
 
@@ -1106,6 +1117,12 @@ namespace Algorithm
 
                 return hash % (size - 1);
             }
+
+            public int Hashing(T key)
+            {
+                return Hash(key);
+            }
+
         }
 
         // 힙
@@ -1113,7 +1130,6 @@ namespace Algorithm
         {
             public T Top => heap[0];
             
-
             List<T> heap;
 
             int size;
@@ -1144,11 +1160,10 @@ namespace Algorithm
                 {
                     int next = (now - 1) / 2;
 
-                    if (Comp(heap[now], heap[next]))
+                    if (!Comp(heap[now], heap[next]))
                         break;
 
                     (heap[now], heap[next]) = (heap[next], heap[now]);
-                    now = next;
                 }
 
                 count++;
@@ -1200,9 +1215,13 @@ namespace Algorithm
 
             public override bool Remove(T value)
             {
-                bool state = heap.Remove(value);
-                count = state ? count - 1 : count;
-                return state;
+                if (Top.Equals(value))
+                {
+                    Pop();
+                    count--;
+                    return true;
+                }
+                return false;
             }
 
             public override void Clear()

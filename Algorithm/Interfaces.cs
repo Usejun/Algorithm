@@ -10,8 +10,8 @@ namespace Algorithm
 
     interface IHash<T>
     {
-        int Prime { get; set; }
+        int Prime { get; }
 
-        int Hash(T key);
+        int Hashing(T key);
     }
 }
