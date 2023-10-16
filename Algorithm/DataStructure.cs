@@ -3,14 +3,10 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
-using Algorithm.DataStructure;
-using static Algorithm.Util;
-using static Algorithm.Mathf;
-
 namespace Algorithm
 {
     namespace DataStructure
-    {                      
+    {
         //기본 배열 추상 클래스
         public abstract class Collection<T> : IEnumerate<T>, IEnumerable<T>, ICollection<T>
         { 
@@ -211,6 +207,12 @@ namespace Algorithm
             {
                 return source.Take(count).ToArray();
             }            
+
+            public virtual void Sort(Action<T[]> sort = null)
+            {
+                sort = sort ?? Sorts.QuickSort;
+                sort(source);
+            }
         }    
 
         // 양방향 링크드 리스트
@@ -737,6 +739,15 @@ namespace Algorithm
 
             }
 
+            public override void Sort(Action<T[]> sort = null)
+            {
+                sort = sort ?? Sorts.QuickSort;
+                T[] array = ToArray();
+                sort(array);
+
+                Array.ConstrainedCopy(array, 0, source, 0, count);
+            }
+
         }
 
         // 큐 First in First Out
@@ -834,6 +845,19 @@ namespace Algorithm
                 front = 0;
                 back = i;
                 count = i;
+            }
+
+            public override void Sort(Action<T[]> sort = null)
+            {
+                sort = sort ?? Sorts.QuickSort;
+                T[] array = ToArray();
+                sort(array);
+
+                source = new T[Length];
+
+                Array.ConstrainedCopy(array, 0, source, 0, count);
+                front = 0;
+                back = count;
             }
         }   
      

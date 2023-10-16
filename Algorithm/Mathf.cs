@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Linq;
 using Algorithm.DataStructure;
 
 namespace Algorithm
@@ -13,6 +15,20 @@ namespace Algorithm
 
         public static double Mid(double a, double b) => a / 2 + b / 2;
 
+        public static T Max<T>(T a, T b, IComparer comp)
+        {
+            comp = comp ?? Comparer.Default;
+
+            return comp.Compare(a, b) > 0 ? a : b;  
+        }
+
+        public static T Min<T>(T a, T b, IComparer comp)
+        {
+            comp = comp ?? Comparer.Default;
+
+            return comp.Compare(a, b) < 0 ? a : b;
+        }
+
         public static T Max<T>(T a, T b)
             where T : IComparable<T>
         {
@@ -25,7 +41,7 @@ namespace Algorithm
             return a.CompareTo(b) < 0 ? a : b;
         }
 
-        public static T Max<T>(T[] array)
+        public static T Max<T>(params T[] array)
             where T : IComparable<T>
         {
             T max = array[0];
@@ -36,13 +52,33 @@ namespace Algorithm
             return max;
         }
 
-        public static T Min<T>(T[] array)
+        public static T Min<T>(params T[] array)
             where T : IComparable<T>
         {
             T min = array[0];
 
             foreach (T t in array)
                 min = Min(min, t);
+
+            return min;
+        }
+
+        public static T Max<T>(IComparer comp, params T[] array)
+        {
+            T max = array[0];
+
+            foreach (T t in array)
+                max = Max(max, t, comp);
+
+            return max;
+        }
+
+        public static T Min<T>(IComparer comp, params T[] array)
+        {
+            T min = array[0];
+
+            foreach (T t in array)
+                min = Min(min, t, comp);
 
             return min;
         }
@@ -72,11 +108,11 @@ namespace Algorithm
             sorter(array);
         }
 
-        public static void Sort<T>(Collection<T> collection, Action<T[]> sorter = null)
-            where T : IComparable<T>
+        public static int[] CreateArray(int length, int min, int max)
         {
-            Sort(collection.ToArray(), sorter);
-        }
+            Random r = new Random();
 
+            return Enumerable.Repeat(0, length).Select(i => r.Next(min, max)).ToArray();
+        }
     }
 }

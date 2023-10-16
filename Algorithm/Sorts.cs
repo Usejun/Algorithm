@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.Remoting.Lifetime;
+using System.Collections;
 
 namespace Algorithm
 {
@@ -9,19 +9,26 @@ namespace Algorithm
         /// 선택 정렬, 시간복잡도 : N^2
         /// </summary>
         public static void SelectionSort<T>(T[] array)
-            where T : IComparable<T>
         {
+            if (array.Length < 2)            
+                return;
+
+            if (!(array[0] is IComparable))
+                throw new Exception("IComapar is not implemented.");
+
+            IComparer comp = Comparer.Default;
+
             int index = 0;
             T min; // 최솟값
 
             for (int i = 0; i < array.Length; i++)
             {
-                min = Mathf.Max(array);
+                min = Mathf.Max(comp, array);
                 // 초기 최솟값은 그 배열의 최댓값 또는 입력될 수 중 가장
                 // 큰 수에서 1 큰 수로 정해둔다.
 
                 for (int j = i; j < array.Length; j++)
-                    if (min.CompareTo(array[j]) > 0)
+                    if (comp.Compare(min, array[j]) >= 0)
                         (min, index) = (array[j], j);
 
                 // 배열을 순환하면 최솟값을 찾는다.
@@ -35,14 +42,21 @@ namespace Algorithm
         /// <summary>
         /// 버블 정렬, 시간 복잡도 : N^2
         /// </summary>
-        public static void BobbleSort<T>(T[] array)
-            where T : IComparable<T>
+        public static void BobbleSort<T>(T[] array)        
         {
+            if (array.Length < 2)
+                return;
+
+            if (!(array[0] is IComparable))
+                throw new Exception("IComapar is not implemented.");
+
+            IComparer comp = Comparer.Default;
+
             int i, j;
 
             for (i = 1; i < array.Length; i++)
                 for (j = 0; j < array.Length - i; j++)
-                    if (array[j].CompareTo(array[j + 1]) > 0)
+                    if (comp.Compare(array[j], array[j + 1]) >= 0)
 
                         // j번째 값과 j+1번째 값중에서 j + 1번째 값이 작으면
                         // 위치를 바꿔준다.
@@ -55,8 +69,15 @@ namespace Algorithm
         /// 삽입 정렬, 시간 복잡도 : 최선의 경우 N, 최악의 경우 N^2
         /// </summary>
         public static void InsertionSort<T>(T[] array)
-            where T : IComparable<T>
         {
+            if (array.Length < 2)
+                return;
+
+            if (!(array[0] is IComparable))
+                throw new Exception("IComapar is not implemented.");
+
+            IComparer comp = Comparer.Default;
+
             int i, j;
 
             // 배열을 돌면서 키 값을 결정한다.
@@ -65,7 +86,7 @@ namespace Algorithm
                 j = i;
                 // 키 값은 인덱스가 0보다 작고, 키 값의 오른쪽 값과 비교해
                 // 만약에 오른쪽 값보다 클 경우 두 값의 위치를 바꾼다.
-                while (j >= 0 && array[j].CompareTo(array[j + 1]) > 0)
+                while (j >= 0 && comp.Compare(array[j], array[j + 1]) >= 0)
                 {
                     (array[j], array[j + 1]) = (array[j + 1], array[j]);
 
@@ -79,8 +100,17 @@ namespace Algorithm
         /// 퀵 정렬, 시간 복잡도 : 평균 NlogN, 최악의 경우 N^2
         /// </summary>
         public static void QuickSort<T>(T[] array)
-            where T : IComparable<T>
         {
+            if (array.Length < 2)
+                return;
+
+            if (!(array[0] is IComparable))
+                throw new Exception("IComapar is not implemented.");
+
+            IComparer comp = Comparer.Default;
+
+            QuickSort(0, array.Length - 1);
+
             void QuickSort(int start, int end)
             {
                 if (start >= end) return;
@@ -91,10 +121,10 @@ namespace Algorithm
                 while (i <= j)
                 {
                     // 피벗보다 작은 값을 찾는다.
-                    while (i <= end && array[i].CompareTo(array[key]) <= 0) i++;
+                    while (i <= end && comp.Compare(array[i], array[key]) <= 0) i++;
 
                     // 피벗보다 큰 값을 찾는다.
-                    while (array[j].CompareTo(array[key]) >= 0 && j > start) j--;
+                    while (comp.Compare(array[j], array[key]) >= 0 && j > start) j--;
 
                     // 만약 작은 값의 인덱스와 큰 값의 인덱스가 교차 될 때
                     // 교차된 큰 값의 인덱스와 피벗의 인덱스를 바꿔준다. 
@@ -110,16 +140,21 @@ namespace Algorithm
                 QuickSort(start, j - 1);
                 QuickSort(j + 1, end);
             }
-
-            QuickSort(0, array.Length - 1);
         }
 
         /// <summary>
         /// 병합 정렬, 시간 복잡도 : NlogN
         /// </summary>
         public static void MergeSort<T>(T[] array)
-            where T : IComparable<T>
         {
+            if (array.Length < 2)
+                return;
+
+            if (!(array[0] is IComparable))
+                throw new Exception("IComapar is not implemented.");
+
+            IComparer comp = Comparer.Default;
+
             // 임시 배열을 선언
             T[] sorted = new T[array.Length + 1];
 
@@ -132,7 +167,7 @@ namespace Algorithm
                 // 분할 정렬된 배열을 합치기
                 while (i <= mid && j <= right)
                 {
-                    if (array[i].CompareTo(array[j]) <= 0)
+                    if (comp.Compare(array[i], array[j]) <= 0)
                         sorted[k++] = array[i++];
                     else
                         sorted[k++] = array[j++];

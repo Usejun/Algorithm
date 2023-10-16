@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Algorithm
+﻿namespace Algorithm
 {
     interface IEnumerate<T>
     {

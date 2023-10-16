@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
-using Algorithm;
 using System.Linq;
 using System.Text;
-using Algorithm.DataStructure;
-using System.Collections.Generic;
+using System.Threading;
 using System.Diagnostics;
+using Algorithm.DataStructure;
 
 namespace Algorithm
 {
@@ -125,17 +124,17 @@ namespace Algorithm
 
         public static string Input()
         {
-            return Console.ReadLine();            
+            return Console.ReadLine();
         }
 
-        public static string[] Inputs(char sep = ' ')
+        public static string[] Input(char sep)
         {
             return Input().Split(sep);
         }
 
-        public static T[] Inputs<T>(Func<string, T> parser, char sep = ' ')
+        public static T[] Input<T>(Func<string, T> parser, char sep = ' ')
         {
-            return Inputs(sep).Select(parser).ToArray();
+            return Input().Split(sep).Select(parser).ToArray();
         }           
 
         public static void Start()
@@ -143,11 +142,16 @@ namespace Algorithm
             sw.Restart();
         }
 
-        public static void Stop(bool isPrint = false)
+        public static long Stop()
         {
             sw.Stop();
 
-            if (isPrint) Print(sw.ElapsedMilliseconds + "ms");                        
+            return sw.ElapsedMilliseconds;                     
+        }
+
+        public static void Sleep(int milliseconds)
+        {
+            Thread.Sleep(milliseconds);
         }
     }
 }
