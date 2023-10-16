@@ -1149,10 +1149,12 @@ namespace Algorithm
                 {
                     int next = (now - 1) / 2;
 
-                    if (!Comp(heap[now], heap[next]))
+                    if (!Comapare(heap[now], heap[next]))
                         break;
 
                     (heap[now], heap[next]) = (heap[next], heap[now]);
+
+                    now = next;
                 }
 
                 count++;
@@ -1179,9 +1181,9 @@ namespace Algorithm
 
                     int next = now;
 
-                    if (l <= last && Comp(heap[next], heap[l]))
+                    if (l < last && !Comapare(heap[next], heap[l]))
                         next = l;
-                    if (r <= last && Comp(heap[next], heap[r]))
+                    if (r < last && !Comapare(heap[next], heap[r]))
                         next = r;
                     if (next == now)
                         break;
@@ -1229,9 +1231,9 @@ namespace Algorithm
                 return heap.Contains(value);
             }
 
-            bool Comp(T x, T y)
+            bool Comapare(T x, T y)
             {
-                if (reverse ? comparer.Compare(x, y) < 0 : comparer.Compare(x, y) >= 0)
+                if (reverse ? comparer.Compare(x, y) > 0 : comparer.Compare(x, y) < 0)
                     return true;
                 return false;                                    
             }
