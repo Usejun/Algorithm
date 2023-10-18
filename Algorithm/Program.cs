@@ -18,12 +18,9 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            var heap = new Heap<int>(reverse:true) { 1, 4, 6, 3, 2, 1, 5, 8, 2, 4, 6, 1};
-
-            while (heap.Count > 0)
-            {
-                Util.Print(heap.Pop());
-            };
+            var arr = Extensions.Create(100, -120, 123);
+            Sorts.QuickSort(arr);
+            Util.Print(arr, sep:"\n");
             
         }
     }

@@ -106,13 +106,6 @@ namespace Algorithm
         {
             sorter = sorter ?? Sorts.QuickSort;
             sorter(array);
-        }
-
-        public static int[] CreateArray(int length, int min, int max)
-        {
-            Random r = new Random();
-
-            return Enumerable.Repeat(0, length).Select(i => r.Next(min, max)).ToArray();
-        }
+        }        
     }
 }

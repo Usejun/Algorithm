@@ -7,7 +7,18 @@ namespace Algorithm
 {
     namespace DataStructure
     {
-        //기본 배열 추상 클래스
+        //배열 추가 기능
+        public static class Extensions 
+        {
+            public static int[] Create(int length, int min, int max)
+            {
+                Random r = new Random();
+
+                return Enumerable.Repeat(0, length).Select(i => r.Next(min, max)).ToArray();
+            }
+        }
+
+        //기본 배열 추상 클래스     
         public abstract class Collection<T> : IEnumerate<T>, IEnumerable<T>, ICollection<T>
         { 
             public virtual bool IsReadOnly => false;
@@ -53,7 +64,7 @@ namespace Algorithm
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return GetEnumerator();
-            }
+            }            
         }
 
         //기본 노드 클래스
@@ -216,7 +227,7 @@ namespace Algorithm
         }    
 
         // 양방향 링크드 리스트
-        public class LinkedList<T> : Collection<T>, IList<T>
+        public class LinkedList<T> : Collection<T>, IList<T>        
         {
             // 연결형 노드
             public class LinkedNode : Node<T>
@@ -226,22 +237,29 @@ namespace Algorithm
 
                 public LinkedNode(T value) : base(value) { }
 
-                public void Before(LinkedNode beforeNode)
+                public void Connect(LinkedNode node, bool isBefore = true)
                 {
-                    before = beforeNode;
-                    beforeNode.after = this;
-                }
-
-                public void After(LinkedNode afterNode)
-                {
-                    after = afterNode;
-                    afterNode.before = this;
+                    if (isBefore)
+                    {
+                        before = node;
+                        node.after = this;
+                    }
+                    else if (!isBefore)
+                    {
+                        after = node;
+                        node.before = this;
+                    }
                 }
 
                 public void Clear()
                 {
                     after = null;
                     before = null;
+                }                
+
+                public static implicit operator bool(LinkedNode node)
+                {
+                    return node != null;
                 }
             }
 
@@ -267,8 +285,7 @@ namespace Algorithm
                     front = node;
                 else
                 {
-                    front.After(node);
-                    node.Before(front);
+                    front.Connect(node, false);
                     front = node;
                 }
 
@@ -291,8 +308,7 @@ namespace Algorithm
                     back = node;
                 else
                 {
-                    back.Before(node);
-                    node.After(back);
+                    back.Connect(node, true);
                     back = node;
                 }
 
@@ -323,8 +339,8 @@ namespace Algorithm
                 LinkedNode endNode = GetNode(index + 1);
                 LinkedNode newNode = new LinkedNode(value);
                 
-                startNode.Before(newNode);
-                endNode.Before(newNode);
+                startNode.Connect(newNode, true);
+                endNode.Connect(newNode, false);
 
                 count++;
             }
@@ -332,7 +348,7 @@ namespace Algorithm
             public void InsertRange(int index, params T[] values)
             {
                 if (AvailableRange(index))
-                    throw new Exception();                
+                    throw new Exception("Out of range");                
 
                 if (count - index - 1 <= 0)
                 {
@@ -346,13 +362,11 @@ namespace Algorithm
                 for (int i = 0; i < values.Length; i++)
                 {
                     LinkedNode newNode = new LinkedNode(values[i]);
-                    startNode.Before(newNode);
-                    newNode.After(startNode);
+                    startNode.Connect(newNode);
                     startNode = newNode;
                 }
 
-                startNode.Before(endNode);
-                endNode.After(startNode);
+                startNode.Connect(endNode);
 
                 count += values.Length;
             }
@@ -417,22 +431,20 @@ namespace Algorithm
                     throw new Exception();
 
                 LinkedNode node = GetNode(index);
-                
-                node?.before?.After(node?.after);
-                node?.after?.Before(node?.before);
+
+                node.before.Connect(node.after);
                 count--;
             }
 
             public void RemoveRange(int start, int end)
             {
                 if (end < start || count - (end - start + 1) < 0)
-                    throw new Exception();
+                    throw new Exception("Empty List");
 
                 LinkedNode startNode = GetNode(start);
                 LinkedNode endNode = GetNode(end);
 
-                startNode.after.before = endNode.before;
-                endNode.before.after = startNode.after;
+                startNode.after.Connect(endNode.before);
 
                 startNode.Clear();
                 endNode.Clear();
@@ -448,7 +460,7 @@ namespace Algorithm
                 if (node == null)
                     return -1;
 
-                while (value != (dynamic)node.Value)
+                while (node.Value is T nodeValue && value.Equals(nodeValue))
                 {
                     if (node.after == null)
                         return -1;
@@ -1015,7 +1027,7 @@ namespace Algorithm
 
             LinkedList<T>[] list;
 
-            public int Prime => throw new NotImplementedException();
+            public int Prime => PRIME;
 
             void Init()
             {
@@ -1076,7 +1088,8 @@ namespace Algorithm
                 List<T> array = new List<T>();
 
                 foreach (var linked in list)
-                    array.AddRange(linked);
+                    if (!linked.IsEmpty)
+                        array.AddRange(linked);
 
                 return array.ToArray();             
             }
@@ -1149,7 +1162,7 @@ namespace Algorithm
                 {
                     int next = (now - 1) / 2;
 
-                    if (!Comapare(heap[now], heap[next]))
+                    if (!Compare(heap[now], heap[next]))
                         break;
 
                     (heap[now], heap[next]) = (heap[next], heap[now]);
@@ -1181,9 +1194,9 @@ namespace Algorithm
 
                     int next = now;
 
-                    if (l < last && !Comapare(heap[next], heap[l]))
+                    if (l < last && !Compare(heap[next], heap[l]))
                         next = l;
-                    if (r < last && !Comapare(heap[next], heap[r]))
+                    if (r < last && !Compare(heap[next], heap[r]))
                         next = r;
                     if (next == now)
                         break;
@@ -1191,7 +1204,6 @@ namespace Algorithm
                     (heap[now], heap[next]) = (heap[next], heap[now]);
 
                     now = next;
-
                 }
 
                 count--;
@@ -1231,7 +1243,7 @@ namespace Algorithm
                 return heap.Contains(value);
             }
 
-            bool Comapare(T x, T y)
+            bool Compare(T x, T y)
             {
                 if (reverse ? comparer.Compare(x, y) > 0 : comparer.Compare(x, y) < 0)
                     return true;
