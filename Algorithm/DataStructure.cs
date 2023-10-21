@@ -10,11 +10,40 @@ namespace Algorithm
         //배열 추가 기능
         public static class Extensions 
         {
-            public static int[] Create(int length, int min, int max)
+            public static int[] Create(int length, int min, int max, bool isSorted = false)
             {
                 Random r = new Random();
 
-                return Enumerable.Repeat(0, length).Select(i => r.Next(min, max)).ToArray();
+                var array = Enumerable.Repeat(0, length).Select(i => r.Next(min, max)).ToArray();
+
+                if (isSorted) Sort(array); 
+
+                return array;
+            }
+
+            public static T[] Sorted<T>(T[] array, Action<T[]> sorter = null)
+                where T : IComparable<T>
+            {
+                T[] list = new T[array.Length];
+                Array.Copy(array, list, array.Length);
+
+                sorter = sorter ?? Sorts.QuickSort;
+                sorter(list);
+
+                return list;
+            }
+
+            public static T[] Sorted<T>(Collection<T> collection, Action<T[]> sorter = null)
+                where T : IComparable<T>
+            {
+                return Sorted(collection.ToArray(), sorter);
+            }
+
+            public static void Sort<T>(T[] array, Action<T[]> sorter = null)
+                where T : IComparable<T>
+            {
+                sorter = sorter ?? Sorts.QuickSort;
+                sorter(array);
             }
         }
 

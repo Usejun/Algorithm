@@ -11,6 +11,8 @@ namespace Algorithm
     public static class Util
     {
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
+
+        static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);
         
         static readonly StringBuilder sb = new StringBuilder();
 
@@ -124,7 +126,7 @@ namespace Algorithm
 
         public static string Input()
         {
-            return Console.ReadLine();
+            return reader.ReadLine();
         }
 
         public static string[] Input(char sep)

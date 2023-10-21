@@ -2,9 +2,11 @@
 
 namespace Algorithm
 {
-    public static class Trees
+    public static class Technique
     {
-        public class SegmentTree<T> 
+        public static int INF = 10000001;
+
+        public class SegmentTree<T>
             where T : IComparable<T>
         {
             T[] array;
@@ -64,6 +66,58 @@ namespace Algorithm
 
                 Update(index, diff, start, mid, node);
                 Update(index, diff, mid, end, node);
+            }
+        }
+
+        public static void Flyod(int[,] source)
+        {
+            int length = source.GetLength(0);
+
+            for (int k = 0; k < length; k++)
+                for (int i = 0; i < length; i++)
+                    for (int j = 0; j < length; j++)
+                        if (source[i, j] > source[i, k] + source[k, j])
+                            source[i, j] = source[i, k] + source[k, j];
+        }
+
+        public static void Dijkstra(int start, int[,] source)
+        {
+            int length = source.GetLength(0);
+            int[] array = new int[length];  
+            bool[] visit = new bool[length];
+
+            for (int i = 0; i < length; i++)
+                array[i] = source[start, i];
+          
+            array[start] = 0;
+            visit[start] = true;
+
+            for (int i = 0; i < length - 1; i++)
+            {
+                int node = SmallestNode();
+                visit[node] = true;
+
+                for (int j = 0; j < length; j++)
+                    if (!visit[j])
+                        if (array[j] > array[node] + source[node, j])
+                            array[j] = array[node] + source[node, j];
+            }
+
+            Util.Print(array);
+
+            int SmallestNode()
+            {
+                int min = INF + 1;
+                int index = -1;
+
+                for (int i = 0; i < length; i++)
+                    if (!visit[i] && array[i] < min)
+                    {
+                        min = array[i];
+                        index = i;
+                    }
+
+                return index;
             }
         }
     }

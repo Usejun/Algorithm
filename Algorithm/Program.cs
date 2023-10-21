@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using Algorithm.DataStructure;
+using static Algorithm.Technique;
 
 namespace Algorithm
 {
@@ -18,10 +19,10 @@ namespace Algorithm
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            var arr = Extensions.Create(100, -120, 123);
-            Sorts.QuickSort(arr);
-            Util.Print(arr, sep:"\n");
-            
+            int count = 20;
+
+            Util.Sleep(1000);
+            Util.Flush
         }
     }
 }

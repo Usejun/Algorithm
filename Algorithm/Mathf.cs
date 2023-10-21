@@ -15,8 +15,11 @@ namespace Algorithm
 
         public static double Mid(double a, double b) => a / 2 + b / 2;
 
-        public static T Max<T>(T a, T b, IComparer comp)
+        public static T Max<T>(T a, T b, IComparer comp = null)
         {
+            if (!(typeof(T).GetInterfaces().Contains(typeof(IComparable))))
+                throw new Exception("IComapar is not implemented.");
+
             comp = comp ?? Comparer.Default;
 
             return comp.Compare(a, b) > 0 ? a : b;  
@@ -29,83 +32,25 @@ namespace Algorithm
             return comp.Compare(a, b) < 0 ? a : b;
         }
 
-        public static T Max<T>(T a, T b)
-            where T : IComparable<T>
+        public static T Max<T>(IComparer comp = null, params T[] values)
         {
-            return a.CompareTo(b) > 0 ? a : b;
-        }
+            T max = values[0];
 
-        public static T Min<T>(T a, T b)
-            where T : IComparable<T>
-        {
-            return a.CompareTo(b) < 0 ? a : b;
-        }
-
-        public static T Max<T>(params T[] array)
-            where T : IComparable<T>
-        {
-            T max = array[0];
-
-            foreach (T t in array)
-                max = Max(max, t);
-
-            return max;
-        }
-
-        public static T Min<T>(params T[] array)
-            where T : IComparable<T>
-        {
-            T min = array[0];
-
-            foreach (T t in array)
-                min = Min(min, t);
-
-            return min;
-        }
-
-        public static T Max<T>(IComparer comp, params T[] array)
-        {
-            T max = array[0];
-
-            foreach (T t in array)
+            foreach (T t in values)
                 max = Max(max, t, comp);
 
             return max;
         }
 
-        public static T Min<T>(IComparer comp, params T[] array)
+        public static T Min<T>(IComparer comp = null, params T[] values)
         {
-            T min = array[0];
+            T min = values[0];
 
-            foreach (T t in array)
+            foreach (T t in values)
                 min = Min(min, t, comp);
 
             return min;
-        }
-
-        public static T[] Sorted<T>(T[] array, Action<T[]> sorter = null)
-            where T : IComparable<T>
-        {
-            T[] list = new T[array.Length];
-            Array.Copy(array, list, array.Length);
-
-            sorter = sorter ?? Sorts.QuickSort;
-            sorter(list);
-
-            return list;
-        }
-
-        public static T[] Sorted<T>(Collection<T> collection, Action<T[]> sorter = null)
-            where T : IComparable<T>
-        {
-            return Sorted(collection.ToArray(), sorter);
-        }
-
-        public static void Sort<T>(T[] array, Action<T[]> sorter = null)
-            where T : IComparable<T>
-        {
-            sorter = sorter ?? Sorts.QuickSort;
-            sorter(array);
         }        
+
     }
 }
