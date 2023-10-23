@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
+using Algorithm.DataStructure;
 
 namespace Algorithm
 {
@@ -42,7 +44,7 @@ namespace Algorithm
         /// <summary>
         /// 버블 정렬, 시간 복잡도 : N^2
         /// </summary>
-        public static void BobbleSort<T>(T[] array)        
+        public static void BobbleSort<T>(T[] array)
         {
             if (array.Length < 2)
                 return;
@@ -198,12 +200,50 @@ namespace Algorithm
             }           
         }
 
-        public static T[] HeapSort<T>(T[] source)
+        /// <summary>
+        /// 힙 정렬, 시간 복잡도 : NlogN
+        /// </summary>
+        public static void HeapSort<T>(T[] array)
         {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
+            if (array.Length < 2)
+                return;
 
-            return array;
+            if (!(array[0] is IComparable))
+                throw new Exception("IComapar is not implemented.");
+
+            IComparer comp = Comparer.Default;
+
+            for (int i = 1; i < array.Length; i++)
+            {
+                int c = i;
+                do
+                {
+                    int root = (c - 1) / 2;
+                    if (comp.Compare(array[root], array[c]) < 0)
+                        (array[root], array[c]) = (array[c], array[root]);
+                    c = root;
+                } while (c != 0);
+            }
+
+            for (int i = array.Length - 1; i >= 0; i--)
+            {
+                (array[0], array[i]) = (array[i], array[0]);
+                int root = 0, c = 1;
+
+                do
+                {
+                    c = 2 * root + 1;
+
+                    if (c < i - 1 && comp.Compare(array[c], array[c + 1]) < 0)
+                        c++;
+
+                    if (c < i && comp.Compare(array[root], array[c]) < 0)
+                        (array[root], array[c]) = (array[c], array[root]);
+
+                    root = c;
+                } while (c < i);
+            }
+
         }
 
         public static T[] TreeSort<T>(T[] source)
@@ -212,6 +252,17 @@ namespace Algorithm
             Array.Copy(source, array, source.Length);
 
             return array;
+        }       
+
+        public static void Measure<T>(Action<T[]> sort, T[] args)
+        {
+            Util.Start();
+
+            sort(args);
+
+            var t = Util.Stop();
+
+            Util.Print(t + "ms");
         }
     }
 }

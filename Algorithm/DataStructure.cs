@@ -127,16 +127,6 @@ namespace Algorithm
                 value = this.value;
             }
 
-            public static bool operator ==(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
-            {
-                return l.Key.Equals(r.Key) && l.Value.Equals(r.Value);
-            }
-
-            public static bool operator !=(Pair<TKey, TValue> l, Pair<TKey, TValue> r)
-            {
-                return !(l.Key.Equals(r.Key)) || !(l.Value.Equals(r.Value));
-            }
-
             public bool Equals(Pair<TKey, TValue> pair)
             {
                 return key.Equals(pair.key) && value.Equals(pair.value);
@@ -157,7 +147,7 @@ namespace Algorithm
             protected T[] source;
             protected int Length => source.Length;
 
-            public T this[int index]
+            public virtual T this[int index]
             {
                 get
                 {
@@ -218,19 +208,16 @@ namespace Algorithm
                 return true;
             }
 
-            public bool RemoveAt(int index)
+            public virtual void RemoveAt(int index)
             {
                 if (index < 0 || index >= count)
-                    return false;
+                    throw new Exception();  
 
                 for (int i = index; i < count - 1; i++)
                     source[i] = source[i + 1];
 
                 source = source.Take(count - 1).ToArray();
                 count--;
-
-                return true;
-
             }
 
             void Resize()
@@ -256,7 +243,7 @@ namespace Algorithm
         }    
 
         // 양방향 링크드 리스트
-        public class LinkedList<T> : Collection<T>, IList<T>        
+        public class LinkedList<T> : List<T>, IList<T>
         {
             // 연결형 노드
             public class LinkedNode : Node<T>
@@ -296,11 +283,6 @@ namespace Algorithm
 
             LinkedNode front = null;
             LinkedNode back = null;
-
-            public LinkedList()
-            {
-
-            }
 
             public override void Add(T item)
             {
@@ -358,7 +340,7 @@ namespace Algorithm
                 if (index < 0)
                     throw new Exception();
                 
-                if (AvailableRange(index))
+                if (Available(index))
                 {
                     AddBack(value);
                     return;
@@ -376,7 +358,7 @@ namespace Algorithm
 
             public void InsertRange(int index, params T[] values)
             {
-                if (AvailableRange(index))
+                if (Available(index))
                     throw new Exception("Out of range");                
 
                 if (count - index - 1 <= 0)
@@ -454,11 +436,11 @@ namespace Algorithm
                     RemoveBack();
             }
 
-            public void RemoveAt(int index)
+            public override void RemoveAt(int index)
             {
                 if (count == 0)
                     throw new Exception();
-
+                
                 LinkedNode node = GetNode(index);
 
                 node.before.Connect(node.after);
@@ -535,15 +517,17 @@ namespace Algorithm
                 for (int i = 0; i < index; i++)
                     node = node.before;
 
+                if (node == null) throw new Exception("item is not Contains");
+
                 return node;
             }
 
-            bool AvailableRange(int index)
+            bool Available(int index)
             {
                 return !IsEmpty && 0 > index && index < count;
             }
 
-            public T this[int index]
+            public override T this[int index]
             {
                 get => GetNode(index).Value;
                 set => GetNode(index).Value = value;
@@ -1023,6 +1007,7 @@ namespace Algorithm
                     else
                     {
                         var newPair = new Pair<TKey, TValue>(key, value);
+
                         var pairs = list[Hash(key)];
                         var pair = pairs.GetNode(pairs.IndexOf(newPair));
 
@@ -1168,7 +1153,7 @@ namespace Algorithm
 
             IComparer<T> comparer;
 
-            public Heap(int initializeSize = 100, IComparer<T> comparer = null, bool reverse = false)
+            public Heap(int size = 100, IComparer<T> comparer = null, bool reverse = false, params T[] values)
             {
                 if (comparer == null
                     && !typeof(T).GetInterfaces().Contains(typeof(IComparable))
@@ -1176,9 +1161,12 @@ namespace Algorithm
                     throw new Exception("This type does not have ICompable.");                           
 
                 this.comparer = comparer ?? Comparer<T>.Default;
-                size = initializeSize;
+                this.size = size;
                 heap = new List<T>(size);
                 this.reverse = reverse;
+
+                foreach (T value in values)
+                    Push(value);
             }
 
             public void Push(T value)
@@ -1187,14 +1175,12 @@ namespace Algorithm
 
                 int now = heap.Count - 1;
 
-                while (now > 0)
+                while (now != 0)
                 {
                     int next = (now - 1) / 2;
 
-                    if (!Compare(heap[now], heap[next]))
-                        break;
-
-                    (heap[now], heap[next]) = (heap[next], heap[now]);
+                    if (Compare(heap[now], heap[next]) > 0)
+                        (heap[now], heap[next]) = (heap[next], heap[now]);
 
                     now = next;
                 }
@@ -1212,30 +1198,9 @@ namespace Algorithm
                 int last = heap.Count - 1;
                 heap[0] = heap[last];
                 heap.RemoveAt(last);
-                last--;
-
-                int now = 0;
-
-                while (true)
-                {
-                    int l = 2 * now + 1;
-                    int r = 2 * now + 2;
-
-                    int next = now;
-
-                    if (l < last && !Compare(heap[next], heap[l]))
-                        next = l;
-                    if (r < last && !Compare(heap[next], heap[r]))
-                        next = r;
-                    if (next == now)
-                        break;
-
-                    (heap[now], heap[next]) = (heap[next], heap[now]);
-
-                    now = next;
-                }
-
                 count--;
+
+                Heapify(0);
 
                 return value;
             }
@@ -1264,7 +1229,28 @@ namespace Algorithm
 
             public override T[] ToArray()
             {
-                return heap.ToArray();
+                T[] array = heap.ToArray();
+
+                for (int i = array.Length - 1; i >= 0; i--)
+                {
+                    (array[0], array[i]) = (array[i], array[0]);
+                    int root = 0, c = 1;
+
+                    do
+                    {
+                        c = 2 * root + 1;
+
+                        if (c < i - 1 && comparer.Compare(array[c], array[c + 1]) < 0)
+                            c++;
+
+                        if (c < i && comparer.Compare(array[root], array[c]) < 0)
+                            (array[root], array[c]) = (array[c], array[root]);
+
+                        root = c;
+                    } while (c < i);
+                }
+
+                return array;
             }
 
             public override bool Contains(T value)
@@ -1272,11 +1258,20 @@ namespace Algorithm
                 return heap.Contains(value);
             }
 
-            bool Compare(T x, T y)
+            /// <returns>0 보다 작다. : x가 y보다 작다.<para>0 : x와 y가 같다.</para><para>0 보다 크다. : x가 y보다 크다.</para> 만약 reverse가 true라면 결과 값 또한 반대로 출력된다.</returns>
+            int Compare(T x, T y) => reverse ? comparer.Compare(y, x) : comparer.Compare(x, y);
+
+            void Heapify(int index)
             {
-                if (reverse ? comparer.Compare(x, y) > 0 : comparer.Compare(x, y) < 0)
-                    return true;
-                return false;                                    
+                int c = 2 * index + 1;
+
+                if (c < count - 1 && Compare(heap[c], heap[c + 1]) < 0)
+                    c++;
+                if (c < count && Compare(heap[c], heap[index]) > 0)
+                    (heap[c], heap[index]) = (heap[index], heap[c]);
+
+                if (c < count / 2) 
+                    Heapify(c);
             }
         }
     }

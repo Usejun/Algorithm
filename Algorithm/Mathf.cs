@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
+using System.Collections;
 using Algorithm.DataStructure;
 
 namespace Algorithm
@@ -25,8 +25,11 @@ namespace Algorithm
             return comp.Compare(a, b) > 0 ? a : b;  
         }
 
-        public static T Min<T>(T a, T b, IComparer comp)
+        public static T Min<T>(T a, T b, IComparer comp = null)
         {
+            if (!(typeof(T).GetInterfaces().Contains(typeof(IComparable))))
+                throw new Exception("IComapar is not implemented.");
+
             comp = comp ?? Comparer.Default;
 
             return comp.Compare(a, b) < 0 ? a : b;
@@ -50,7 +53,7 @@ namespace Algorithm
                 min = Min(min, t, comp);
 
             return min;
-        }        
+        }
 
     }
 }

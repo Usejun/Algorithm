@@ -27,9 +27,7 @@ namespace Algorithm
 
         public static void Print(object value, string end = "\n")
         {
-            writer.Write(value?.ToString() ?? "");
-            writer.Write(end);
-            writer.Flush();
+            Print(value?.ToString() ?? "", end: end);
         }
 
         public static void Print(Array array, string end = "\n", string sep = " ")
@@ -74,8 +72,7 @@ namespace Algorithm
 
         public static void Append(object value, string end = "\n")
         {
-            sb.Append(value?.ToString() ?? "");
-            sb.Append(end);
+            Append(value?.ToString() ?? "", end: end);
         }
 
         public static void Append(Array array, string end = "\n", string sep = " ")
@@ -136,7 +133,7 @@ namespace Algorithm
 
         public static T[] Input<T>(Func<string, T> parser, char sep = ' ')
         {
-            return Input().Split(sep).Select(parser).ToArray();
+            return Input(sep).Select(parser).ToArray();
         }           
 
         public static void Start()
@@ -154,6 +151,7 @@ namespace Algorithm
         public static void Sleep(int milliseconds)
         {
             Thread.Sleep(milliseconds);
-        }
+        }     
+
     }
 }
