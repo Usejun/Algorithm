@@ -1,56 +1,89 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using Algorithm.Technique;
 using Algorithm.DataStructure;
-using static Algorithm.Technique;
 
 namespace Algorithm
 {
     internal class Program
     {
         public class Point
-        {
+        { 
             public int x; 
             public int y;
+            public int z;
 
-            public Point(int x, int y)
+            public Point(int x = 0, int y = 0, int z = 0)
             {
                 this.x = x;
                 this.y = y;
+                this.z = z;
             }
 
-            public void Deconstruct(out int x, out int y)
+            public void Deconstruct(out int x, out int y, out int z)
             {
                 x = this.x;
                 y = this.y;
+                z = this.z;
             }
             
             public static Point operator +(Point a, Point b)
             {
-                return new Point(a.x + b.x, a.y + b.x);
+                return new Point(a.x + b.x, a.y + b.x, a.z + b.z);
             }
             
             public static Point operator -(Point a, Point b)
             {
-                return new Point(a.x - b.x, a.y - b.x);
+                return new Point(a.x - b.x, a.y - b.x, a.z - b.z);
             }
 
             public static Point operator *(Point a, Point b)
             {
-                return new Point(a.x * b.x, a.y * b.x);
+                return new Point(a.x * b.x, a.y * b.x, a.z * b.z);
             }
 
             public static Point operator /(Point a, Point b)
             {
-                if (b.x == 0 || b.y == 0)
+                if (b.x * b.y * b.y == 0)
                     throw new DivideByZeroException();
 
-                return new Point(a.x / b.x, a.y / b.x);
+                return new Point(a.x / b.x, a.y / b.y, a.z / b.z);
             }
 
             public static Point operator %(Point a, Point b)
             {
-                return new Point(a.x % b.x, a.y % b.x);
+                return new Point(a.x % b.x, a.y % b.x, a.z % b.z);
+            }
+
+            public static bool operator <(Point a, Point b)
+            {
+                return a.x == b.x ? a.y == b.y ? a.z < b.z : a.y < b.y : a.x < b.x; 
+            }
+
+            public static bool operator >(Point a, Point b)
+            {
+                return a.x == b.x ? a.y == b.y ? a.z > b.z : a.y > b.y : a.x > b.x;
+            }
+
+            public static bool operator ==(Point a, Point b)
+            {
+                return a.x == b.x && a.y == b.y && a.z == b.z; 
+            }
+
+            public static bool operator !=(Point a, Point b)
+            {
+                return a.x != b.x || a.y != b.y || a.z != b.z;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this == obj as Point;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
             }
 
             public override string ToString()
@@ -66,23 +99,19 @@ namespace Algorithm
             }
         }
 
-        static void Main(string[] args)
+        public static void Init()
         {
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
+        }
 
-            Heap<int> heap = new Heap<int>(values: Extensions.Create(1000000, 0, 1000));
-            var arr1 = Extensions.Create(1000000, 0, 1000);
-            var arr2 = Extensions.Create(1000000, 0, 1000);
+        static void Main(string[] args)
+        {
+            Init();
 
-            Util.Start();
+            PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
 
-            heap.ToArray();
-
-            Util.Print(Util.Stop() + "ms");
-
-            Sorts.Measure(Sorts.HeapSort, arr1);
-            Sorts.Measure(Sorts.HeapSort, arr2);
+            pq.Sort();
         }
     }
 }

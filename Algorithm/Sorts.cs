@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
-using Algorithm.DataStructure;
 
-namespace Algorithm
+namespace Algorithm.DataStructure
 {
     public static class Sorts
     {
@@ -16,7 +14,7 @@ namespace Algorithm
                 return;
 
             if (!(array[0] is IComparable))
-                throw new Exception("IComapar is not implemented.");
+                throw new Exception("IComparable is not implemented.");
 
             IComparer comp = Comparer.Default;
 
@@ -50,7 +48,7 @@ namespace Algorithm
                 return;
 
             if (!(array[0] is IComparable))
-                throw new Exception("IComapar is not implemented.");
+                throw new Exception("IComparable is not implemented.");
 
             IComparer comp = Comparer.Default;
 
@@ -76,7 +74,7 @@ namespace Algorithm
                 return;
 
             if (!(array[0] is IComparable))
-                throw new Exception("IComapar is not implemented.");
+                throw new Exception("IComparable is not implemented.");
 
             IComparer comp = Comparer.Default;
 
@@ -106,8 +104,8 @@ namespace Algorithm
             if (array.Length < 2)
                 return;
 
-            if (!(array[0] is IComparable))
-                throw new Exception("IComapar is not implemented.");
+            if (!(array[0] is IComparable<T>))
+                throw new Exception("IComparable is not implemented.");
 
             IComparer comp = Comparer.Default;
 
@@ -153,7 +151,7 @@ namespace Algorithm
                 return;
 
             if (!(array[0] is IComparable))
-                throw new Exception("IComapar is not implemented.");
+                throw new Exception("IComparable is not implemented.");
 
             IComparer comp = Comparer.Default;
 
@@ -209,7 +207,7 @@ namespace Algorithm
                 return;
 
             if (!(array[0] is IComparable))
-                throw new Exception("IComapar is not implemented.");
+                throw new Exception("IComparable is not implemented.");
 
             IComparer comp = Comparer.Default;
 
@@ -219,8 +217,10 @@ namespace Algorithm
                 do
                 {
                     int root = (c - 1) / 2;
+
                     if (comp.Compare(array[root], array[c]) < 0)
                         (array[root], array[c]) = (array[c], array[root]);
+
                     c = root;
                 } while (c != 0);
             }
@@ -246,23 +246,13 @@ namespace Algorithm
 
         }
 
-        public static T[] TreeSort<T>(T[] source)
-        {
-            T[] array = new T[source.Length];
-            Array.Copy(source, array, source.Length);
-
-            return array;
-        }       
-
         public static void Measure<T>(Action<T[]> sort, T[] args)
         {
             Util.Start();
 
             sort(args);
 
-            var t = Util.Stop();
-
-            Util.Print(t + "ms");
+            Util.Print(Util.Stop() + "ms");
         }
     }
 }

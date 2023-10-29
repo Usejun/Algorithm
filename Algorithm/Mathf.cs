@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections;
-using Algorithm.DataStructure;
 
 namespace Algorithm
 {
