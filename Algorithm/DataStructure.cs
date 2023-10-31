@@ -80,6 +80,16 @@ namespace Algorithm.DataStructure
             return sum;
         }
 
+        public static Pair<int, T>[] ToPairs<T>(T[] array)
+        {
+            Pair<int, T>[] pairs = new Pair<int, T>[array.Length];
+
+            for (int i = 0; i < array.Length; i++)
+                pairs[i] = new Pair<int, T>(i + 1, array[i]);
+
+            return pairs;
+        }
+
         public static void Copy<T>(T[] baseArray, T[] sourceArray, int length)
         {
             for (int i = 0; i < length; i++)
@@ -97,7 +107,7 @@ namespace Algorithm.DataStructure
 
         public virtual bool Contains(T value)
         {
-            return Extensions.Contains(ToArray(), value);
+            return IndexOf(value) != -1;
         }
         public virtual void CopyTo(T[] array, int index)
         {
@@ -108,6 +118,16 @@ namespace Algorithm.DataStructure
 
             for (int i = index; i < array.Length; i++)
                 array[i] = source[i];
+        }
+        public virtual int IndexOf(T value)
+        {
+            T[] array = ToArray();
+
+            for (int i = 0; i < count; i++)
+                if (value.Equals(array[i]))
+                    return i;
+
+            return -1;
         }
         public virtual List<T> ToList()
         {

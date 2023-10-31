@@ -59,30 +59,30 @@ namespace Algorithm.Technique
             }
         }
 
-        public static Pair<int, Pair<int, int>>[] Kruskal(int length, int nodeCount)
+        public static (int From, (int Index, int Node) To)[] Kruskal(int length, int nodeCount)
         {
             Group group = new Group(length);
-            List<Pair<int, Pair<int, int>>> mst = new List<Pair<int, Pair<int, int>>>();
-            List<Pair<int, Pair<int, int>>> edges = new List<Pair<int, Pair<int, int>>>();
+            List<(int From, (int Index, int Node) To)> mst = new List<(int From, (int Index, int Node) To)>();
+            List<(int From, (int Index, int Node) To)> edges = new List<(int From, (int Index, int Node) To)>();
 
             for (int i = 0; i < nodeCount; i++)
             {
                 var input = Util.Inputs(int.Parse);
 
-                edges.Add(new Pair<int, Pair<int, int>>(input[0], new Pair<int, int>(input[1], input[2])));
+                edges.Add((input[0], (input[1], input[2])));
             }
             
-            edges.Order(i => i.Value.Value);
+            edges.Order(i => i.To.Node);
 
             for (int i = 0; i < edges.Count; i++)
             {
-                (int first, (int second, int value)) = edges[i];
+                (int from, (int index, int node)) = edges[i];
 
-                if (group.Find(first) == group.Find(second)) continue;
+                if (group.Find(from) == group.Find(index)) continue;
 
-                mst.Add(new Pair<int, Pair<int, int>>(first, new Pair<int, int>(second, value)));
+                mst.Add((from, (index, node)));
 
-                group.Union(first, second);
+                group.Union(from, index);
 
                 if (mst.Count == length - 1) break;
             }

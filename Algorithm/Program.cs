@@ -110,7 +110,11 @@ namespace Algorithm
         {
             Init();
 
+            List<Point> points = new List<Point>();
+            int[] arr = Create(100, 0, 1000, true);
 
+            Util.Print(arr);
+            Util.Print(Contains(arr, 1));            
         }
     }
 }
