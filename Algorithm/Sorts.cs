@@ -8,27 +8,24 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 선택 정렬, 시간복잡도 : N^2
         /// </summary>
-        public static void SelectionSort<T>(T[] array)
+        public static void SelectionSort<T>(T[] array, IComparer comparer = null)
         {
             if (array.Length < 2)            
                 return;
 
-            if (!(array[0] is IComparable))
-                throw new Exception("IComparable is not implemented.");
-
-            IComparer comp = Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
             int index = 0;
             T min; // 최솟값
 
             for (int i = 0; i < array.Length; i++)
             {
-                min = Mathf.Max(comp, array);
+                min = Mathf.Max(comparer, array);
                 // 초기 최솟값은 그 배열의 최댓값 또는 입력될 수 중 가장
                 // 큰 수에서 1 큰 수로 정해둔다.
 
                 for (int j = i; j < array.Length; j++)
-                    if (comp.Compare(min, array[j]) >= 0)
+                    if (comparer.Compare(min, array[j]) >= 0)
                         (min, index) = (array[j], j);
 
                 // 배열을 순환하면 최솟값을 찾는다.
@@ -42,21 +39,18 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 버블 정렬, 시간 복잡도 : N^2
         /// </summary>
-        public static void BobbleSort<T>(T[] array)
+        public static void BobbleSort<T>(T[] array, IComparer comparer = null)
         {
             if (array.Length < 2)
                 return;
 
-            if (!(array[0] is IComparable))
-                throw new Exception("IComparable is not implemented.");
-
-            IComparer comp = Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
             int i, j;
 
             for (i = 1; i < array.Length; i++)
                 for (j = 0; j < array.Length - i; j++)
-                    if (comp.Compare(array[j], array[j + 1]) >= 0)
+                    if (comparer.Compare(array[j], array[j + 1]) >= 0)
 
                         // j번째 값과 j+1번째 값중에서 j + 1번째 값이 작으면
                         // 위치를 바꿔준다.
@@ -68,15 +62,12 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 삽입 정렬, 시간 복잡도 : 최선의 경우 N, 최악의 경우 N^2
         /// </summary>
-        public static void InsertionSort<T>(T[] array)
+        public static void InsertionSort<T>(T[] array, IComparer comparer = null)
         {
             if (array.Length < 2)
                 return;
 
-            if (!(array[0] is IComparable))
-                throw new Exception("IComparable is not implemented.");
-
-            IComparer comp = Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
             int i, j;
 
@@ -86,7 +77,7 @@ namespace Algorithm.DataStructure
                 j = i;
                 // 키 값은 인덱스가 0보다 작고, 키 값의 오른쪽 값과 비교해
                 // 만약에 오른쪽 값보다 클 경우 두 값의 위치를 바꾼다.
-                while (j >= 0 && comp.Compare(array[j], array[j + 1]) >= 0)
+                while (j >= 0 && comparer.Compare(array[j], array[j + 1]) >= 0)
                 {
                     (array[j], array[j + 1]) = (array[j + 1], array[j]);
 
@@ -99,15 +90,12 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 퀵 정렬, 시간 복잡도 : 평균 NlogN, 최악의 경우 N^2
         /// </summary>
-        public static void QuickSort<T>(T[] array)
+        public static void QuickSort<T>(T[] array, IComparer comparer = null)
         {
             if (array.Length < 2)
                 return;
 
-            if (!(array[0] is IComparable<T>))
-                throw new Exception("IComparable is not implemented.");
-
-            IComparer comp = Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
             QuickSort(0, array.Length - 1);
 
@@ -121,10 +109,10 @@ namespace Algorithm.DataStructure
                 while (i <= j)
                 {
                     // 피벗보다 작은 값을 찾는다.
-                    while (i <= end && comp.Compare(array[i], array[key]) <= 0) i++;
+                    while (i <= end && comparer.Compare(array[i], array[key]) <= 0) i++;
 
                     // 피벗보다 큰 값을 찾는다.
-                    while (comp.Compare(array[j], array[key]) >= 0 && j > start) j--;
+                    while (comparer.Compare(array[j], array[key]) >= 0 && j > start) j--;
 
                     // 만약 작은 값의 인덱스와 큰 값의 인덱스가 교차 될 때
                     // 교차된 큰 값의 인덱스와 피벗의 인덱스를 바꿔준다. 
@@ -145,15 +133,12 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 병합 정렬, 시간 복잡도 : NlogN
         /// </summary>
-        public static void MergeSort<T>(T[] array)
+        public static void MergeSort<T>(T[] array, IComparer comparer = null)
         {
             if (array.Length < 2)
                 return;
 
-            if (!(array[0] is IComparable))
-                throw new Exception("IComparable is not implemented.");
-
-            IComparer comp = Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
             // 임시 배열을 선언
             T[] sorted = new T[array.Length + 1];
@@ -167,7 +152,7 @@ namespace Algorithm.DataStructure
                 // 분할 정렬된 배열을 합치기
                 while (i <= mid && j <= right)
                 {
-                    if (comp.Compare(array[i], array[j]) <= 0)
+                    if (comparer.Compare(array[i], array[j]) <= 0)
                         sorted[k++] = array[i++];
                     else
                         sorted[k++] = array[j++];
@@ -201,15 +186,12 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 힙 정렬, 시간 복잡도 : NlogN
         /// </summary>
-        public static void HeapSort<T>(T[] array)
+        public static void HeapSort<T>(T[] array, IComparer comparer = null)
         {
             if (array.Length < 2)
                 return;
 
-            if (!(array[0] is IComparable))
-                throw new Exception("IComparable is not implemented.");
-
-            IComparer comp = Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
             for (int i = 1; i < array.Length; i++)
             {
@@ -218,7 +200,7 @@ namespace Algorithm.DataStructure
                 {
                     int root = (c - 1) / 2;
 
-                    if (comp.Compare(array[root], array[c]) < 0)
+                    if (comparer.Compare(array[root], array[c]) < 0)
                         (array[root], array[c]) = (array[c], array[root]);
 
                     c = root;
@@ -234,10 +216,10 @@ namespace Algorithm.DataStructure
                 {
                     c = 2 * root + 1;
 
-                    if (c < i - 1 && comp.Compare(array[c], array[c + 1]) < 0)
+                    if (c < i - 1 && comparer.Compare(array[c], array[c + 1]) < 0)
                         c++;
 
-                    if (c < i && comp.Compare(array[root], array[c]) < 0)
+                    if (c < i && comparer.Compare(array[root], array[c]) < 0)
                         (array[root], array[c]) = (array[c], array[root]);
 
                     root = c;
@@ -246,11 +228,11 @@ namespace Algorithm.DataStructure
 
         }
 
-        public static void Measure<T>(Action<T[]> sort, T[] args)
+        public static void Measure<T>(Action<T[], IComparer> sort, T[] args, IComparer comparer = null)
         {
             Util.Start();
 
-            sort(args);
+            sort(args, comparer ?? Comparer.Default);
 
             Util.Print(Util.Stop() + "ms");
         }

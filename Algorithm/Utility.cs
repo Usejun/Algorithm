@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
@@ -126,14 +125,20 @@ namespace Algorithm
             return reader.ReadLine();
         }
 
-        public static string[] Input(char sep)
+        public static string[] Inputs(char sep)
         {
             return Input().Split(sep);
         }
 
-        public static T[] Input<T>(Func<string, T> parser, char sep = ' ')
+        public static T[] Inputs<T>(Func<string, T> parser, char sep = ' ')
         {
-            return Input(sep).Select(parser).ToArray();
+            var input = Inputs(sep);
+            var output = new T[input.Length];
+
+            for (int i = 0; i < input.Length; i++)
+                output[i] = parser(input[i]);
+
+            return output;            
         }           
 
         public static void Start()
@@ -153,6 +158,5 @@ namespace Algorithm
             Thread.Sleep(milliseconds);
         }     
 
-      
     }
 }

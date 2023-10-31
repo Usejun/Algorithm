@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -12,57 +11,76 @@ namespace Algorithm.DataStructure
         {
             Random r = new Random();
 
-            var array = Enumerable.Repeat(0, length).Select(i => r.Next(min, max)).ToArray();
+            int[] array = new int[length];
+
+            for (int i = 0; i < length; i++)            
+                array[i] = r.Next(min, max);            
 
             if (isSorted) Sort(array);
 
             return array;
         }
 
-        public static T[] Sorted<T>(T[] array, Action<T[]> sorter = null)
+        public static T[] Sorted<T>(T[] array, Action<T[], IComparer> sorter = null, IComparer comparer = null)
             where T : IComparable<T>
         {
             T[] list = new T[array.Length];
-            Array.Copy(array, list, array.Length);
+            Copy(array, list, array.Length);
 
             sorter = sorter ?? Sorts.QuickSort;
-            sorter(list);
+            sorter(list, comparer);
 
             return list;
         }
 
-        public static T[] Sorted<T>(Collection<T> collection, Action<T[]> sorter = null)
+        public static T[] Sorted<T>(Collection<T> collection, Action<T[], IComparer> sorter = null, IComparer comparer = null)
             where T : IComparable<T>
         {
-            return Sorted(collection.ToArray(), sorter);
+            return Sorted(collection.ToArray(), sorter, comparer);
         }
 
-        public static void Sort<T>(T[] array, Action<T[]> sorter = null)
+        public static void Sort<T>(T[] array, Action<T[], IComparer> sorter = null, IComparer comparer = null)
             where T : IComparable<T>
         {
             sorter = sorter ?? Sorts.QuickSort;
-            sorter(array);
+            sorter(array, comparer ?? Comparer.Default);
         }
 
-        public static (int, T)[] Enumerate<T>(Collection<T> collection)
+        public static void Order<T, T1>(T[] array, Func<T, T1> order, Action<T[], IComparer> sort = null)
+           where T1 : IComparable
         {
-            return Enumerate(collection.ToArray());
+            sort = sort ?? Sorts.HeapSort;
+            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
+            sort(array, comparer);
         }
 
-        public static (int, T)[] Enumerate<T>(T[] collection)
+        public static bool Contains<T>(T[] array, T value)
         {
-            T[] values = collection.ToArray();
-            (int, T)[] enumerate = new (int, T)[values.Length];
+            for (int i = 0; i < array.Length; i++)            
+                if (array[i].Equals(value))
+                    return true;
+            return false;
+        }
 
-            for (int i = 0; i < values.Length; i++)
-                enumerate[i] = (i + 1, values[i]);
+        public static T1[] Convert<T, T1>(T[] array, Func<T, T1> converter)
+        {
+            T1[] convertedValues = new T1[array.Length];
 
-            return enumerate;
+            for (int i = 0; i < array.Length; i++)
+                convertedValues[i] = converter(array[i]);
+
+            return convertedValues;
+        }
+
+        public static void Copy<T>(T[] baseArray, T[] sourceArray, int length)
+        {
+            for (int i = 0; i < length; i++)
+                baseArray[i] = sourceArray[i];
         }
     }
 
     //기본 배열 추상 클래스     
-    public abstract class Collection<T> : IEnumerable<T>, ICollection<T>
+    public abstract class Collection<T>
     {
         public virtual bool IsReadOnly => false;
         public virtual int Count => count;
@@ -76,28 +94,47 @@ namespace Algorithm.DataStructure
         }
         public virtual bool Contains(T value)
         {
-            return ToArray().Contains(value);
+            return Extensions.Contains(ToArray(), value);
         }
         public virtual void CopyTo(T[] array, int index)
         {
             T[] source = ToArray();
 
             if (source.Length <= index)
-                throw new ArgumentException("Out of Range");
+                throw new ArgumentException("Out of range");
 
             for (int i = index; i < array.Length; i++)
                 array[i] = source[i];
+        }
+        public virtual List<T> ToList()
+        {
+            return new List<T>(values:ToArray());
+        }
+        public virtual Pair<int, T>[] ToPairs()
+        {
+            T[] values = ToArray();
+            Pair<int, T>[] pairs = new Pair<int, T>[count];
+
+            for (int i = 0; i < count; i++)
+                pairs[i] = new Pair<int, T>(i + 1, values[i]);
+            
+            return pairs;
+        }
+        public virtual T1[] Convert<T1>(Func<T, T1> converter)
+        {
+            T[] values = ToArray();
+            T1[] convertedValues = new T1[count];
+
+            for (int i = 0; i < count; i++)
+                convertedValues[i] = converter(values[i]);
+
+            return convertedValues;
         }
 
         public abstract T[] ToArray();
         public abstract void Add(T value);
         public abstract bool Remove(T value);
         public abstract void Clear();
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
     }
 
     //기본 노드 클래스
@@ -152,25 +189,11 @@ namespace Algorithm.DataStructure
         protected T[] source;
         protected int Length => source.Length;
 
-        public virtual T this[int index]
-        {
-            get
-            {
-                if (index < 0 || index >= count)
-                    throw new Exception("Out of Range");
-                return source[index];
-            }
-            set
-            {
-                if (index < 0 && index >= count)
-                    throw new Exception("Out of Range");
-                source[index] = value;
-            }
-        }
-
-        public List(int size = 100)
+        public List(int size = 100, params T[] values)
         {
             source = new T[size];
+
+            AddRange(values);
         }
 
         public override void Add(T value)
@@ -201,7 +224,7 @@ namespace Algorithm.DataStructure
 
         public override bool Remove(T value)
         {
-            if (!source.Contains(value))
+            if (!Extensions.Contains(source, value))
                 return false;
 
             for (int i = 0; i < count; i++)
@@ -216,12 +239,11 @@ namespace Algorithm.DataStructure
         public virtual void RemoveAt(int index)
         {
             if (index < 0 || index >= count)
-                throw new Exception();
+                throw new Exception("Out of range");
 
             for (int i = index; i < count - 1; i++)
                 source[i] = source[i + 1];
 
-            source = source.Take(count - 1).ToArray();
             count--;
         }
 
@@ -237,18 +259,54 @@ namespace Algorithm.DataStructure
 
         public override T[] ToArray()
         {
-            return source.Take(count).ToArray();
+            T[] values = new T[count];
+
+            for (int i = 0; i < count; i++)            
+                values[i] = source[i];
+
+            return values;
         }
 
-        public virtual void Sort(Action<T[]> sort = null)
+        public virtual T this[int index]
         {
-            sort = sort ?? Sorts.QuickSort;
-            sort(source);
+            get
+            {
+                if (index < 0 || index >= count)
+                    throw new Exception("Out of range");
+                return source[index];
+            }
+            set
+            {
+                if (index < 0 && index >= count)
+                    throw new Exception("Out of range");
+                source[index] = value;
+            }
+        }
+
+        public virtual void Sort(Action<T[], IComparer> sort = null, IComparer comparer = null)
+        {
+            sort = sort ?? Sorts.HeapSort;
+            T[] array = ToArray();
+            comparer = comparer ?? Comparer<T>.Default;
+            sort(array, comparer);
+
+            Extensions.Copy(source, array, count);
+        }
+
+        public virtual void Order<T1>(Func<T, T1> order, Action<T[], IComparer> sort = null)
+            where T1 : IComparable
+        {
+            sort = sort ?? Sorts.HeapSort;
+            T[] array = ToArray();
+            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
+            sort(array, comparer);
+
+            Extensions.Copy(source, array, count);
         }
     }
 
     // 양방향 링크드 리스트
-    public class LinkedList<T> : List<T>, IList<T>
+    public class LinkedList<T> : Collection<T>
     {
         // 연결형 노드
         public class LinkedNode : Node<T>
@@ -441,7 +499,7 @@ namespace Algorithm.DataStructure
                 RemoveBack();
         }
 
-        public override void RemoveAt(int index)
+        public void RemoveAt(int index)
         {
             if (count == 0)
                 throw new Exception();
@@ -500,20 +558,14 @@ namespace Algorithm.DataStructure
             count = 0;
         }
 
-        public LinkedNode[] ToNodeArray()
-        {
-            LinkedNode[] values = new LinkedNode[count];
-
-            for (int i = 0; i < count; i++)
-                values[i] = GetNode(i);
-
-            return values;
-
-        }
-
         public override T[] ToArray()
         {
-            return ToNodeArray().Select(node => node.Value).ToArray();
+            T[] values = new T[count];
+
+            for (int i = 0; i < count; i++)
+                values[i] = GetNode(i).Value;
+
+            return values;           
         }
 
         public LinkedNode GetNode(int index)
@@ -532,7 +584,7 @@ namespace Algorithm.DataStructure
             return !IsEmpty && 0 > index && index < count;
         }
 
-        public override T this[int index]
+        public T this[int index]
         {
             get => GetNode(index).Value;
             set => GetNode(index).Value = value;
@@ -694,9 +746,9 @@ namespace Algorithm.DataStructure
         public bool IsEmpty => front == 0;
         public override bool IsFull => front == Length;
 
-        public Stack(int initializeSize = 100)
+        public Stack(int size = 100)
         {
-            size = initializeSize;
+            this.size = size;
             source = new T[size];
         }
 
@@ -754,7 +806,7 @@ namespace Algorithm.DataStructure
             while (!IsEmpty)
                 array[back--] = Pop();
 
-            source = array.ToArray();
+            source = array;
         }
 
         public override T[] ToArray()
@@ -767,15 +819,6 @@ namespace Algorithm.DataStructure
 
             return values;
 
-        }
-
-        public override void Sort(Action<T[]> sort = null)
-        {
-            sort = sort ?? Sorts.QuickSort;
-            T[] array = ToArray();
-            sort(array);
-
-            Array.ConstrainedCopy(array, 0, source, 0, count);
         }
 
     }
@@ -871,51 +914,39 @@ namespace Algorithm.DataStructure
                 array[i++] = Dequeue();
             }
 
-            source = array.ToArray();
+            source = array;
             front = 0;
             back = i;
             count = i;
         }
 
-        public override void Sort(Action<T[]> sort = null)
+        public override void Sort(Action<T[], IComparer> sort = null, IComparer comparer = null)
         {
-            sort = sort ?? Sorts.QuickSort;
-            T[] array = ToArray();
-            sort(array);
+            base.Sort(sort, comparer);
 
-            source = new T[Length];
+            front = 0;
+            back = count;
+        }
 
-            Array.ConstrainedCopy(array, 0, source, 0, count);
+        public override void Order<T1>(Func<T, T1> order, Action<T[], IComparer> sort = null)
+        {
+            base.Order(order, sort);
+
             front = 0;
             back = count;
         }
     }
 
     // 딕셔너리
-    public class Dictionary<TKey, TValue> : Collection<Pair<TKey, TValue>>, IHash<TKey>
+    public class Dictionary<TKey, TValue> : Set<Pair<TKey, TValue>>, IHash<TKey>
     {
-        public TKey[] Keys => ToArray().Select(pair => pair.Key).ToArray();
-        public TValue[] Values => ToArray().Select(pair => pair.Value).ToArray();
-
-        int size;
-        const int PRIME = 5413;
-
-        public int Prime { get => PRIME; }
-
-        LinkedList<Pair<TKey, TValue>>[] list;
-
-        void Init(int size)
-        {
-            list = new LinkedList<Pair<TKey, TValue>>[size];
-
-            for (int i = 0; i < size; i++)
-                list[i] = new LinkedList<Pair<TKey, TValue>>();
-        }
+        public TKey[] Keys => Convert(pair => pair.Key);
+        public TValue[] Values => Convert(pair => pair.Value);
 
         public Dictionary(int size = 10000)
         {
             this.size = size;
-            Init(size);
+            Init();
         }
 
         public void Add(TKey key, TValue value)
@@ -955,38 +986,23 @@ namespace Algorithm.DataStructure
 
         public bool Contains(TKey key, TValue value)
         {
-            return ContainsKey(key) && this[key].Equals(value);
+            return Contains(new Pair<TKey, TValue>(key, value));
         }
 
         public override bool Contains(Pair<TKey, TValue> pair)
         {
-            return Contains(pair.Key, pair.Value);
+            return ContainsKey(pair.Key) && list[Hash(pair.Key)].Equals(pair.Value);
         }
 
         public bool ContainsKey(TKey key)
         {
-            return Keys.Contains(key);
+            return Extensions.Contains(Keys, key);
         }
 
         public bool ContainsValue(TValue value)
         {
-            return Values.Contains(value);
-        }
-
-        public override void Clear()
-        {
-            Init(size);
-        }
-
-        public override Pair<TKey, TValue>[] ToArray()
-        {
-            List<Pair<TKey, TValue>> array = new List<Pair<TKey, TValue>>();
-
-            foreach (LinkedList<Pair<TKey, TValue>> linkedList in list)
-                array.AddRange(linkedList);
-
-            return array.ToArray();
-        }
+            return Extensions.Contains(Values, value);
+        }        
 
         public TValue this[TKey key]
         {
@@ -1032,7 +1048,7 @@ namespace Algorithm.DataStructure
             return hash % (size - 1);
         }
 
-        int IHash<TKey>.Hashing(TKey key)
+        public int Hashing(TKey key)
         {
             return Hash(key);
         }
@@ -1041,14 +1057,14 @@ namespace Algorithm.DataStructure
     // 셋 
     public class Set<T> : Collection<T>, IHash<T>
     {
-        int size;
-        const int PRIME = 5413;
+        protected int size;
+        protected const int PRIME = 5413;
 
-        LinkedList<T>[] list;
+        protected LinkedList<T>[] list;
 
         public int Prime => PRIME;
 
-        void Init()
+        protected void Init()
         {
             list = new LinkedList<T>[size];
 
@@ -1066,8 +1082,6 @@ namespace Algorithm.DataStructure
         {
             if (Contains(value))
                 return;
-
-            Util.Print(Hash(value));
 
             list[Hash(value)].Add(value);
             count++;
@@ -1108,11 +1122,11 @@ namespace Algorithm.DataStructure
 
             foreach (var linked in list)
                 if (!linked.IsEmpty)
-                    array.AddRange(linked);
+                    array.AddRange(linked.ToArray());
 
             return array.ToArray();
         }
-
+  
         public bool this[T index]
         {
             get
@@ -1123,7 +1137,7 @@ namespace Algorithm.DataStructure
             {
                 if (value && !Contains(index))
                     Add(index);
-                else if (!value)
+                else if (!value && Contains(index))
                     Remove(index);
             }
         }
@@ -1161,8 +1175,8 @@ namespace Algorithm.DataStructure
         public Heap(int size = 100, IComparer<T> comparer = null, bool reverse = false, params T[] values)
         {
             if (comparer == null
-                && !typeof(T).GetInterfaces().Contains(typeof(IComparable))
-                && !typeof(T).GetInterfaces().Contains(typeof(IComparable<T>)))
+                && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
+                && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>)))
                 throw new Exception("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;

@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
 using Algorithm.Technique;
 using Algorithm.DataStructure;
+using System.Text;
+using System.Collections;
 
 namespace Algorithm
 {
@@ -88,14 +88,14 @@ namespace Algorithm
 
             public override string ToString()
             {
-                StringBuilder sb = new StringBuilder();               
+                string str = "";               
 
                 var fields = typeof(Point).GetFields();          
 
                 foreach (var field in fields)
-                    sb.AppendLine($"({field.Name} : {field.GetValue(this)})");
+                   str += ($"({field.Name} : {field.GetValue(this)})");
 
-                return sb.ToString();
+                return str;
             }
         }
 
@@ -109,9 +109,11 @@ namespace Algorithm
         {
             Init();
 
-            PriorityQueue<string, int> pq = new PriorityQueue<string, int>();
+            var arr = Extensions.Create(1000, 0, 100);
 
-            pq.Sort();
+            Sorts.Measure(Sorts.HeapSort, arr);
+
+
         }
     }
 }

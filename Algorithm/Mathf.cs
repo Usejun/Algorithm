@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Collections;
+using Algorithm.DataStructure;
 
 namespace Algorithm
 {
@@ -16,9 +16,6 @@ namespace Algorithm
 
         public static T Max<T>(T a, T b, IComparer comp = null)
         {
-            if (!(typeof(T).GetInterfaces().Contains(typeof(IComparable))))
-                throw new Exception("IComapar is not implemented.");
-
             comp = comp ?? Comparer.Default;
 
             return comp.Compare(a, b) > 0 ? a : b;  
@@ -26,9 +23,6 @@ namespace Algorithm
 
         public static T Min<T>(T a, T b, IComparer comp = null)
         {
-            if (!(typeof(T).GetInterfaces().Contains(typeof(IComparable))))
-                throw new Exception("IComapar is not implemented.");
-
             comp = comp ?? Comparer.Default;
 
             return comp.Compare(a, b) < 0 ? a : b;
