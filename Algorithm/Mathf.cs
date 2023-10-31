@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using Algorithm.DataStructure;
-
-namespace Algorithm
+﻿namespace Algorithm
 {
     public static class Mathf
     {
@@ -14,18 +10,18 @@ namespace Algorithm
 
         public static double Mid(double a, double b) => a / 2 + b / 2;
 
-        public static T Max<T>(T a, T b, IComparer comp = null)
+        public static T Max<T>(T a, T b, IComparer comparer = null)
         {
-            comp = comp ?? Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
-            return comp.Compare(a, b) > 0 ? a : b;  
+            return comparer.Compare(a, b) > 0 ? a : b;  
         }
 
-        public static T Min<T>(T a, T b, IComparer comp = null)
+        public static T Min<T>(T a, T b, IComparer comparer = null)
         {
-            comp = comp ?? Comparer.Default;
+            comparer = comparer ?? Comparer.Default;
 
-            return comp.Compare(a, b) < 0 ? a : b;
+            return comparer.Compare(a, b) < 0 ? a : b;
         }
 
         public static T Max<T>(IComparer comp = null, params T[] values)

@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Text;
 using Algorithm.Technique;
 using Algorithm.DataStructure;
-using System.Text;
-using System.Collections;
+
+using static Algorithm.DataStructure.Extensions;
 
 namespace Algorithm
 {
@@ -108,10 +109,6 @@ namespace Algorithm
         static void Main(string[] args)
         {
             Init();
-
-            var arr = Extensions.Create(1000, 0, 100);
-
-            Sorts.Measure(Sorts.HeapSort, arr);
 
 
         }

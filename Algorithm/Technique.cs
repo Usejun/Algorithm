@@ -74,8 +74,10 @@ namespace Algorithm.Technique
             
             edges.Order(i => i.Value.Value);
 
-            foreach ((int first, (int second, int value)) in edges)
+            for (int i = 0; i < edges.Count; i++)
             {
+                (int first, (int second, int value)) = edges[i];
+
                 if (group.Find(first) == group.Find(second)) continue;
 
                 mst.Add(new Pair<int, Pair<int, int>>(first, new Pair<int, int>(second, value)));

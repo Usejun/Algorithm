@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace Algorithm.DataStructure
 {
@@ -50,7 +48,7 @@ namespace Algorithm.DataStructure
            where T1 : IComparable
         {
             sort = sort ?? Sorts.HeapSort;
-            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
+            IComparer comparer = new Comparer<T>((i, j) => order(i).CompareTo(order(j)));
             sort(array, comparer);
         }
 
@@ -72,6 +70,16 @@ namespace Algorithm.DataStructure
             return convertedValues;
         }
 
+        public static int Sum(int[] array)
+        {
+            int sum = 0;
+
+            foreach (int i in array)
+                sum += i;
+
+            return sum;
+        }
+
         public static void Copy<T>(T[] baseArray, T[] sourceArray, int length)
         {
             for (int i = 0; i < length; i++)
@@ -87,11 +95,6 @@ namespace Algorithm.DataStructure
 
         protected int count = 0;
 
-        public virtual IEnumerator<T> GetEnumerator()
-        {
-            foreach (T item in ToArray())
-                yield return item;
-        }
         public virtual bool Contains(T value)
         {
             return Extensions.Contains(ToArray(), value);
@@ -210,12 +213,6 @@ namespace Algorithm.DataStructure
                 Add(value);
         }
 
-        public void AddRange(IEnumerable<T> values)
-        {
-            foreach (T value in values)
-                Add(value);
-        }
-
         public override void Clear()
         {
             source = new T[Length];
@@ -298,7 +295,7 @@ namespace Algorithm.DataStructure
         {
             sort = sort ?? Sorts.HeapSort;
             T[] array = ToArray();
-            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
+            IComparer comparer = new Comparer<T>((i, j) => order(i).CompareTo(order(j)));
             sort(array, comparer);
 
             Extensions.Copy(source, array, count);
@@ -730,8 +727,8 @@ namespace Algorithm.DataStructure
             int index = 0;
 
             foreach (var priority in keyValues.Keys)
-                foreach (var value in keyValues[priority])
-                    array[index++] = new PriorityQueueNode<TValue, TPriority>(value, priority);
+                for (int i = 0; i < keyValues[priority].Count; i++)
+                    array[index++] = new PriorityQueueNode<TValue, TPriority>(keyValues[priority][i], priority);
 
             return array;
         }
@@ -1013,11 +1010,11 @@ namespace Algorithm.DataStructure
 
                 var pairs = list[Hash(key)];
 
-                foreach (var pair in pairs)
-                    if (pair.Key.Equals(key))
-                        return pair.Value;
+                for (int i = 0; i < count; i++)
+                    if (pairs[i].Key.Equals(key))
+                        return pairs[i].Value;
 
-                return default;
+                throw new Exception("does not exist");
             }
             set
             {
@@ -1170,9 +1167,9 @@ namespace Algorithm.DataStructure
         int size;
         bool reverse;
 
-        IComparer<T> comparer;
+        IComparer comparer;
 
-        public Heap(int size = 100, IComparer<T> comparer = null, bool reverse = false, params T[] values)
+        public Heap(int size = 100, IComparer comparer = null, bool reverse = false, params T[] values)
         {
             if (comparer == null
                 && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
