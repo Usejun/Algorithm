@@ -1,7 +1,11 @@
-﻿namespace Algorithm
+﻿using System.Collections;
+
+namespace Algorithm
 {
     public static class Mathf
     {
+        public static double PI = 3.141592;
+
         public static int Mid(int a, int b) => a / 2 + b / 2;
 
         public static long Mid(long a, long b) => a / 2 + b / 2;
@@ -44,5 +48,51 @@
             return min;
         }
 
+        public static double Pow(int a, int b)
+        {
+            if (b == 0)
+                return 1;
+
+            double pow = a;
+
+            for (int i = 1; i < b; i++)
+                pow *= a;
+            
+            return pow;
+        }
+
+        public static int Abs(int a)
+        {
+            return a < 0 ? -a : a;
+        }
+
+        public static long Abs(long a)
+        {
+            return a < 0 ? -a : a;
+        }
+
+        public static float Abs(float a)
+        {
+            return a < 0 ? -a : a;
+        }
+
+        public static double Abs(double a)
+        {
+            return a < 0 ? -a : a;
+        }
+
+        public static double Round(double a, int digits)
+        {
+            if (digits < 0 || digits > 15)
+                return 0;
+
+            double pow = Pow(10, digits);
+
+            a *= pow;
+            a -= a % 1;
+            a /= pow;
+
+            return a;
+        }
     }
 }

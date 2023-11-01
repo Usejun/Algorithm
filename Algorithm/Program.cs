@@ -98,6 +98,18 @@ namespace Algorithm
 
                 return str;
             }
+
+            public static Point[] Create(int length, int min, int max)
+            {
+                Point[] points = new Point[length];
+
+                Random r = new Random();
+
+                for (int i = 0; i < length; i++)
+                    points[i] = new Point(r.Next(min, max), r.Next(min, max), r.Next(min, max));
+
+                return points;
+            }
         }
 
         public static void Init()
@@ -109,12 +121,15 @@ namespace Algorithm
         static void Main(string[] args)
         {
             Init();
+            var arr = Create(1000000, 0, 1000);
 
-            List<Point> points = new List<Point>();
-            int[] arr = Create(100, 0, 1000, true);
+            Heap<int> heap = new Heap<int>(values:arr);
 
-            Util.Print(arr);
-            Util.Print(Contains(arr, 1));            
+            Util.Start();
+
+            heap.ToArray();
+
+            Util.Print(Util.Stop() + "ms");
         }
     }
 }

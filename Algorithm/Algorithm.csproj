@@ -46,7 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Comparer.cs" />
     <Compile Include="DataStructure.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="Mathf.cs" />

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Algorithm.DataStructure
 {
@@ -19,36 +21,36 @@ namespace Algorithm.DataStructure
             return array;
         }
 
-        public static T[] Sorted<T>(T[] array, Action<T[], IComparer> sorter = null, IComparer comparer = null)
+        public static T[] Sorted<T>(T[] array, Action<T[], IComparer> sort = null, IComparer comparer = null)
             where T : IComparable<T>
         {
             T[] list = new T[array.Length];
             Copy(array, list, array.Length);
 
-            sorter = sorter ?? Sorts.QuickSort;
-            sorter(list, comparer);
+            sort = sort ?? Sorts.QuickSort;
+            sort(list, comparer);
 
             return list;
         }
 
-        public static T[] Sorted<T>(Collection<T> collection, Action<T[], IComparer> sorter = null, IComparer comparer = null)
+        public static T[] Sorted<T>(Collection<T> collection, Action<T[], IComparer> sort = null, IComparer comparer = null)
             where T : IComparable<T>
         {
-            return Sorted(collection.ToArray(), sorter, comparer);
+            return Sorted(collection.ToArray(), sort, comparer);
         }
 
-        public static void Sort<T>(T[] array, Action<T[], IComparer> sorter = null, IComparer comparer = null)
+        public static void Sort<T>(T[] array, Action<T[], IComparer> sort = null, IComparer comparer = null)
             where T : IComparable<T>
         {
-            sorter = sorter ?? Sorts.QuickSort;
-            sorter(array, comparer ?? Comparer.Default);
+            sort = sort ?? Sorts.QuickSort;
+            sort(array, comparer ?? Comparer.Default);
         }
 
         public static void Order<T, T1>(T[] array, Func<T, T1> order, Action<T[], IComparer> sort = null)
            where T1 : IComparable
         {
             sort = sort ?? Sorts.HeapSort;
-            IComparer comparer = new Comparer<T>((i, j) => order(i).CompareTo(order(j)));
+            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
             sort(array, comparer);
         }
 
@@ -315,7 +317,7 @@ namespace Algorithm.DataStructure
         {
             sort = sort ?? Sorts.HeapSort;
             T[] array = ToArray();
-            IComparer comparer = new Comparer<T>((i, j) => order(i).CompareTo(order(j)));
+            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
             sort(array, comparer);
 
             Extensions.Copy(source, array, count);
@@ -543,7 +545,7 @@ namespace Algorithm.DataStructure
             count -= end - start + 1;
         }
 
-        public int IndexOf(T value)
+        public override int IndexOf(T value)
         {
             int index = 0;
             LinkedNode node = front;
@@ -1187,9 +1189,9 @@ namespace Algorithm.DataStructure
         int size;
         bool reverse;
 
-        IComparer comparer;
+        IComparer<T> comparer;
 
-        public Heap(int size = 100, IComparer comparer = null, bool reverse = false, params T[] values)
+        public Heap(int size = 100, IComparer<T> comparer = null, bool reverse = false, params T[] values)
         {
             if (comparer == null
                 && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
