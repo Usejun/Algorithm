@@ -6,13 +6,29 @@ namespace Algorithm
     {
         public static double PI = 3.141592;
 
-        public static int Mid(int a, int b) => a / 2 + b / 2;
+        public static int Mid(int a, int b)
+        {
+            if (a > b) (a, b) = (b, a);
+            return a + ((b - a) / 2);
+        }
 
-        public static long Mid(long a, long b) => a / 2 + b / 2;
+        public static long Mid(long a, long b)
+        {
+            if (a > b) (a, b) = (b, a);
+            return a + ((b - a) / 2);
+        }
 
-        public static float Mid(float a, float b) => a / 2 + b / 2;
+        public static float Mid(float a, float b)
+        {
+            if (a > b) (a, b) = (b, a);
+            return a + ((b - a) / 2);
+        }
 
-        public static double Mid(double a, double b) => a / 2 + b / 2;
+        public static double Mid(double a, double b)
+        {
+            if (a > b) (a, b) = (b, a);
+            return a + ((b - a) / 2);
+        }
 
         public static T Max<T>(T a, T b, IComparer comparer = null)
         {

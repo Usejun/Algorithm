@@ -3,8 +3,6 @@ using System.Text;
 using Algorithm.Technique;
 using Algorithm.DataStructure;
 
-using static Algorithm.DataStructure.Extensions;
-
 namespace Algorithm
 {
     internal class Program
@@ -121,15 +119,9 @@ namespace Algorithm
         static void Main(string[] args)
         {
             Init();
-            var arr = Create(1000000, 0, 1000);
+            int length = 1000000;
 
-            Heap<int> heap = new Heap<int>(values:arr);
 
-            Util.Start();
-
-            heap.ToArray();
-
-            Util.Print(Util.Stop() + "ms");
         }
     }
 }

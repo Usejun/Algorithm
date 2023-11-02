@@ -60,7 +60,7 @@ namespace Algorithm.DataStructure
         }
 
         /// <summary>
-        /// 삽입 정렬, 시간 복잡도 : 최선의 경우 N, 최악의 경우 N^2
+        /// 삽입 정렬, 시간 복잡도 : 최선 N, 평균 N^2, 최악 N^2
         /// </summary>
         public static void InsertionSort<T>(T[] array, IComparer comparer = null)
         {
@@ -88,7 +88,50 @@ namespace Algorithm.DataStructure
         }
 
         /// <summary>
-        /// 퀵 정렬, 시간 복잡도 : 평균 NlogN, 최악의 경우 N^2
+        /// 이진 삽입 정렬, 시간 복잡도 : N^2
+        /// </summary>
+        public static void BinaryInsertionSort<T>(T[] array, IComparer comparer = null)
+        {
+            if (array.Length < 2)
+                return;
+
+            comparer = comparer ?? Comparer.Default;
+
+            int i, j;
+
+            for (i = 0; i < array.Length; i++)
+            {
+                T target = array[i];
+
+                int location = BinarySearch(0, i, target);
+
+                j = i - 1;
+
+                while (j >= location)
+                {
+                    array[j + 1] = array[j];
+                    j--;
+                }
+
+                array[location] = target;
+            }
+
+            int BinarySearch(int low, int high , T key)
+            {
+                int mid;
+
+                while (low < high)
+                {
+                    mid = Mathf.Mid(low, high);
+                    mid = comparer.Compare(key, array[mid]) < 0 ? high = mid : low = mid + 1;
+                }
+
+                return low;               
+            }
+        }
+
+        /// <summary>
+        /// 퀵 정렬, 시간 복잡도 : 최선 NlogN, 평균 NlogN, 최악 N^2
         /// </summary>
         public static void QuickSort<T>(T[] array, IComparer comparer = null)
         {
@@ -227,6 +270,95 @@ namespace Algorithm.DataStructure
             }
 
         }
+
+        /// <summary>
+        /// 팀 정렬, 시간 복잡도 : 최선 N, 평균 NlogN, 최악 NlogN
+        /// </summary>
+        public static void TimSort<T>(T[] array, IComparer comparer = null)
+        {
+            int n = array.Length;
+            int RUN = 32;
+
+            if (n < 2)
+                return;
+
+            comparer = comparer ?? Comparer.Default;
+
+            for (int i = 0; i < n; i += RUN)
+                Insertion(i, Math.Min(i + RUN - 1, n - 1));
+
+            for (int size = RUN; size < n; size *= 2)
+            {
+                for (int left = 0; left < n; left += 2 * size)
+                {
+                    int mid = left + size - 1;
+                    int right = Math.Min(left + 2 * size - 1, n - 1);
+
+                    if (mid < right)
+                        Merge(left, mid, right);
+                }
+            }
+
+            void Insertion(int left, int right)
+            {
+                for (int i = left + 1; i <= right; i++)
+                {
+                    T value = array[i];
+                    int j = i - 1;
+
+                    while (j >= left && comparer.Compare(array[j], value) > 0)
+                    {
+                        array[j + 1] = array[j];
+                        j--;
+                    }
+
+                    array[j + 1] = value;
+                }
+            }
+
+            void Merge(int left, int mid, int right)
+            {
+                int leftLength = mid - left + 1; 
+                int rightLength = right - mid;
+
+                T[] leftValues = new T[leftLength];
+                T[] rightValues = new T[rightLength];
+
+                Array.Copy(array, left, leftValues, 0, leftLength);
+                Array.Copy(array, mid + 1, rightValues, 0, rightLength);
+
+                int i = 0, j = 0, k = left;
+
+                while (i < leftLength && j < rightLength)
+                {
+                    if (comparer.Compare(leftValues[i], rightValues[j]) <= 0)
+                    {
+                        array[k] = leftValues[i];
+                        i++;
+                    }
+                    else
+                    {
+                        array[k] = rightValues[j];
+                        j++;
+                    }
+                    k++;
+                }
+
+                while (i < leftLength)
+                {
+                    array[k] = leftValues[i];
+                    k++;
+                    i++;                
+                }                
+                
+                while (j < rightLength)
+                {
+                    array[k] = rightValues[j];
+                    k++;
+                    j++;
+                }
+            }
+        }        
 
         public static void Measure<T>(Action<T[], IComparer> sort, T[] args, IComparer comparer = null)
         {

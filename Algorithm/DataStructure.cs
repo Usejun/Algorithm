@@ -27,7 +27,7 @@ namespace Algorithm.DataStructure
             T[] list = new T[array.Length];
             Copy(array, list, array.Length);
 
-            sort = sort ?? Sorts.QuickSort;
+            sort = sort ?? Sorts.TimSort;
             sort(list, comparer);
 
             return list;
@@ -42,7 +42,7 @@ namespace Algorithm.DataStructure
         public static void Sort<T>(T[] array, Action<T[], IComparer> sort = null, IComparer comparer = null)
             where T : IComparable<T>
         {
-            sort = sort ?? Sorts.QuickSort;
+            sort = sort ?? Sorts.TimSort;
             sort(array, comparer ?? Comparer.Default);
         }
 
@@ -100,7 +100,7 @@ namespace Algorithm.DataStructure
     }
 
     //기본 배열 추상 클래스     
-    public abstract class Collection<T>
+    public abstract class Collection<T> : IEnumerable<T>
     {
         public virtual bool IsReadOnly => false;
         public virtual int Count => count;
@@ -155,11 +155,23 @@ namespace Algorithm.DataStructure
 
             return convertedValues;
         }
+        public virtual IEnumerator<T> GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
 
         public abstract T[] ToArray();
         public abstract void Add(T value);
         public abstract bool Remove(T value);
         public abstract void Clear();
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            T[] array = ToArray();
+            foreach (var item in array)
+                yield return item;
+        }
     }
 
     //기본 노드 클래스
@@ -209,6 +221,7 @@ namespace Algorithm.DataStructure
     // 가변 배열
     public class List<T> : Collection<T>
     {
+        public Action<T[], IComparer> Sorter;
         public virtual bool IsFull => count == Length - 1;
 
         protected T[] source;
@@ -304,7 +317,7 @@ namespace Algorithm.DataStructure
 
         public virtual void Sort(Action<T[], IComparer> sort = null, IComparer comparer = null)
         {
-            sort = sort ?? Sorts.HeapSort;
+            sort = sort ?? Sorter;
             T[] array = ToArray();
             comparer = comparer ?? Comparer<T>.Default;
             sort(array, comparer);
@@ -315,7 +328,7 @@ namespace Algorithm.DataStructure
         public virtual void Order<T1>(Func<T, T1> order, Action<T[], IComparer> sort = null)
             where T1 : IComparable
         {
-            sort = sort ?? Sorts.HeapSort;
+            sort = sort ?? Sorter;
             T[] array = ToArray();
             IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
             sort(array, comparer);
@@ -880,6 +893,11 @@ namespace Algorithm.DataStructure
             return value;
         }
 
+        public virtual void DequeueEnqueue()
+        {
+            Enqueue(Dequeue());
+        }
+
         public virtual T Peek()
         {
             return source[front];
@@ -1224,6 +1242,12 @@ namespace Algorithm.DataStructure
             }
 
             count++;
+        }
+
+        public void PushRange(params T[] values)
+        {
+            foreach (T value in values)
+                Push(value);
         }
 
         public T Pop()

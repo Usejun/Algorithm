@@ -10,12 +10,9 @@ namespace Algorithm
     public static class Util
     {
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
-
-        static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);
-        
+        static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);        
         static readonly StringBuilder sb = new StringBuilder();
-
-        static readonly Stopwatch sw = new Stopwatch();
+        static readonly Stopwatch sw = new Stopwatch();        
 
         public static void Print(string text, string end = "\n")
         {
@@ -151,12 +148,21 @@ namespace Algorithm
             sw.Stop();
 
             return sw.ElapsedMilliseconds;                     
-        }
+        }        
 
         public static void Sleep(int milliseconds)
         {
             Thread.Sleep(milliseconds);
         }     
+
+        public static void Measure(Action code)
+        {
+            Start();
+
+            code();
+
+            Print(Stop() + "ms");
+        }
 
     }
 }
