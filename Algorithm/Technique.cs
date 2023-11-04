@@ -72,7 +72,7 @@ namespace Algorithm.Technique
                 edges.Add((input[0], (input[1], input[2])));
             }
             
-            edges.Order(i => i.To.Node);
+            edges.Sort(i => i.To.Node);
 
             for (int i = 0; i < edges.Count; i++)
             {
@@ -156,7 +156,7 @@ namespace Algorithm.Technique
 
     public class Group
     {
-        Dictionary<int, int> parents;
+        readonly Dictionary<int, int> parents;
 
         public Group(int length)
         {

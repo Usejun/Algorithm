@@ -119,8 +119,15 @@ namespace Algorithm
         static void Main(string[] args)
         {
             Init();
-            int length = 1000000;
+            int length = 1000;
+            var arr = Extensions.Create(1000, 0, 100);
 
+            var input = Util.Inputs(int.Parse);
+
+            var t = Techniques.Kruskal(input[0], input[1]);
+            int sum = Extensions.Sum(Extensions.Convert(t, i => i.To.Node));
+
+            Util.Print(sum);
 
         }
     }

@@ -3,11 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Algorithm.DataStructure
-{
+{    
     //배열 추가 기능
     public static class Extensions
     {
-        public static int[] Create(int length, int min, int max, bool isSorted = false)
+
+        public static Action<T[], Func<T, T1>, IComparer> Sorter<T, T1>()
+            where T1 : IComparable<T1>
+        {
+            return Sorts.TimSort;
+        }
+
+        public static int[] Create(int length, int min, int max)
         {
             Random r = new Random();
 
@@ -16,42 +23,32 @@ namespace Algorithm.DataStructure
             for (int i = 0; i < length; i++)            
                 array[i] = r.Next(min, max);            
 
-            if (isSorted) Sort(array);
-
             return array;
         }
 
-        public static T[] Sorted<T>(T[] array, Action<T[], IComparer> sort = null, IComparer comparer = null)
-            where T : IComparable<T>
+        public static T[] Sorted<T, T1>(T[] array, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             T[] list = new T[array.Length];
             Copy(array, list, array.Length);
 
-            sort = sort ?? Sorts.TimSort;
-            sort(list, comparer);
+            sort = sort ?? Sorter<T, T1>();
+            sort(list, order, comparer);
 
             return list;
         }
 
-        public static T[] Sorted<T>(Collection<T> collection, Action<T[], IComparer> sort = null, IComparer comparer = null)
-            where T : IComparable<T>
+        public static T[] Sorted<T, T1>(Collection<T> collection, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
-            return Sorted(collection.ToArray(), sort, comparer);
+            return Sorted(collection.ToArray(), order, sort, comparer);
         }
 
-        public static void Sort<T>(T[] array, Action<T[], IComparer> sort = null, IComparer comparer = null)
-            where T : IComparable<T>
+        public static void Sort<T, T1>(T[] array, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             sort = sort ?? Sorts.TimSort;
-            sort(array, comparer ?? Comparer.Default);
-        }
-
-        public static void Order<T, T1>(T[] array, Func<T, T1> order, Action<T[], IComparer> sort = null)
-           where T1 : IComparable
-        {
-            sort = sort ?? Sorts.HeapSort;
-            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
-            sort(array, comparer);
+            sort(array, order, comparer);
         }
 
         public static bool Contains<T>(T[] array, T value)
@@ -221,7 +218,6 @@ namespace Algorithm.DataStructure
     // 가변 배열
     public class List<T> : Collection<T>
     {
-        public Action<T[], IComparer> Sorter;
         public virtual bool IsFull => count == Length - 1;
 
         protected T[] source;
@@ -315,23 +311,12 @@ namespace Algorithm.DataStructure
             }
         }
 
-        public virtual void Sort(Action<T[], IComparer> sort = null, IComparer comparer = null)
+        public virtual void Sort<T1>(Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
-            sort = sort ?? Sorter;
+            sort = sort ?? Extensions.Sorter<T, T1>();
             T[] array = ToArray();
-            comparer = comparer ?? Comparer<T>.Default;
-            sort(array, comparer);
-
-            Extensions.Copy(source, array, count);
-        }
-
-        public virtual void Order<T1>(Func<T, T1> order, Action<T[], IComparer> sort = null)
-            where T1 : IComparable
-        {
-            sort = sort ?? Sorter;
-            T[] array = ToArray();
-            IComparer comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
-            sort(array, comparer);
+            sort(array, order, comparer);
 
             Extensions.Copy(source, array, count);
         }
@@ -957,22 +942,14 @@ namespace Algorithm.DataStructure
             count = i;
         }
 
-        public override void Sort(Action<T[], IComparer> sort = null, IComparer comparer = null)
+        public override void Sort<T1>(Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
         {
-            base.Sort(sort, comparer);
+            base.Sort(order, sort, comparer);
 
             front = 0;
             back = count;
-        }
-
-        public override void Order<T1>(Func<T, T1> order, Action<T[], IComparer> sort = null)
-        {
-            base.Order(order, sort);
-
-            front = 0;
-            back = count;
-        }
-    }
+        } 
+    }  
 
     // 딕셔너리
     public class Dictionary<TKey, TValue> : Set<Pair<TKey, TValue>>, IHash<TKey>

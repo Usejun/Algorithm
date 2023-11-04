@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Algorithm.DataStructure
 {
     public static class Sorts
-    {
+    {        
         /// <summary>
         /// 선택 정렬, 시간복잡도 : N^2
         /// </summary>
-        public static void SelectionSort<T>(T[] array, IComparer comparer = null)
+        public static void SelectionSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)            
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
 
             int index = 0;
             T min; // 최솟값
@@ -39,12 +41,13 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 버블 정렬, 시간 복잡도 : N^2
         /// </summary>
-        public static void BobbleSort<T>(T[] array, IComparer comparer = null)
+        public static void BobbleSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int i, j;
 
@@ -62,12 +65,13 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 삽입 정렬, 시간 복잡도 : 최선 N, 평균 N^2, 최악 N^2
         /// </summary>
-        public static void InsertionSort<T>(T[] array, IComparer comparer = null)
+        public static void InsertionSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int i, j;
 
@@ -90,12 +94,13 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 이진 삽입 정렬, 시간 복잡도 : N^2
         /// </summary>
-        public static void BinaryInsertionSort<T>(T[] array, IComparer comparer = null)
+        public static void BinaryInsertionSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int i, j;
 
@@ -133,12 +138,13 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 퀵 정렬, 시간 복잡도 : 최선 NlogN, 평균 NlogN, 최악 N^2
         /// </summary>
-        public static void QuickSort<T>(T[] array, IComparer comparer = null)
+        public static void QuickSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             QuickSort(0, array.Length - 1);
 
@@ -176,12 +182,13 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 병합 정렬, 시간 복잡도 : NlogN
         /// </summary>
-        public static void MergeSort<T>(T[] array, IComparer comparer = null)
+        public static void MergeSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             // 임시 배열을 선언
             T[] sorted = new T[array.Length + 1];
@@ -229,12 +236,13 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 힙 정렬, 시간 복잡도 : NlogN
         /// </summary>
-        public static void HeapSort<T>(T[] array, IComparer comparer = null)
+        public static void HeapSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             if (array.Length < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             for (int i = 1; i < array.Length; i++)
             {
@@ -274,7 +282,8 @@ namespace Algorithm.DataStructure
         /// <summary>
         /// 팀 정렬, 시간 복잡도 : 최선 N, 평균 NlogN, 최악 NlogN
         /// </summary>
-        public static void TimSort<T>(T[] array, IComparer comparer = null)
+        public static void TimSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
+            where T1 : IComparable<T1>
         {
             int n = array.Length;
             int RUN = 32;
@@ -282,17 +291,17 @@ namespace Algorithm.DataStructure
             if (n < 2)
                 return;
 
-            comparer = comparer ?? Comparer.Default;
+            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             for (int i = 0; i < n; i += RUN)
-                Insertion(i, Math.Min(i + RUN - 1, n - 1));
+                Insertion(i, Mathf.Min(i + RUN - 1, n - 1));
 
             for (int size = RUN; size < n; size *= 2)
             {
                 for (int left = 0; left < n; left += 2 * size)
                 {
                     int mid = left + size - 1;
-                    int right = Math.Min(left + 2 * size - 1, n - 1);
+                    int right = Mathf.Min(left + 2 * size - 1, n - 1);
 
                     if (mid < right)
                         Merge(left, mid, right);
@@ -360,11 +369,11 @@ namespace Algorithm.DataStructure
             }
         }        
 
-        public static void Measure<T>(Action<T[], IComparer> sort, T[] args, IComparer comparer = null)
+        public static void Measure<T, T1>(Action<T[], Func<T, T1>, IComparer> sort, T[] array, Func<T, T1> order, IComparer comparer = null)
         {
             Util.Start();
 
-            sort(args, comparer ?? Comparer.Default);
+            sort(array, order, comparer);
 
             Util.Print(Util.Stop() + "ms");
         }
