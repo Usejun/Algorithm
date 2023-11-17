@@ -1,10 +1,45 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace Algorithm
 {
     public static class Mathf
     {
         public static double PI = 3.141592;
+
+        public static int Sum(int[] array)
+        {
+            int sum = 0;
+            foreach (int i in array)
+                sum += i;
+
+            return sum;
+        }
+
+        public static long Sum(long[] array)
+        {
+            long sum = 0;
+            foreach (long i in array)
+                sum += i;
+
+            return sum;
+        }
+
+        public static float Sum(float[] array)
+        {
+            float sum = 0;
+            foreach (float i in array)
+                sum += i;
+            return sum;
+        }
+
+        public static double Sum(double[] array)
+        {
+            double sum = 0;
+            foreach (double i in array)
+                sum += i;
+            return sum;
+        }
 
         public static int Mid(int a, int b)
         {
@@ -44,22 +79,22 @@ namespace Algorithm
             return comparer.Compare(a, b) < 0 ? a : b;
         }
 
-        public static T Max<T>(IComparer comp = null, params T[] values)
+        public static T Max<T>(IComparer comparer = null, params T[] values)
         {
             T max = values[0];
 
             foreach (T t in values)
-                max = Max(max, t, comp);
+                max = Max(max, t, comparer);
 
             return max;
         }
 
-        public static T Min<T>(IComparer comp = null, params T[] values)
+        public static T Min<T>(IComparer comparer = null, params T[] values)
         {
             T min = values[0];
 
             foreach (T t in values)
-                min = Min(min, t, comp);
+                min = Min(min, t, comparer);
 
             return min;
         }
@@ -109,6 +144,43 @@ namespace Algorithm
             a /= pow;
 
             return a;
+        }
+
+        public static long Permutation(int n, int k)
+        {
+            if (n < k) return 0;
+            if (n == k || k == 0) return 1;
+
+            k = n - k;
+
+            long sum = 1;
+
+            for (int i = k + 1; i <= n; i++)
+                sum *= i;
+
+            return sum;
+        }
+
+        public static long Combination(int n, int k)
+        {
+            if (n < k) return 0;
+            if (n == k || k == 0) return 1;
+            
+            long sum = Permutation(n, k);
+            for (int i = 2; i <= k; i++)
+                sum /= i;
+
+            return sum;                 
+        }
+
+        public static long Factorial(int n)
+        {
+            int sum = 1;
+
+            for (int i = 2; i <= n; i++)
+                sum *= i;
+
+            return sum;
         }
     }
 }

@@ -18,16 +18,16 @@ namespace Algorithm.Technique
                             source[i, j] = source[i, k] + source[k, j];
         }
 
-        public static void Dijkstra(int start, int[,] source)
+        public static int[] Dijkstra(int start, int[,] source)
         {
             int length = source.GetLength(0);
-            int[] array = new int[length];  
+            int[] distance = new int[length];  
             bool[] visit = new bool[length];
 
             for (int i = 0; i < length; i++)
-                array[i] = source[start, i];
-          
-            array[start] = 0;
+                distance[i] = source[start, i];
+
+            distance[start] = 0;
             visit[start] = true;
 
             for (int i = 0; i < length - 1; i++)
@@ -37,11 +37,11 @@ namespace Algorithm.Technique
 
                 for (int j = 0; j < length; j++)
                     if (!visit[j])
-                        if (array[j] > array[node] + source[node, j])
-                            array[j] = array[node] + source[node, j];
+                        if (distance[j] > distance[node] + source[node, j])
+                            distance[j] = distance[node] + source[node, j];
             }
 
-            Util.Print(array);
+            return distance;
 
             int SmallestNode()
             {
@@ -49,14 +49,45 @@ namespace Algorithm.Technique
                 int index = -1;
 
                 for (int i = 0; i < length; i++)
-                    if (!visit[i] && array[i] < min)
+                    if (!visit[i] && distance[i] < min)
                     {
-                        min = array[i];
+                        min = distance[i];
                         index = i;
                     }
 
                 return index;
             }
+        }
+
+        public static int[] Dijkstra(int start, Graph graph)
+        {
+            int length = graph.Length;
+            int[] distance = new int[length];
+            PriorityQueue<(int n, int v), int> pq = new PriorityQueue<(int n, int v), int>();
+
+            for (int i = 0; i < length; i++)
+                distance[i] = INF;
+
+            distance[start] = 0;
+            pq.Enqueue((start, 0), 0);
+
+            while (!pq.IsEmpty) 
+            {
+                (int n, int v) = pq.Dequeue().Value;
+
+                if (distance[n] < v) continue;
+
+                foreach ((int next, int nextV) in graph[n])
+                {
+                    if (nextV + v < distance[next])
+                    {
+                        distance[next] = nextV + v;
+                        pq.Enqueue((next, nextV + v), nextV + v);
+                    }
+                }
+            }
+
+            return distance;
         }
 
         public static (int From, (int Index, int Node) To)[] Kruskal(int length, int nodeCount)
@@ -156,11 +187,16 @@ namespace Algorithm.Technique
 
     public class Group
     {
+        public int Length => length;
+
         readonly Dictionary<int, int> parents;
+        
+        readonly int length = 0;
 
         public Group(int length)
         {
             parents = new Dictionary<int, int>();
+            this.length = length;
 
             for (int i = 1; i <= length; i++)
                 parents[i] = i;          
@@ -168,13 +204,126 @@ namespace Algorithm.Technique
 
         public void Union(int parent, int child)
         {
-            parents[parent] = (child);
+            parents[child] = parent;
         }
 
         public int Find(int root)
         {
             if (parents[root] == root) return root;
             return parents[root] = Find(parents[root]);
+        }
+
+        public int[] Child(int parent)
+        {
+            var childs = new List<int>();
+
+            if (Contains(parent))
+                foreach (int key in parents.Keys)
+                    if (parents[key] == parent)
+                        childs.Add(key);
+
+            return childs.ToArray();
+        }
+
+        public bool Contains(int parent)
+        {
+            return parents.ContainsKey(parent);
+        }
+
+        public int Depth(int root, int depth = 0)
+        {
+            if (parents[root] == root) return depth;
+            return Depth(parents[root], depth + 1);
+        }
+
+        public void Sort()
+        {
+            foreach (int key in parents.Keys)
+            {
+                parents[key] = Find(key);
+            }
+        }
+
+        public override string ToString()
+        {
+            string str = "";
+
+            for (int i = 1; i <= length; i++)
+                str += $"{i} : {parents[i]}\n";
+
+            return str;
+        }
+    }
+
+    public class Graph
+    {
+        public int Length => length;
+        public int Count => count;
+
+        List<(int, int)>[] node;
+        int length;
+        int count;
+
+        public Graph(int length)
+        {
+            this.length = length;
+
+            for (int i = 0; i < length; i++)            
+                node[i] = new List<(int, int)>();            
+        }
+
+        public void AddNode(int from, int to, int edge)
+        {
+            AddNode(from, (to, edge));
+        }
+
+        public void AddNode(int from, (int to, int edge) info)
+        {
+            if (from < 0 || length <= from ||
+                info.to < 0 || length <= info.to)
+                throw new Exception("Out of range");
+
+            node[from].Add(info);
+            count++;
+        }
+
+        public bool Connected(int from, int to, int edge)
+        {
+            return Connected(from, (to, edge));
+        }
+        
+        public bool Connected(int from, (int to, int edge) info)
+        {
+            if (from < 0 || length <= from ||
+                info.to < 0 || length <= info.to)
+                throw new Exception("Out of range");
+
+            return node[from].Contains(info);
+        }
+
+        public bool Disconnect(int from, int to, int edge)
+        {
+            return Disconnect(from, (to, edge));
+        }
+
+        public bool Disconnect(int from, (int to, int edge) info)
+        {
+            if (from < 0 || length <= from ||
+                info.to < 0 || length <= info.to)
+                throw new Exception("Out of range");
+
+            return node[from].Remove(info);
+        }
+
+        public List<(int, int)> this[int index]
+        {
+            get
+            {
+                if (index < 0 || length <= index)
+                    throw new Exception("Out of range");
+
+                return node[index];
+            }
         }
     }
 }

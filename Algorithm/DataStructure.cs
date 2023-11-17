@@ -7,41 +7,75 @@ namespace Algorithm.DataStructure
     //배열 추가 기능
     public static class Extensions
     {
-
         public static Action<T[], Func<T, T1>, IComparer> Sorter<T, T1>()
             where T1 : IComparable<T1>
         {
             return Sorts.TimSort;
         }
 
-        public static int[] Create(int length, int min, int max)
+        public static int[] Range(int length)
         {
-            Random r = new Random();
-
-            int[] array = new int[length];
+            int[] values = new int[length];
 
             for (int i = 0; i < length; i++)            
-                array[i] = r.Next(min, max);            
+                values[i] = i;
 
-            return array;
+            return values;
+        }
+
+        public static int[] Range(int min, int max, int step = 1)
+        {
+            if (step == 0)
+                throw new Exception("step is not zero");
+
+            int[] values = new int[(max - min) / Mathf.Abs(step)];
+
+            if (step > 0)
+                for (int i = 0; i < values.Length; i++)
+                    values[i] = i * step;
+            else           
+                for (int i = 0; i < values.Length; i++)
+                    values[i] = (max - 1) + i * step;      
+            
+            return values;
+        }
+
+        public static int[] Create(int length, int min, int max, bool duplication = false)
+        {
+            Random r = new Random();
+            if (duplication)
+            {
+                if (max - min < length)
+                    throw new Exception("Out of range");
+
+                Set<int> set = new Set<int>();
+
+                while (set.Count != length)
+                    set.Add(r.Next(min, max));
+
+                return set.ToArray();
+            }
+            else
+            {                
+                int[] array = new int[length];
+
+                for (int i = 0; i < length; i++)
+                    array[i] = r.Next(min, max);
+
+                return array;                
+            }
         }
 
         public static T[] Sorted<T, T1>(T[] array, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
             where T1 : IComparable<T1>
         {
             T[] list = new T[array.Length];
-            Copy(array, list, array.Length);
+            Copy(list, array, 0, array.Length);
 
             sort = sort ?? Sorter<T, T1>();
             sort(list, order, comparer);
 
             return list;
-        }
-
-        public static T[] Sorted<T, T1>(Collection<T> collection, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
-            where T1 : IComparable<T1>
-        {
-            return Sorted(collection.ToArray(), order, sort, comparer);
         }
 
         public static void Sort<T, T1>(T[] array, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
@@ -67,17 +101,7 @@ namespace Algorithm.DataStructure
                 convertedValues[i] = converter(array[i]);
 
             return convertedValues;
-        }
-
-        public static int Sum(int[] array)
-        {
-            int sum = 0;
-
-            foreach (int i in array)
-                sum += i;
-
-            return sum;
-        }
+        }        
 
         public static Pair<int, T>[] ToPairs<T>(T[] array)
         {
@@ -89,10 +113,147 @@ namespace Algorithm.DataStructure
             return pairs;
         }
 
-        public static void Copy<T>(T[] baseArray, T[] sourceArray, int length)
+        public static void Copy<T>(T[] baseArray, T[] sourceArray, int index, int length)
         {
+            if (sourceArray.Length <= index + length || baseArray.Length <= index + length)
+                throw new ArgumentException("Out of range");
+
             for (int i = 0; i < length; i++)
-                baseArray[i] = sourceArray[i];
+                baseArray[index + i] = sourceArray[i];
+        }
+
+        public static int BinarySearch<T>(T[] array, T value)
+            where T : IComparable<T>
+        {
+            int low = 0, high = array.Length - 1, mid = array.Length;
+
+            while (low <= high)
+            {
+                mid = Mathf.Mid(low, high);
+
+                if (array[mid].CompareTo(value) == 0)
+                    return mid;
+                else if (array[mid].CompareTo(value) > 0)
+                    high = mid - 1;
+                else
+                    low = mid + 1;          
+            }
+
+            return -1;
+        }
+
+        public static int IndexOf<T>(T[] array, T value)
+            where T : IComparable<T>
+        {
+            for (int i = 0; i < array.Length; i++)
+                if (array[i].Equals(value))
+                    return i;
+            return -1;
+        }
+    }
+
+    // 좌표
+    public struct Point
+    {
+        public int x;
+        public int y;
+        public int z;
+
+        public Point(int x = 0, int y = 0, int z = 0)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public void Deconstruct(out int x, out int y, out int z)
+        {
+            x = this.x;
+            y = this.y;
+            z = this.z;
+        }
+
+        public static Point operator +(Point a, Point b)
+        {
+            return new Point(a.x + b.x, a.y + b.x, a.z + b.z);
+        }
+
+        public static Point operator -(Point a, Point b)
+        {
+            return new Point(a.x - b.x, a.y - b.x, a.z - b.z);
+        }
+
+        public static Point operator *(Point a, Point b)
+        {
+            return new Point(a.x * b.x, a.y * b.x, a.z * b.z);
+        }
+
+        public static Point operator /(Point a, Point b)
+        {
+            if (b.x * b.y * b.y == 0)
+                throw new DivideByZeroException();
+
+            return new Point(a.x / b.x, a.y / b.y, a.z / b.z);
+        }
+
+        public static Point operator %(Point a, Point b)
+        {
+            return new Point(a.x % b.x, a.y % b.x, a.z % b.z);
+        }
+
+        public static bool operator <(Point a, Point b)
+        {
+            return a.x == b.x ? a.y == b.y ? a.z < b.z : a.y < b.y : a.x < b.x;
+        }
+
+        public static bool operator >(Point a, Point b)
+        {
+            return a.x == b.x ? a.y == b.y ? a.z > b.z : a.y > b.y : a.x > b.x;
+        }
+
+        public static bool operator ==(Point a, Point b)
+        {
+            return a.x == b.x && a.y == b.y && a.z == b.z;
+        }
+
+        public static bool operator !=(Point a, Point b)
+        {
+            return a.x != b.x || a.y != b.y || a.z != b.z;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Point v && v == this) return true;
+            else return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            string str = "";
+
+            var fields = typeof(Point).GetFields();
+
+            foreach (var field in fields)
+                str += ($"({field.Name} : {field.GetValue(this)})");
+
+            return str;
+        }
+
+        public static Point[] Create(int length, int min, int max)
+        {
+            Point[] Points = new Point[length];
+
+            Random r = new Random();
+
+            for (int i = 0; i < length; i++)
+                Points[i] = new Point(r.Next(min, max), r.Next(min, max), r.Next(min, max));
+
+            return Points;
         }
     }
 
@@ -108,15 +269,9 @@ namespace Algorithm.DataStructure
         {
             return IndexOf(value) != -1;
         }
-        public virtual void CopyTo(T[] array, int index)
+        public virtual void CopyTo(T[] array, int length)
         {
-            T[] source = ToArray();
-
-            if (source.Length <= index)
-                throw new ArgumentException("Out of range");
-
-            for (int i = index; i < array.Length; i++)
-                array[i] = source[i];
+            Extensions.Copy(array, ToArray(), 0, length);
         }
         public virtual int IndexOf(T value)
         {
@@ -154,9 +309,10 @@ namespace Algorithm.DataStructure
         }
         public virtual IEnumerator<T> GetEnumerator()
         {
-            return GetEnumerator();
+            T[] array = ToArray();
+            foreach (var item in array)
+                yield return item;
         }
-
 
         public abstract T[] ToArray();
         public abstract void Add(T value);
@@ -183,7 +339,7 @@ namespace Algorithm.DataStructure
     }
 
     // Key Value 형식의 구조체
-    public struct Pair<TKey, TValue> : IEquatable<Pair<TKey, TValue>>
+    public struct Pair<TKey, TValue> 
     {
         public TKey Key => key;
         public TValue Value => value;
@@ -220,11 +376,14 @@ namespace Algorithm.DataStructure
     {
         public virtual bool IsFull => count == Length - 1;
 
-        protected T[] source;
         protected int Length => source.Length;
+
+        protected T[] source;
+        protected int size;
 
         public List(int size = 100, params T[] values)
         {
+            this.size = size;
             source = new T[size];
 
             AddRange(values);
@@ -242,6 +401,15 @@ namespace Algorithm.DataStructure
         {
             foreach (T value in values)
                 Add(value);
+        }
+
+        public void Insert(int index, T value)
+        {
+            for (int i = index; i < count; i++)            
+                source[i + 1] = source[i];
+
+            source[index] = value;
+            count++;
         }
 
         public override void Clear()
@@ -269,7 +437,7 @@ namespace Algorithm.DataStructure
             if (index < 0 || index >= count)
                 throw new Exception("Out of range");
 
-            for (int i = index; i < count - 1; i++)
+            for (int i = index; i < count; i++)
                 source[i] = source[i + 1];
 
             count--;
@@ -318,7 +486,7 @@ namespace Algorithm.DataStructure
             T[] array = ToArray();
             sort(array, order, comparer);
 
-            Extensions.Copy(source, array, count);
+            Extensions.Copy(source, array, 0, count);
         }
     }
 
@@ -638,7 +806,7 @@ namespace Algorithm.DataStructure
 
     }
 
-    // 우선순위 큐
+    // 우선순위 큐, 기본 : 최소 힙
     public class PriorityQueue<TValue, TPriority> : Queue<PriorityQueueNode<TValue, TPriority>>
         where TPriority : IComparable<TPriority>
     {
@@ -650,12 +818,7 @@ namespace Algorithm.DataStructure
 
         readonly bool reverse;
 
-        public PriorityQueue()
-        {
-            Init();
-        }
-
-        public PriorityQueue(bool reverse)
+        public PriorityQueue(bool reverse = false)
         {
             this.reverse = reverse;
             Init();
@@ -758,7 +921,6 @@ namespace Algorithm.DataStructure
     public class Stack<T> : List<T>
     {
         int front = 0;
-        int size = 0;
 
         public bool IsEmpty => front == 0;
         public override bool IsFull => front == Length;
@@ -845,9 +1007,8 @@ namespace Algorithm.DataStructure
     {
         int front = 0;
         int back = 0;
-        int size = 0;
 
-        public bool IsEmpty => front == back;
+        public bool IsEmpty => count == 0;
         public override bool IsFull => (back + 1) % Length == front;
 
         public Queue(int size = 100)
@@ -1086,7 +1247,7 @@ namespace Algorithm.DataStructure
                 list[i] = new LinkedList<T>();
         }
 
-        public Set(int size = 1000)
+        public Set(int size = 10000)
         {
             this.size = size;
             Init();
@@ -1174,7 +1335,7 @@ namespace Algorithm.DataStructure
 
     }
 
-    // 힙
+    // 힙, 기본 : 최소 힙   
     public class Heap<T> : Collection<T>
     {
         public T Top => heap[0];
@@ -1188,9 +1349,9 @@ namespace Algorithm.DataStructure
 
         public Heap(int size = 100, IComparer<T> comparer = null, bool reverse = false, params T[] values)
         {
-            if (comparer == null
-                && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
-                && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>)))
+            if (comparer == null 
+                && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable)) 
+                &&  !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>))))
                 throw new Exception("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;
@@ -1254,7 +1415,6 @@ namespace Algorithm.DataStructure
             if (Top.Equals(value))
             {
                 Pop();
-                count--;
                 return true;
             }
             return false;
@@ -1297,13 +1457,12 @@ namespace Algorithm.DataStructure
             return heap.Contains(value);
         }
 
-        /// <returns>0 보다 작다. : x가 y보다 작다.
-        /// <para> 0 : x와 y가 같다. </para>
-        /// <para> 0 보다 크다. : x가 y보다 크다.</para>
-        /// 만약 reverse가 true라면 결과 값 또한 반대로 출력된다.</returns>
-        int Compare(T x, T y) => reverse ? comparer.Compare(y, x) : comparer.Compare(x, y);
+        public int Compare(T x, T y)
+        {
+           return reverse ? comparer.Compare(y, x) : comparer.Compare(x, y);
+        }
 
-        void Heapify(int index)
+        public void Heapify(int index)
         {
             int c = 2 * index + 1;
 

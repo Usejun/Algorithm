@@ -122,6 +122,11 @@ namespace Algorithm
             return reader.ReadLine();
         }
 
+        public static T Input<T>(Func<string, T> parser)
+        {
+            return parser(reader.ReadLine());
+        }
+
         public static string[] Inputs(char sep)
         {
             return Input().Split(sep);
