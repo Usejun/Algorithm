@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Text;
-using System.Numerics;
 using Algorithm.Technique;
 using Algorithm.DataStructure;
 
@@ -13,24 +11,18 @@ namespace Algorithm
     {       
         public static void Init()
         {
-            Console.InputEncoding = Encoding.Unicode;
-            Console.OutputEncoding = Encoding.Unicode;
+            Console.InputEncoding = System.Text.Encoding.Unicode;
+            Console.OutputEncoding = System.Text.Encoding.Unicode;
         }
 
         static void Main(string[] args)
         {
             Init();
 
-            foreach ((int i, int v) in ToPairs(Range(0, 200, -2)))
-            {
-                Print((i, v));
-            }
-
-            Random
+            int len = 100000;            
 
             
-
-        }    
+        }   
     }
 }
     

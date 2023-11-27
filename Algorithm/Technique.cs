@@ -1,5 +1,6 @@
 ﻿using System;
 using Algorithm.DataStructure;
+using static Algorithm.DataStructure.Extensions;
 
 namespace Algorithm.Technique
 {
@@ -260,13 +261,15 @@ namespace Algorithm.Technique
         public int Length => length;
         public int Count => count;
 
-        List<(int, int)>[] node;
+        List<(int to, int edge)>[] node;
         int length;
         int count;
 
         public Graph(int length)
         {
             this.length = length;
+
+            node = new List<(int, int)>[length];
 
             for (int i = 0; i < length; i++)            
                 node[i] = new List<(int, int)>();            
@@ -283,8 +286,12 @@ namespace Algorithm.Technique
                 info.to < 0 || length <= info.to)
                 throw new Exception("Out of range");
 
-            node[from].Add(info);
-            count++;
+
+            if (!Update(from, info))
+            {
+                node[from].Add(info);                
+                count++;
+            }
         }
 
         public bool Connected(int from, int to, int edge)
@@ -313,6 +320,23 @@ namespace Algorithm.Technique
                 throw new Exception("Out of range");
 
             return node[from].Remove(info);
+        }
+
+        public bool Update(int from, (int to, int edge) info)
+        {
+            for (int i = 0; i < node[from].Count; i++)
+            {
+                if (node[from][i].to != info.to)
+                    continue;
+
+                if (node[from][i].edge < info.edge)
+                {
+                    node[from][i] = info;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public List<(int, int)> this[int index]

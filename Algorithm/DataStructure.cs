@@ -72,8 +72,7 @@ namespace Algorithm.DataStructure
             T[] list = new T[array.Length];
             Copy(list, array, 0, array.Length);
 
-            sort = sort ?? Sorter<T, T1>();
-            sort(list, order, comparer);
+            Sort(list, order, sort, comparer);
 
             return list;
         }
@@ -81,7 +80,7 @@ namespace Algorithm.DataStructure
         public static void Sort<T, T1>(T[] array, Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)
             where T1 : IComparable<T1>
         {
-            sort = sort ?? Sorts.TimSort;
+            sort = sort ?? Sorter<T, T1>();
             sort(array, order, comparer);
         }
 
@@ -115,7 +114,7 @@ namespace Algorithm.DataStructure
 
         public static void Copy<T>(T[] baseArray, T[] sourceArray, int index, int length)
         {
-            if (sourceArray.Length <= index + length || baseArray.Length <= index + length)
+            if (sourceArray.Length < index + length || baseArray.Length <= index + length)
                 throw new ArgumentException("Out of range");
 
             for (int i = 0; i < length; i++)
@@ -131,9 +130,7 @@ namespace Algorithm.DataStructure
             {
                 mid = Mathf.Mid(low, high);
 
-                if (array[mid].CompareTo(value) == 0)
-                    return mid;
-                else if (array[mid].CompareTo(value) > 0)
+                if (array[mid].CompareTo(value) > 0)
                     high = mid - 1;
                 else
                     low = mid + 1;          
@@ -149,6 +146,17 @@ namespace Algorithm.DataStructure
                 if (array[i].Equals(value))
                     return i;
             return -1;
+        }
+
+        public static int Count<T>(T[] array, Func<T, bool> match)
+        {
+            int count = 0;
+
+            for (int i = 0; i < array.Length; i++)
+                if (match(array[i]))
+                    count++;
+
+            return count;
         }
     }
 
@@ -258,7 +266,7 @@ namespace Algorithm.DataStructure
     }
 
     //기본 배열 추상 클래스     
-    public abstract class Collection<T> : IEnumerable<T>
+    public abstract class Collection<T> : IEnumerable<T>, ICollection<T>
     {
         public virtual bool IsReadOnly => false;
         public virtual int Count => count;
@@ -307,6 +315,11 @@ namespace Algorithm.DataStructure
 
             return convertedValues;
         }
+        public virtual int Counting(Func<T, bool> match = null)
+        {
+            match = match ?? (i => true);
+            return Extensions.Count(ToArray(), match);
+        }
         public virtual IEnumerator<T> GetEnumerator()
         {
             T[] array = ToArray();
@@ -328,7 +341,7 @@ namespace Algorithm.DataStructure
     }
 
     //기본 노드 클래스
-    public class Node<T>
+    public abstract class Node<T>
     {
         public T Value;
 
@@ -381,7 +394,7 @@ namespace Algorithm.DataStructure
         protected T[] source;
         protected int size;
 
-        public List(int size = 100, params T[] values)
+        public List(int size = 1, params T[] values)
         {
             this.size = size;
             source = new T[size];
@@ -394,7 +407,8 @@ namespace Algorithm.DataStructure
             if (IsFull)
                 Resize();
 
-            source[count++] = value;
+            source[count] = value;
+            count++;
         }
 
         public void AddRange(params T[] values)
@@ -403,9 +417,12 @@ namespace Algorithm.DataStructure
                 Add(value);
         }
 
-        public void Insert(int index, T value)
+        public virtual void Insert(int index, T value)
         {
-            for (int i = index; i < count; i++)            
+            if (IsFull)
+                Resize();
+
+            for (int i = count; i > index; i--)            
                 source[i + 1] = source[i];
 
             source[index] = value;
@@ -438,19 +455,21 @@ namespace Algorithm.DataStructure
                 throw new Exception("Out of range");
 
             for (int i = index; i < count; i++)
+            {
+                if (index + 1 >= count) break;
                 source[i] = source[i + 1];
+            }
 
             count--;
         }
 
-        void Resize()
+        protected virtual void Resize()
         {
-            T[] newSource = new T[Length * 2];
+            T[] array = new T[Length * 2];
 
-            for (int i = 0; i < Length; i++)
-                newSource[i] = source[i];
-
-            source = newSource;
+            CopyTo(array, count);
+            
+            source = array;
         }
 
         public override T[] ToArray()
@@ -461,7 +480,7 @@ namespace Algorithm.DataStructure
                 values[i] = source[i];
 
             return values;
-        }
+        }        
 
         public virtual T this[int index]
         {
@@ -473,7 +492,7 @@ namespace Algorithm.DataStructure
             }
             set
             {
-                if (index < 0 && index >= count)
+                if (index < 0 || index >= count)
                     throw new Exception("Out of range");
                 source[index] = value;
             }
@@ -695,22 +714,6 @@ namespace Algorithm.DataStructure
             count--;
         }
 
-        public void RemoveRange(int start, int end)
-        {
-            if (end < start || count - (end - start + 1) < 0)
-                throw new Exception("Empty List");
-
-            LinkedNode startNode = GetNode(start);
-            LinkedNode endNode = GetNode(end);
-
-            startNode.after.Connect(endNode.before);
-
-            startNode.Clear();
-            endNode.Clear();
-
-            count -= end - start + 1;
-        }
-
         public override int IndexOf(T value)
         {
             int index = 0;
@@ -777,6 +780,48 @@ namespace Algorithm.DataStructure
 
     }
 
+    // 오름차순으로 정렬된 리스트
+    public class SortedList<T> : List<T>
+    {
+        IComparer<T> comparer;
+
+        public SortedList(int size = 1, IComparer<T> comparer = null)
+        {
+            if (comparer == null
+                && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
+                && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>))))
+                throw new Exception("This type does not have ICompable.");
+
+            this.comparer = comparer ?? Comparer<T>.Default;
+            source = new T[size];
+        }
+
+        public override void Add(T value)
+        {
+            if (IsFull)
+                Resize();
+
+            Insert(BinarySearch(value), value);
+        }   
+
+        int BinarySearch(T value)
+        {
+            int low = 0, mid = count - 1, high = count - 1;
+
+            while (low <= high)
+            {
+                mid = Mathf.Mid(low, high);
+
+                if (comparer.Compare(source[mid], value) > 0)
+                    high = mid - 1;                 
+                else
+                    low = mid + 1;
+            }
+
+            return low;
+        }
+    }
+
     // 우선순위 큐의 노드
     public class PriorityQueueNode<TValue, TPriority> : Node<TValue>, IComparable<PriorityQueueNode<TValue, TPriority>>
         where TPriority : IComparable<TPriority>
@@ -807,16 +852,17 @@ namespace Algorithm.DataStructure
     }
 
     // 우선순위 큐, 기본 : 최소 힙
-    public class PriorityQueue<TValue, TPriority> : Queue<PriorityQueueNode<TValue, TPriority>>
+    public class PriorityQueue<TValue, TPriority> : Collection<PriorityQueueNode<TValue, TPriority>>, IQueue<PriorityQueueNode<TValue, TPriority>>
         where TPriority : IComparable<TPriority>
     {
+        public bool IsEmpty => heap.Count == 0;
         public override int Count => heap.Count;
         public PriorityQueueNode<TValue, TPriority> Top => heap.Top;
 
         Heap<PriorityQueueNode<TValue, TPriority>> heap;
         Dictionary<TPriority, List<TValue>> keyValues;
 
-        readonly bool reverse;
+        readonly bool reverse;        
 
         public PriorityQueue(bool reverse = false)
         {
@@ -844,7 +890,7 @@ namespace Algorithm.DataStructure
 
         }
 
-        public override void Enqueue(PriorityQueueNode<TValue, TPriority> node)
+        public void Enqueue(PriorityQueueNode<TValue, TPriority> node)
         {
             Enqueue(node.Value, node.Priority);
         }
@@ -858,10 +904,10 @@ namespace Algorithm.DataStructure
         public void EnqueueRange(params PriorityQueueNode<TValue, TPriority>[] nodes)
         {
             foreach (PriorityQueueNode<TValue, TPriority> node in nodes)
-                Enqueue(node.Value, node.Priority);
+                Enqueue(node);
         }
 
-        public override PriorityQueueNode<TValue, TPriority> Dequeue()
+        public PriorityQueueNode<TValue, TPriority> Dequeue()
         {
             PriorityQueueNode<TValue, TPriority> node = heap.Top;
 
@@ -873,12 +919,15 @@ namespace Algorithm.DataStructure
             return node;
         }
 
-        public PriorityQueueNode<TValue, TPriority>[] Dequeue(int count)
+        public PriorityQueueNode<TValue, TPriority>[] DequeueRange(int repeat)
         {
-            PriorityQueueNode<TValue, TPriority>[] nodes = new PriorityQueueNode<TValue, TPriority>[count];
+            PriorityQueueNode<TValue, TPriority>[] nodes = new PriorityQueueNode<TValue, TPriority>[repeat];
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < repeat; i++)
+            {
+                if (IsEmpty) break;
                 nodes[i] = Dequeue();
+            }
 
             return nodes;
         }
@@ -918,14 +967,14 @@ namespace Algorithm.DataStructure
     }
 
     // 스택 First in Last Out
-    public class Stack<T> : List<T>
+    public class Stack<T> : List<T>, IStack<T>
     {
         int front = 0;
 
         public bool IsEmpty => front == 0;
         public override bool IsFull => front == Length;
 
-        public Stack(int size = 100)
+        public Stack(int size = 100, params T[] values)
         {
             this.size = size;
             source = new T[size];
@@ -940,6 +989,12 @@ namespace Algorithm.DataStructure
             count++;
         }
 
+        public void PushRange(params T[] values)
+        {
+            foreach (T value in values)
+                Push(value);
+        }
+
         public T Pop()
         {
             if (IsEmpty)
@@ -949,6 +1004,19 @@ namespace Algorithm.DataStructure
             count--;
 
             return value;
+        }
+
+        public T[] PopRange(int repeat)
+        {
+            T[] values = new T[repeat];
+
+            for (int i = 0; i < repeat; i++)
+            {
+                if (IsEmpty) break;
+                values[i] = Pop();
+            }
+
+            return values;
         }
 
         public T Peek()
@@ -977,17 +1045,6 @@ namespace Algorithm.DataStructure
             front = 0;
         }
 
-        void Resize()
-        {
-            T[] array = new T[Length + size];
-            int back = Length - 1;
-
-            while (!IsEmpty)
-                array[back--] = Pop();
-
-            source = array;
-        }
-
         public override T[] ToArray()
         {
             T[] values = new T[count];
@@ -1003,7 +1060,7 @@ namespace Algorithm.DataStructure
     }
 
     // 큐 First in First Out
-    public class Queue<T> : List<T>
+    public class Queue<T> : List<T>, IQueue<T>
     {
         int front = 0;
         int back = 0;
@@ -1011,10 +1068,12 @@ namespace Algorithm.DataStructure
         public bool IsEmpty => count == 0;
         public override bool IsFull => (back + 1) % Length == front;
 
-        public Queue(int size = 100)
+        public Queue(int size = 100, params T[] values)
         {
             this.size = size;
             source = new T[size];
+
+            EnqueueRange(values);
         }
 
         public virtual void Enqueue(T value)
@@ -1027,6 +1086,12 @@ namespace Algorithm.DataStructure
             count++;
         }
 
+        public virtual void EnqueueRange(params T[] values)
+        {
+            foreach (T value in values)
+                Enqueue(value);
+        }
+
         public virtual T Dequeue()
         {
             if (IsEmpty)
@@ -1037,6 +1102,19 @@ namespace Algorithm.DataStructure
             count--;
 
             return value;
+        }
+
+        public virtual T[] DequeueRange(int repeat)
+        {
+            T[] values = new T[repeat];
+
+            for (int i = 0; i < repeat; i++)
+            {
+                if (IsEmpty) break;
+                values[i] = Dequeue();
+            }
+
+            return values;
         }
 
         public virtual void DequeueEnqueue()
@@ -1087,20 +1165,12 @@ namespace Algorithm.DataStructure
 
         }
 
-        void Resize()
+        protected override void Resize()
         {
-            T[] array = new T[Length + size];
-            int i = 0;
+            base.Resize();
 
-            while (!IsEmpty)
-            {
-                array[i++] = Dequeue();
-            }
-
-            source = array;
             front = 0;
-            back = i;
-            count = i;
+            back = count;        
         }
 
         public override void Sort<T1>(Func<T, T1> order, Action<T[], Func<T, T1>, IComparer> sort = null, IComparer comparer = null)

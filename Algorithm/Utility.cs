@@ -12,7 +12,13 @@ namespace Algorithm
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
         static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);        
         static readonly StringBuilder sb = new StringBuilder();
-        static readonly Stopwatch sw = new Stopwatch();        
+        static readonly Stopwatch sw = new Stopwatch();
+
+        public static void Init()
+        {
+            Console.InputEncoding = System.Text.Encoding.Unicode;
+            Console.OutputEncoding = System.Text.Encoding.Unicode;
+        }
 
         public static void Print(string text, string end = "\n")
         {
@@ -102,8 +108,7 @@ namespace Algorithm
 
         public static void Append<T>(Collection<T> collection, string end = "\n", string sep = " ")
         {
-            sb.Append(string.Join(sep, collection.ToArray()));
-            sb.Append(end);
+            Append(string.Join(sep, collection.ToArray()), end);
         }
 
         public static void Flush()
@@ -160,14 +165,71 @@ namespace Algorithm
             Thread.Sleep(milliseconds);
         }     
 
-        public static void Measure(Action code)
+        public static long Measure(Action code)
         {
             Start();
 
             code();
 
-            Print(Stop() + "ms");
+            long time = Stop();
+
+            Print(time + "ms");
+
+            return time;
         }
 
+        public static (T, T) Two<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1]);
+        }
+
+        public static (T, T, T) Three<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2]);
+        }
+
+        public static (T, T, T, T) Four<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3]);
+        }
+
+        public static (T, T, T, T, T) Five<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3], input[4]);
+        }
+
+        public static (T, T, T, T, T, T) Six<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3], input[4], input[5]);
+        }
+
+        public static (T, T, T, T, T, T, T) Seven<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3], input[4], input[5], input[6]);
+        }
+
+        public static (T, T, T, T, T, T , T, T) Eight<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7]);
+        }
+
+        public static (T, T, T, T, T, T, T, T, T) Nine<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8]);
+        }
+
+        public static (T, T, T, T, T, T, T, T, T, T) Ten<T>(Func<string, T> parser)
+        {
+            T[] input = Inputs(parser);
+            return (input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8], input[9]);
+        }
     }
 }
