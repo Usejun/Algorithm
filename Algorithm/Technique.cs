@@ -63,11 +63,8 @@ namespace Algorithm.Technique
         public static int[] Dijkstra(int start, Graph graph)
         {
             int length = graph.Length;
-            int[] distance = new int[length];
+            int[] distance = Convert(Range(length), i => INF);
             PriorityQueue<(int n, int v), int> pq = new PriorityQueue<(int n, int v), int>();
-
-            for (int i = 0; i < length; i++)
-                distance[i] = INF;
 
             distance[start] = 0;
             pq.Enqueue((start, 0), 0);
@@ -91,35 +88,57 @@ namespace Algorithm.Technique
             return distance;
         }
 
-        public static (int From, (int Index, int Node) To)[] Kruskal(int length, int nodeCount)
+        public static int[] Bellman(int start, Graph graph)
         {
-            Group group = new Group(length);
-            List<(int From, (int Index, int Node) To)> mst = new List<(int From, (int Index, int Node) To)>();
-            List<(int From, (int Index, int Node) To)> edges = new List<(int From, (int Index, int Node) To)>();
+            int length = graph.Length;
+            int count = graph.Count;
+            int[] distance = Convert(Range(length), i => INF);
+            var edge = graph.AllNode();
 
-            for (int i = 0; i < nodeCount; i++)
+            distance[start] = 0;
+
+            for (int i = 0; i < length; i++)
             {
-                var input = Util.Inputs(int.Parse);
+                for (int j = 0; j < count; j++)
+                {
+                    (int f, int t, int e) = edge[j];
 
-                edges.Add((input[0], (input[1], input[2])));
+                    if (distance[f] != INF && distance[t] > distance[f] + e)
+                    {
+                        distance[t] = distance[f] + e;
+                        if (i == length - 1)
+                            return new int[] { -1 };
+                    }
+                }
             }
-            
-            edges.Sort(i => i.To.Node);
+            return distance;
+        }
 
-            for (int i = 0; i < edges.Count; i++)
+        public static Graph Kruskal(Graph graph)
+        {
+            int length = graph.Length;
+            int count = graph.Count;
+
+            Group group = new Group(length);
+            Graph mst = new Graph(length);
+            var edges = graph.AllNode();            
+
+            Sort(edges, i => i.edge);
+
+            for (int i = 0; i < count; i++)
             {
-                (int from, (int index, int node)) = edges[i];
+                (int from, int index, int node) = edges[i];
 
                 if (group.Find(from) == group.Find(index)) continue;
 
-                mst.Add((from, (index, node)));
+                mst.AddNode(from, index, node);
 
                 group.Union(from, index);
 
                 if (mst.Count == length - 1) break;
             }
 
-            return mst.ToArray();
+            return mst;
         }
     }
 
@@ -261,7 +280,7 @@ namespace Algorithm.Technique
         public int Length => length;
         public int Count => count;
 
-        List<(int to, int edge)>[] node;
+        List<(int to, int edge)>[] node;       
         int length;
         int count;
 
@@ -337,6 +356,18 @@ namespace Algorithm.Technique
             }
 
             return false;
+        }
+
+        public (int from, int to, int edge)[] AllNode()
+        {
+            (int from, int to, int edge)[] nodes = new (int from, int to, int edge)[count];
+            int k = 0;
+
+            for (int i = 0; i < length; i++)
+                for (int j = 0; j < node[i].Count; j++)
+                    nodes[k++] = (i, node[i][j].to, node[i][j].edge);
+
+            return nodes;
         }
 
         public List<(int, int)> this[int index]

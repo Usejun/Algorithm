@@ -1417,7 +1417,7 @@ namespace Algorithm.DataStructure
 
         IComparer<T> comparer;
 
-        public Heap(int size = 100, IComparer<T> comparer = null, bool reverse = false, params T[] values)
+        public Heap(int size = 1, IComparer<T> comparer = null, bool reverse = false, params T[] values)
         {
             if (comparer == null 
                 && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable)) 
