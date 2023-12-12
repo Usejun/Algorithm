@@ -19,18 +19,13 @@ namespace Algorithm
         {
             Init();
 
-            (int v, int e) = Two(int.Parse);
-            Graph graph = new Graph(v + 1);
+            (int n, int m) = Two(int.Parse);
+            Graph graph = new Graph(n);
 
-            for (int i = 0; i < e; i++)
-            {
-                (int f, int t, int n) = Three(int.Parse);
-                graph.AddNode(f, t, n);
-            }
+            for (int i = 0; i < m; i++)
+                graph.Connect(Three(int.Parse));
 
-            Graph graph2 = Techniques.Kruskal(graph);
-
-            Print(Mathf.Sum(Convert(graph2.AllNode(), i => i.edge)));
+            Print(Techniques.Bellman(1, graph));
         }   
     }
 }

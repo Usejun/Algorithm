@@ -92,26 +92,24 @@ namespace Algorithm.Technique
         {
             int length = graph.Length;
             int count = graph.Count;
-            int[] distance = Convert(Range(length), i => INF);
+            int[] distance = Convert(Range(length + 1), i => INF);
             var edge = graph.AllNode();
 
             distance[start] = 0;
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < count; i++)
             {
-                for (int j = 0; j < count; j++)
+                foreach ((int s, int e, int t) in edge)
                 {
-                    (int f, int t, int e) = edge[j];
-
-                    if (distance[f] != INF && distance[t] > distance[f] + e)
+                    if (distance[s] != INF && distance[e] > distance[s] + t)
                     {
-                        distance[t] = distance[f] + e;
-                        if (i == length - 1)
-                            return new int[] { -1 };
+                        distance[e] = distance[s] + t;
+                        if (i == count - 1)                        
+                            return new int[] { -1 };                        
                     }
                 }
             }
-            return distance;
+            return distance;                        
         }
 
         public static Graph Kruskal(Graph graph)
@@ -131,7 +129,7 @@ namespace Algorithm.Technique
 
                 if (group.Find(from) == group.Find(index)) continue;
 
-                mst.AddNode(from, index, node);
+                mst.Connect(from, index, node);
 
                 group.Union(from, index);
 
@@ -288,40 +286,44 @@ namespace Algorithm.Technique
         {
             this.length = length;
 
-            node = new List<(int, int)>[length];
+            node = new List<(int, int)>[length + 1];
 
-            for (int i = 0; i < length; i++)            
+            for (int i = 1; i < length + 1; i++)            
                 node[i] = new List<(int, int)>();            
         }
 
-        public void AddNode(int from, int to, int edge)
+        public void Connect(int from, int to, int edge)
         {
-            AddNode(from, (to, edge));
+            Connect(from, (to, edge));
         }
 
-        public void AddNode(int from, (int to, int edge) info)
+        public void Connect(int from, (int to, int edge) info)
         {
-            if (from < 0 || length <= from ||
-                info.to < 0 || length <= info.to)
+            Connect((from, info.to, info.edge));
+        }
+
+        public void Connect((int from, int to, int edge) info)
+        {
+            if (info.from < 0 || length < info.from ||
+                info.to < 0 || length < info.to)
                 throw new Exception("Out of range");
 
-
-            if (!Update(from, info))
+            if (!Update(info.from, (info.to, info.edge)))
             {
-                node[from].Add(info);                
+                node[info.from].Add((info.to, info.edge));
                 count++;
             }
         }
 
-        public bool Connected(int from, int to, int edge)
+        public bool IsConnected(int from, int to, int edge)
         {
-            return Connected(from, (to, edge));
+            return IsConnected(from, (to, edge));
         }
         
-        public bool Connected(int from, (int to, int edge) info)
+        public bool IsConnected(int from, (int to, int edge) info)
         {
-            if (from < 0 || length <= from ||
-                info.to < 0 || length <= info.to)
+            if (from < 0 || length < from ||
+                info.to < 0 || length < info.to)
                 throw new Exception("Out of range");
 
             return node[from].Contains(info);
@@ -334,8 +336,8 @@ namespace Algorithm.Technique
 
         public bool Disconnect(int from, (int to, int edge) info)
         {
-            if (from < 0 || length <= from ||
-                info.to < 0 || length <= info.to)
+            if (from < 0 || length < from ||
+                info.to < 0 || length < info.to)
                 throw new Exception("Out of range");
 
             return node[from].Remove(info);
@@ -356,14 +358,14 @@ namespace Algorithm.Technique
             }
 
             return false;
-        }
+        }     
 
         public (int from, int to, int edge)[] AllNode()
         {
             (int from, int to, int edge)[] nodes = new (int from, int to, int edge)[count];
             int k = 0;
 
-            for (int i = 0; i < length; i++)
+            for (int i = 1; i < length; i++)
                 for (int j = 0; j < node[i].Count; j++)
                     nodes[k++] = (i, node[i][j].to, node[i][j].edge);
 

@@ -387,17 +387,15 @@ namespace Algorithm.DataStructure
     // 가변 배열
     public class List<T> : Collection<T>
     {
-        public virtual bool IsFull => count == Length - 1;
+        public virtual bool IsFull => count == Length;
 
         protected int Length => source.Length;
 
-        protected T[] source;
-        protected int size;
+        protected T[] source;        
 
-        public List(int size = 1, params T[] values)
+        public List(params T[] values)
         {
-            this.size = size;
-            source = new T[size];
+            source = new T[0];
 
             AddRange(values);
         }
@@ -465,7 +463,7 @@ namespace Algorithm.DataStructure
 
         protected virtual void Resize()
         {
-            T[] array = new T[Length * 2];
+            T[] array = new T[Length * 2 + 1];
 
             CopyTo(array, count);
             
@@ -785,7 +783,7 @@ namespace Algorithm.DataStructure
     {
         IComparer<T> comparer;
 
-        public SortedList(int size = 1, IComparer<T> comparer = null)
+        public SortedList(IComparer<T> comparer = null)
         {
             if (comparer == null
                 && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
@@ -793,7 +791,7 @@ namespace Algorithm.DataStructure
                 throw new Exception("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;
-            source = new T[size];
+            source = new T[0];
         }
 
         public override void Add(T value)
@@ -974,10 +972,9 @@ namespace Algorithm.DataStructure
         public bool IsEmpty => front == 0;
         public override bool IsFull => front == Length;
 
-        public Stack(int size = 100, params T[] values)
+        public Stack(params T[] values)
         {
-            this.size = size;
-            source = new T[size];
+            source = new T[0];
         }
 
         public void Push(T value)
@@ -1040,7 +1037,7 @@ namespace Algorithm.DataStructure
 
         public override void Clear()
         {
-            source = new T[size];
+            source = new T[Length];
             count = 0;
             front = 0;
         }
@@ -1068,10 +1065,9 @@ namespace Algorithm.DataStructure
         public bool IsEmpty => count == 0;
         public override bool IsFull => (back + 1) % Length == front;
 
-        public Queue(int size = 100, params T[] values)
+        public Queue(params T[] values)
         {
-            this.size = size;
-            source = new T[size];
+            source = new T[0];
 
             EnqueueRange(values);
         }
@@ -1143,7 +1139,7 @@ namespace Algorithm.DataStructure
 
         public override void Clear()
         {
-            source = new T[size];
+            source = new T[Length];
             front = 0;
             back = 0;
             count = 0;
@@ -1180,7 +1176,7 @@ namespace Algorithm.DataStructure
             front = 0;
             back = count;
         } 
-    }  
+    }
 
     // 딕셔너리
     public class Dictionary<TKey, TValue> : Set<Pair<TKey, TValue>>, IHash<TKey>
@@ -1411,13 +1407,10 @@ namespace Algorithm.DataStructure
         public T Top => heap[0];
 
         List<T> heap;
-
-        int size;
         bool reverse;
-
         IComparer<T> comparer;
 
-        public Heap(int size = 1, IComparer<T> comparer = null, bool reverse = false, params T[] values)
+        public Heap(IComparer<T> comparer = null, bool reverse = false, params T[] values)
         {
             if (comparer == null 
                 && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable)) 
@@ -1425,8 +1418,7 @@ namespace Algorithm.DataStructure
                 throw new Exception("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;
-            this.size = size > values.Length ? size : values.Length;
-            heap = new List<T>(size);
+            heap = new List<T>();
             this.reverse = reverse;
 
             foreach (T value in values)
@@ -1492,7 +1484,7 @@ namespace Algorithm.DataStructure
 
         public override void Clear()
         {
-            heap = new List<T>(size);
+            heap = new List<T>();
             count = 0;
         }
 
