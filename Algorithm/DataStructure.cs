@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Algorithm.Technique;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -136,7 +137,7 @@ namespace Algorithm.DataStructure
                     low = mid + 1;          
             }
 
-            return -1;
+            return high;
         }
 
         public static int IndexOf<T>(T[] array, T value)
@@ -537,11 +538,6 @@ namespace Algorithm.DataStructure
                 after = null;
                 before = null;
             }
-
-            public static implicit operator bool(LinkedNode node)
-            {
-                return node != null;
-            }
         }
 
         public bool IsEmpty => count == 0;
@@ -557,7 +553,7 @@ namespace Algorithm.DataStructure
         public void AddFront(T value)
         {
             LinkedNode node = new LinkedNode(value);
-            if (count == 0)
+            if (IsEmpty)
             {
                 front = node;
                 back = node;
@@ -580,7 +576,7 @@ namespace Algorithm.DataStructure
         public void AddBack(T value)
         {
             LinkedNode node = new LinkedNode(value);
-            if (count == 0)
+            if (IsEmpty)
             {
                 front = node;
                 back = node;
@@ -602,10 +598,10 @@ namespace Algorithm.DataStructure
 
         public void Insert(int index, T value)
         {
-            if (index < 0)
-                throw new Exception();
+            if (!Available(index))
+                throw new Exception("Out of range");
 
-            if (Available(index))
+            if (index >= count)
             {
                 AddBack(value);
                 return;
@@ -623,10 +619,10 @@ namespace Algorithm.DataStructure
 
         public void InsertRange(int index, params T[] values)
         {
-            if (Available(index))
+            if (!Available(index))
                 throw new Exception("Out of range");
 
-            if (count - index - 1 <= 0)
+            if (index >= count)
             {
                 AddRangeBack(values);
                 return;
@@ -658,7 +654,7 @@ namespace Algorithm.DataStructure
         public void RemoveFront()
         {
             if (IsEmpty)
-                throw new Exception();
+                throw new Exception("List is Empty");
             else if (count == 1)
             {
                 front = null;
@@ -681,7 +677,7 @@ namespace Algorithm.DataStructure
         public void RemoveBack()
         {
             if (count == 0)
-                throw new Exception();
+                throw new Exception("List is Empty");
             else if (count == 1)
             {
                 front = null;
@@ -704,7 +700,7 @@ namespace Algorithm.DataStructure
         public void RemoveAt(int index)
         {
             if (count == 0)
-                throw new Exception();
+                throw new Exception("List is Empty");
 
             LinkedNode node = GetNode(index);
 
@@ -745,11 +741,15 @@ namespace Algorithm.DataStructure
         }
 
         public override T[] ToArray()
-        {
+        {            
             T[] values = new T[count];
+            LinkedNode node = front;
 
             for (int i = 0; i < count; i++)
-                values[i] = GetNode(i).Value;
+            {
+                values[i] = node.Value;
+                node = node.before;
+            }
 
             return values;           
         }
@@ -765,9 +765,9 @@ namespace Algorithm.DataStructure
             return node;
         }
 
-        bool Available(int index)
+        private bool Available(int index)
         {
-            return !IsEmpty && 0 > index && index < count;
+            return !IsEmpty && 0 < index && index < count;
         }
 
         public T this[int index]
@@ -1063,7 +1063,7 @@ namespace Algorithm.DataStructure
         int back = 0;
 
         public bool IsEmpty => count == 0;
-        public override bool IsFull => (back + 1) % Length == front;
+        public override bool IsFull => back == front;
 
         public Queue(params T[] values)
         {
@@ -1176,6 +1176,189 @@ namespace Algorithm.DataStructure
             front = 0;
             back = count;
         } 
+    }
+
+    // 데큐 Double-ended Queue
+    public class Deque<T> : Collection<T>
+    {   
+        // 연결형 노드
+        public class LinkedNode : Node<T>
+        {
+            public LinkedNode after;
+            public LinkedNode before;
+
+            public LinkedNode(T value) : base(value) { }
+
+            public void Connect(LinkedNode node, bool isBefore = true)
+            {
+                if (isBefore)
+                {
+                    before = node;
+                    node.after = this;
+                }
+                else if (!isBefore)
+                {
+                    after = node;
+                    node.before = this;
+                }
+            }
+
+            public void Clear()
+            {
+                after = null;
+                before = null;
+            }
+
+            public static implicit operator bool(LinkedNode node)
+            {
+                return node != null;
+            }
+        }
+
+        public bool IsEmpty => count == 0;
+
+        LinkedNode front = null;
+        LinkedNode back = null;
+
+        public void AddFront(T value)
+        {
+            LinkedNode node = new LinkedNode(value);
+
+            if (IsEmpty)
+            {
+                front = node;
+                back = node;
+            }
+            else
+            {
+                node.Connect(front);
+                front = node;
+            }
+
+            count++;
+        }
+
+        public void AddFrontRange(params T[] values)
+        {
+            foreach (T value in values)
+                AddFront(value);
+        }
+
+        public void AddBack(T value)
+        {
+            LinkedNode node = new LinkedNode(value);
+
+            if (IsEmpty)
+            {
+                front = node;
+                back = node;
+            }
+            else
+            {
+                node.Connect(back, false);
+                back = node;
+            }
+
+            count++;
+        }
+
+        public void AddBackRange(params T[] values)
+        {
+            foreach (T value in values)
+                AddBack(value);
+        }
+
+        public T RemoveFront()
+        {
+            if (count == 0)
+                throw new Exception("Deque is Empty");
+
+            T item = front.Value;
+
+            front = front.before;
+            front.after = null;
+
+            return item;
+        } 
+
+        public T[] RemoveFrontRange(int repeat)
+        {
+            T[] values = new T[repeat];
+
+            for (int i = 0; i < repeat; i++)
+                values[i] = RemoveFront();
+
+            return values;
+        }
+        
+        public T RemoveBack()
+        {
+            if (count == 0)
+                throw new Exception("Deque is Empty");
+
+            T item = back.Value;
+
+            back = back.after;
+            back.before = null;
+
+            return item;
+        }
+
+        public T[] RemoveBackRange(int repeat)
+        {
+            T[] values = new T[repeat];
+
+            for (int i = 0; i < repeat; i++)
+                values[i] = RemoveBack();
+
+            return values;
+        }
+
+        public T PeekFront()
+        {
+            return front.Value;
+        }
+
+        public T PeekBack()
+        {
+            return back.Value;
+        }
+
+        public override void Add(T value)
+        {
+            AddBack(value);
+        }
+
+        public override void Clear()
+        {
+            front = null;
+            back = null;
+            count = 0;
+        }
+
+        public override bool Remove(T value)
+        {
+            if (PeekBack().Equals(value)) RemoveBack();
+            else if (PeekFront().Equals(value)) RemoveFront();
+            else return false;
+
+            return true;
+        }
+
+        public override T[] ToArray()
+        {
+            T[] values = new T[count];
+            LinkedNode node = front;
+
+            for (int i = 0; i < count; i++)
+            {
+                values[i] = node.Value;
+                node = node.before;
+            }
+
+            return values;
+        }
+
     }
 
     // 딕셔너리
@@ -1519,12 +1702,12 @@ namespace Algorithm.DataStructure
             return heap.Contains(value);
         }
 
-        public int Compare(T x, T y)
+        private int Compare(T x, T y)
         {
            return reverse ? comparer.Compare(y, x) : comparer.Compare(x, y);
         }
 
-        public void Heapify(int index)
+        private void Heapify(int index)
         {
             int c = 2 * index + 1;
 

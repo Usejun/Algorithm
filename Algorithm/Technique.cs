@@ -91,20 +91,19 @@ namespace Algorithm.Technique
         public static int[] Bellman(int start, Graph graph)
         {
             int length = graph.Length;
-            int count = graph.Count;
             int[] distance = Convert(Range(length + 1), i => INF);
             var edge = graph.AllNode();
 
             distance[start] = 0;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < length; i++)
             {
                 foreach ((int s, int e, int t) in edge)
                 {
                     if (distance[s] != INF && distance[e] > distance[s] + t)
                     {
                         distance[e] = distance[s] + t;
-                        if (i == count - 1)                        
+                        if (i == length - 1)                        
                             return new int[] { -1 };                        
                     }
                 }

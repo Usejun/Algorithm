@@ -19,13 +19,8 @@ namespace Algorithm
         {
             Init();
 
-            (int n, int m) = Two(int.Parse);
-            Graph graph = new Graph(n);
+            Deque<int> dq = new Deque<int>();
 
-            for (int i = 0; i < m; i++)
-                graph.Connect(Three(int.Parse));
-
-            Print(Techniques.Bellman(1, graph));
         }   
     }
 }
