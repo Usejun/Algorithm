@@ -19,7 +19,13 @@ namespace Algorithm
         {
             Init();
 
-            Deque<int> dq = new Deque<int>();
+            var ll = new LinkedList<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+            while (!ll.IsEmpty)
+            {
+                Print(ll[ll.Count - 1]);
+                ll.RemoveBack();
+            }
 
         }   
     }

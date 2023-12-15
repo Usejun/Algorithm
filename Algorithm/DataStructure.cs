@@ -1179,7 +1179,7 @@ namespace Algorithm.DataStructure
     }
 
     // 데큐 Double-ended Queue
-    public class Deque<T> : Collection<T>
+    public class Deque<T> : Collection<T>, IQueue<T>, IStack<T>
     {   
         // 연결형 노드
         public class LinkedNode : Node<T>
@@ -1276,7 +1276,9 @@ namespace Algorithm.DataStructure
             T item = front.Value;
 
             front = front.before;
-            front.after = null;
+            if (count != 1) front.after = null;
+
+            count--;
 
             return item;
         } 
@@ -1298,8 +1300,10 @@ namespace Algorithm.DataStructure
 
             T item = back.Value;
 
-            back = back.after;
-            back.before = null;
+            back = back?.after;
+            if (count != 1) back.before = null;
+
+            count--;
 
             return item;
         }
@@ -1359,6 +1363,45 @@ namespace Algorithm.DataStructure
             return values;
         }
 
+        public void Enqueue(T value)
+        {
+            AddBack(value);
+        }
+
+        public void EnqueueRange(params T[] values)
+        {
+            AddBackRange(values);
+        }
+
+        public T Dequeue()
+        {
+            return RemoveFront();
+        }
+
+        public T[] DequeueRange(int repeat)
+        {
+            return RemoveFrontRange(repeat);
+        }
+
+        public void Push(T value)
+        {
+            AddBack(value);
+        }
+
+        public void PushRange(params T[] values)
+        {
+            AddBackRange(values);
+        }
+
+        public T Pop()
+        {
+            return RemoveBack();
+        }
+
+        public T[] PopRange(int repeat)
+        {
+            return RemoveBackRange(repeat);
+        }
     }
 
     // 딕셔너리
