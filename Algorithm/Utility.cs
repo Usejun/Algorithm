@@ -9,6 +9,8 @@ namespace Algorithm
 {
     public static class Util
     {
+        public static Stopwatch Timer => sw;
+
         static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
         static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);        
         static readonly StringBuilder sb = new StringBuilder();
@@ -18,6 +20,12 @@ namespace Algorithm
         {
             Console.InputEncoding = System.Text.Encoding.Unicode;
             Console.OutputEncoding = System.Text.Encoding.Unicode;
+        }
+
+        public static void Print()
+        {
+            writer.Write("\n");
+            writer.Flush();
         }
 
         public static void Print(string text, string end = "\n")
@@ -114,10 +122,15 @@ namespace Algorithm
         public static void Flush()
         {
             Print(sb, end:"");
-            Clear();
+            BufferClear();
         }
 
-        public static void Clear()
+        public static void StreamClear()
+        {
+            Console.Clear();
+        }
+
+        public static void BufferClear()
         {
             sb.Clear();
         }
@@ -148,18 +161,6 @@ namespace Algorithm
             return output;            
         }           
 
-        public static void Start()
-        {
-            sw.Restart();
-        }
-
-        public static long Stop()
-        {
-            sw.Stop();
-
-            return sw.ElapsedMilliseconds;                     
-        }        
-
         public static void Sleep(int milliseconds)
         {
             Thread.Sleep(milliseconds);
@@ -167,11 +168,13 @@ namespace Algorithm
 
         public static long Measure(Action code)
         {
-            Start();
+            Timer.Restart();
 
             code();
 
-            long time = Stop();
+            Timer.Stop();
+
+            long time = Timer.ElapsedMilliseconds;
 
             Print(time + "ms");
 

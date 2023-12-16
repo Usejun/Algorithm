@@ -1,5 +1,4 @@
-﻿using Algorithm.Technique;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -29,7 +28,7 @@ namespace Algorithm.DataStructure
             if (step == 0)
                 throw new Exception("step is not zero");
 
-            int[] values = new int[(max - min) / Mathf.Abs(step)];
+            int[] values = new int[(max - min + 1) / Mathf.Abs(step)];
 
             if (step > 0)
                 for (int i = 0; i < values.Length; i++)
@@ -158,6 +157,18 @@ namespace Algorithm.DataStructure
                     count++;
 
             return count;
+        }
+
+        public static T[] Array<T>(int length)
+            where T : new()
+        {
+            T[] values = new T[length];
+
+            for (int i = 0; i < length; i++)
+                values[i] = new T();
+
+            return values;
+            
         }
     }
 
@@ -394,13 +405,18 @@ namespace Algorithm.DataStructure
 
         protected T[] source;        
 
-        public List(params T[] values)
+        public List()
         {
             source = new T[0];
-
-            AddRange(values);
         }
 
+        public List(int capacity = 0, params T[] values)
+        {
+            source = new T[capacity];
+
+            AddRange(values);
+        }                      
+        
         public override void Add(T value)
         {
             if (IsFull)
@@ -464,10 +480,10 @@ namespace Algorithm.DataStructure
 
         protected virtual void Resize()
         {
-            T[] array = new T[Length * 2 + 1];
+            T[] array = new T[Length == 0 ? 4 : Length * 2];            
 
             CopyTo(array, count);
-            
+
             source = array;
         }
 
@@ -544,6 +560,8 @@ namespace Algorithm.DataStructure
 
         LinkedNode front = null;
         LinkedNode back = null;
+
+        public LinkedList() { }
 
         public override void Add(T item)
         {
@@ -862,14 +880,15 @@ namespace Algorithm.DataStructure
 
         readonly bool reverse;        
 
+        public PriorityQueue()
+        {
+            heap = new Heap<PriorityQueueNode<TValue, TPriority>>();
+            keyValues = new Dictionary<TPriority, List<TValue>>();
+        }
+
         public PriorityQueue(bool reverse = false)
         {
             this.reverse = reverse;
-            Init();
-        }
-
-        void Init()
-        {
             heap = new Heap<PriorityQueueNode<TValue, TPriority>>(reverse: reverse);
             keyValues = new Dictionary<TPriority, List<TValue>>();
         }
@@ -972,10 +991,9 @@ namespace Algorithm.DataStructure
         public bool IsEmpty => front == 0;
         public override bool IsFull => front == Length;
 
-        public Stack(params T[] values)
-        {
-            source = new T[0];
-        }
+        public Stack() : base() { } 
+
+        public Stack(int capacity = 0, params T[] values) : base(capacity, values) { }
 
         public void Push(T value)
         {
@@ -983,7 +1001,7 @@ namespace Algorithm.DataStructure
                 Resize();
 
             source[front++] = value;
-            count++;
+            count++;            
         }
 
         public void PushRange(params T[] values)
@@ -1045,13 +1063,11 @@ namespace Algorithm.DataStructure
         public override T[] ToArray()
         {
             T[] values = new T[count];
-            int index = front - 1;
 
-            for (int i = 0; index >= 0 && i < count; i++)
-                values[i] = source[index--];
+            for (int i = 0; i < count; i++)            
+                values[i] = source[i];            
 
             return values;
-
         }
 
     }
@@ -1065,12 +1081,9 @@ namespace Algorithm.DataStructure
         public bool IsEmpty => count == 0;
         public override bool IsFull => back == front;
 
-        public Queue(params T[] values)
-        {
-            source = new T[0];
+        public Queue() : base() { }
 
-            EnqueueRange(values);
-        }
+        public Queue(int capacity = 0, params T[] values) : base(capacity, values) { }
 
         public virtual void Enqueue(T value)
         {
@@ -1149,12 +1162,12 @@ namespace Algorithm.DataStructure
         {
             T[] values = new T[count];
 
-            int i = 0, j = front;
+            int i = front, j = count, k = 0;
 
-            while (j < back)
+            while (j-- > 0)
             {
-                values[i++] = source[j];
-                j = (j + 1) % Length;
+                values[k++] = source[i];
+                i = (i + 1) % Length;
             }
 
             return values;
@@ -1219,6 +1232,8 @@ namespace Algorithm.DataStructure
 
         LinkedNode front = null;
         LinkedNode back = null;
+
+        public Deque() { }
 
         public void AddFront(T value)
         {
@@ -1410,11 +1425,9 @@ namespace Algorithm.DataStructure
         public TKey[] Keys => Convert(pair => pair.Key);
         public TValue[] Values => Convert(pair => pair.Value);
 
-        public Dictionary(int size = 10000)
-        {
-            this.size = size;
-            Init();
-        }
+        public Dictionary() : base() { }
+
+        public Dictionary(int size) : base(size) { }
 
         public void Add(TKey key, TValue value)
         {
@@ -1531,18 +1544,22 @@ namespace Algorithm.DataStructure
 
         public int Prime => PRIME;
 
-        protected void Init()
+        public Set()
         {
+            size = 10000;
             list = new LinkedList<T>[size];
 
             for (int i = 0; i < size; i++)
                 list[i] = new LinkedList<T>();
         }
 
-        public Set(int size = 10000)
+        public Set(int size)
         {
             this.size = size;
-            Init();
+            list = new LinkedList<T>[size];
+
+            for (int i = 0; i < size; i++)
+                list[i] = new LinkedList<T>();
         }
 
         public override void Add(T value)
@@ -1562,7 +1579,10 @@ namespace Algorithm.DataStructure
 
         public override void Clear()
         {
-            Init();
+            count = 0;
+
+            for (int i = 0; i < size; i++)
+                list[i].Clear();            
         }
 
         public override bool Remove(T value)
@@ -1633,10 +1653,22 @@ namespace Algorithm.DataStructure
         public T Top => heap[0];
 
         List<T> heap;
+        int capacity;
         bool reverse;
         IComparer<T> comparer;
 
-        public Heap(IComparer<T> comparer = null, bool reverse = false, params T[] values)
+        public Heap()
+        {
+            if ((!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
+                && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>))))
+                throw new Exception("This type does not have ICompable.");
+
+            comparer = Comparer<T>.Default;
+            capacity = 0;
+            reverse = false;
+        }
+
+        public Heap(IComparer<T> comparer = null, bool reverse = false, int capacity = 0, params T[] values)
         {
             if (comparer == null 
                 && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable)) 
@@ -1644,8 +1676,10 @@ namespace Algorithm.DataStructure
                 throw new Exception("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;
-            heap = new List<T>();
+            this.capacity = capacity;
             this.reverse = reverse;
+
+            Clear();
 
             foreach (T value in values)
                 Push(value);
@@ -1710,7 +1744,7 @@ namespace Algorithm.DataStructure
 
         public override void Clear()
         {
-            heap = new List<T>();
+            heap = new List<T>(capacity:capacity);
             count = 0;
         }
 

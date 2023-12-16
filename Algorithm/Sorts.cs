@@ -371,11 +371,13 @@ namespace Algorithm.DataStructure
 
         public static void Measure<T, T1>(Action<T[], Func<T, T1>, IComparer> sort, T[] array, Func<T, T1> order, IComparer comparer = null)
         {
-            Util.Start();
+            Util.Timer.Restart();
 
             sort(array, order, comparer);
 
-            Util.Print(Util.Stop() + "ms");
+            Util.Timer.Stop();
+
+            Util.Print(Util.Timer.ElapsedMilliseconds + "ms");
         }
     }
 }
