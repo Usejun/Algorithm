@@ -1,4 +1,4 @@
-﻿namespace Algorithm.DataStructure
+﻿namespace Algorithm.Datastructure
 {
     public interface IHash<T>
     {   

@@ -1,8 +1,11 @@
-﻿using Algorithm.JSON;
+﻿using Algorithm.Sort;
+using Algorithm.Text;
 using Algorithm.Technique;
-using Algorithm.DataStructure;
+using Algorithm.Text.JSON;
+using Algorithm.Datastructure;
+
 using static Algorithm.Util;
-using static Algorithm.DataStructure.Extensions;
+using static Algorithm.Datastructure.Extensions;
 
 namespace Algorithm
 {
@@ -17,12 +20,38 @@ namespace Algorithm
         static void Main(string[] args)
         {
             Init();
-            var json = "{\r\n  \"product\": \"Live JSON generator\",\r\n  \"version\": 3.1,\r\n  \"releaseDate\": \"2014-06-25T00:00:00.000Z\",\r\n  \"demo\": true,\r\n  \"person\": {\r\n    \"id\": 12345,\r\n    \"name\": \"John Doe\",\r\n    \"phones\": {\r\n      \"home\": \"800-123-4567\",\r\n      \"mobile\": \"877-123-1234\"\r\n    },\r\n    \"email\": [\r\n      \"jd@example.com\",\r\n      \"jd@example.org\"\r\n    ],\r\n    \"dateOfBirth\": \"1980-01-02T00:00:00.000Z\",\r\n    \"registered\": true,\r\n    \"emergencyContacts\": [\r\n      {\r\n        \"name\": \"Jane Doe\",\r\n        \"phone\": \"888-555-1212\",\r\n        \"relationship\": \"spouse\"\r\n      },\r\n      {\r\n        \"name\": \"Justin Doe\",\r\n        \"phone\": \"877-123-1212\",\r\n        \"relationship\": \"parent\"\r\n      }\r\n    ]\r\n  }\r\n}";
 
-            Json JSON = Json.Parse(json);
+            string text = @"
+{
+    ""glossary"": {
+        ""title"": ""example glossary"",
+		""GlossDiv"": {
+            ""title"": ""S"",
+			""GlossList"": {
+                ""GlossEntry"": {
+                    ""ID"": ""SGML"",
+					""SortAs"": ""SGML"",
+					""GlossTerm"": ""Standard Generalized Markup Language"",
+					""Acronym"": ""SGML"",
+					""Abbrev"": ""ISO 8879:1986"",
+					""GlossDef"": {
+                        ""para"": ""A meta-markup language, used to create markup languages such as DocBook."",
+						""GlossSeeAlso"": [""GML"", ""XML""]
+                    },
+					""GlossSee"": ""markup""
+                }
+            }
+        }
+    }
+}";
 
-            Print(JSON["person"]["email"][1]);
+
+            Json JSON = Json.Parse(text);
+
+            Print(JSON.jObject);
+
             
+
         }
     }
 }

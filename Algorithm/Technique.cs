@@ -1,6 +1,5 @@
 ﻿using System;
-using Algorithm.DataStructure;
-using static Algorithm.DataStructure.Extensions;
+using Algorithm.Datastructure;
 
 namespace Algorithm.Technique
 {
@@ -62,8 +61,8 @@ namespace Algorithm.Technique
 
         public static int[] Dijkstra(int start, Graph graph)
         {
-            int length = graph.Length;
-            int[] distance = Convert(Range(length), i => INF);
+            int length = graph.Length;            
+            int[] distance = Extensions.Convert(Extensions.Range(length), i => INF);
             PriorityQueue<(int n, int v), int> pq = new PriorityQueue<(int n, int v), int>();
 
             distance[start] = 0;
@@ -91,7 +90,7 @@ namespace Algorithm.Technique
         public static int[] Bellman(int start, Graph graph)
         {
             int length = graph.Length;
-            int[] distance = Convert(Range(length + 1), i => INF);
+            int[] distance = Extensions.Convert(Extensions.Range(length + 1), i => INF);
             var edge = graph.AllNode();
 
             distance[start] = 0;
@@ -120,7 +119,7 @@ namespace Algorithm.Technique
             Graph mst = new Graph(length);
             var edges = graph.AllNode();            
 
-            Sort(edges, i => i.edge);
+            Extensions.Sort(edges, i => i.edge);
 
             for (int i = 0; i < count; i++)
             {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
-using Algorithm.DataStructure;
+using Algorithm.Datastructure;
 
 namespace Algorithm
 {

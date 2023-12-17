@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Linq;
-using Algorithm.DataStructure;
+using Algorithm.Datastructure;
 
-namespace Algorithm.JSON
+namespace Algorithm.Text.JSON
 {
     public enum ValueType
     {
@@ -154,7 +153,7 @@ namespace Algorithm.JSON
     public class Json
     {
         readonly string json;
-        JObject jObject;
+        public JObject jObject;
 
         public Json(string json, JObject jObject)
         {
@@ -183,6 +182,9 @@ namespace Algorithm.JSON
 
     public class JObject
     {
+        const int DEFAULTTEXTHEIGHT = 3;
+
+        public ValueType ValueType => valueType;
         protected ValueType valueType;
         List<(string Key, JObject JObj)> values;    
         
@@ -192,41 +194,18 @@ namespace Algorithm.JSON
             valueType = ValueType.Object;
         }
 
-        private JObject Get(string key)
-        {
-            foreach ((string _key, JObject jObj) in values)
-                if (_key == key)
-                    return jObj;
-
-            throw new JSONIndexingException("It's not a key to existence");
-        }
-
-        private void Set(string key, JObject jObj)
-        {
-            if (values.Contains((key, jObj)))
-                Update(key, jObj);
-            else
-                values.Add((key, jObj));
-        }
-
-        private void Update(string key, JObject jObj)
-        {
-            for (int i = 0; i < values.Count; i++)
-            {
-                if (values[i].Key == key)
-                {
-                    values[i] = (key, jObj);
-                    break;
-                }
-            }
-        }
-       
         public JObject this[object key]
         {
             get
             {
                 if (valueType == ValueType.Object && key is string strKey)
-                    return Get(strKey);
+                {
+                    foreach ((string _key, JObject jObj) in values)
+                        if (_key == strKey)
+                            return jObj;
+
+                    throw new JSONIndexingException("It's not a key to existence");
+                }
                 else if (valueType == ValueType.Array && key is int intKey)
                     if (this is JArray jArray)
                         return jArray[intKey];
@@ -238,7 +217,19 @@ namespace Algorithm.JSON
             {
                 if (valueType == ValueType.Object && key is string strKey)
                 {
-                    Set(strKey, value);
+                    if (values.Contains((strKey, value)))
+                    {
+                        for (int i = 0; i < values.Count; i++)
+                        {
+                            if (values[i].Key == strKey)
+                            {
+                                values[i] = (strKey, value);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                        values.Add((strKey, value));
                     return;
                 }
                 else if (valueType == ValueType.Array && key is int intKey)
@@ -316,6 +307,73 @@ namespace Algorithm.JSON
 
             throw new JSONConvertException("Not array type");
         }
+
+        public override string ToString()
+        {
+            StringBuffer sb = new StringBuffer();
+
+            Put(this, 0);
+
+            return sb.ToString(); 
+
+            void Put(JObject jObject, int depth)
+            {
+                sb.AppendLine("{");
+                for (int i = 0; i < jObject.values.Count; i++)
+                {
+                    sb.Append(' ', (depth + 1) * DEFAULTTEXTHEIGHT);
+                    sb.Append($"{jObject.values[i].Key}: ");
+
+                    if (jObject.values[i].JObj.valueType == ValueType.Object)
+                        Put(jObject.values[i].JObj, depth + 1);
+                    else if (jObject.values[i].JObj.valueType == ValueType.Array)
+                        sb.Append(((JArray)jObject.values[i].JObj).ToString(depth + 1));
+                    else
+                        sb.Append(jObject.values[i].JObj);
+                    
+                    if (i != jObject.values.Count - 1)
+                        sb.Append(", ");
+                    sb.Append('\n');
+                }
+
+                sb.Append(' ', depth * DEFAULTTEXTHEIGHT);
+                sb.Append('}');
+            }
+
+        }
+
+        public virtual string ToString(int height)
+        {
+            StringBuffer sb = new StringBuffer();
+
+            Put(this, height);
+
+            return sb.ToString();
+
+            void Put(JObject jObject, int depth)
+            {
+                sb.AppendLine("{");
+                for (int i = 0; i < jObject.values.Count; i++)
+                {
+                    sb.Append(' ', (depth + 1) * DEFAULTTEXTHEIGHT);
+                    sb.Append($"{jObject.values[i].Key}: ");
+
+                    if (jObject.values[i].JObj.valueType == ValueType.Object)
+                        Put(jObject.values[i].JObj, depth + 1);
+                    else if (jObject.values[i].JObj.valueType == ValueType.Array)
+                        sb.Append(((JArray)jObject.values[i].JObj).ToString(depth));
+                    else
+                        sb.Append(jObject.values[i].JObj);
+
+                    if (i != jObject.values.Count - 1)
+                        sb.Append(", ");
+                    sb.Append('\n');
+                }
+
+                sb.Append(' ', depth * DEFAULTTEXTHEIGHT);
+                sb.Append('}');
+            }
+        }
     }
 
     public class JNumber : JObject
@@ -351,11 +409,6 @@ namespace Algorithm.JSON
         {
             this.value = value;
             valueType = ValueType.String;
-        }
-
-        public override string ToString()
-        {
-            return value;
         }
 
         public static implicit operator string(JString jString) => jString.value;
@@ -402,7 +455,45 @@ namespace Algorithm.JSON
 
         public override string ToString()
         {
-            return string.Join(", ", values);
+            StringBuffer sb = new StringBuffer();
+
+            sb.Append("[\n");
+            for (int i = 0; i < values.Count; i++)
+            {
+                sb.Append(values[i]);
+                if (i != values.Count - 1)
+                    sb.Append(',');
+                sb.Append('\n');
+            }
+            sb.Append(']');
+            return sb.ToString();
+            
+        }
+
+        public override string ToString(int height)
+        {
+            StringBuffer sb = new StringBuffer();
+
+            sb.Append("[\n");
+            for (int i = 0; i < values.Count; i++)
+            {
+                sb.Append(' ', (height + 1) * 3);
+
+                if (values[i].ValueType == ValueType.Object)
+                    sb.Append(values[i].ToString(height + 1));
+                else
+                    sb.Append(values[i]);
+
+                if (i != values.Count - 1)
+                    sb.Append(',');
+
+                sb.Append('\n');
+            }
+
+            sb.Append(' ', height * 3);
+            sb.Append(']');
+
+            return sb.ToString();
         }
 
         public JObject this[int index]

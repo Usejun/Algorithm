@@ -47,14 +47,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataStructure.cs" />
-    <Compile Include="Interfaces.cs" />
+    <Compile Include="Datastructure\Collection.cs" />
+    <Compile Include="Datastructure\Deque.cs" />
+    <Compile Include="Datastructure\Dictionary.cs" />
+    <Compile Include="Datastructure\Heap.cs" />
+    <Compile Include="Datastructure\LinkedList.cs" />
+    <Compile Include="Datastructure\Pair.cs" />
+    <Compile Include="Datastructure\PriorityQueue.cs" />
+    <Compile Include="Datastructure\Queue.cs" />
+    <Compile Include="Datastructure\Set.cs" />
+    <Compile Include="Datastructure\SortedList.cs" />
+    <Compile Include="Datastructure\Stack.cs" />
+    <Compile Include="Datastructure\Node.cs" />
+    <Compile Include="Datastructure\Extensions.cs" />
+    <Compile Include="Datastructure\List.cs" />
+    <Compile Include="Datastructure\Interfaces.cs" />
     <Compile Include="Mathf.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sorts.cs" />
+    <Compile Include="Text\StringBuffer.cs" />
     <Compile Include="Technique.cs" />
-    <Compile Include="Json.cs" />
+    <Compile Include="Text\Json.cs" />
     <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Algorithm.DataStructure
+namespace Algorithm.Sort
 {
     public static class Sorts
     {        
@@ -92,7 +92,7 @@ namespace Algorithm.DataStructure
         }
 
         /// <summary>
-        /// 이진 삽입 정렬, 시간 복잡도 : N^2
+        /// 이진 삽입 정렬, 시간 복잡도 : 평균 NlogN, 최악 N^2
         /// </summary>
         public static void BinaryInsertionSort<T, T1>(T[] array, Func<T, T1> order, IComparer comparer = null)
             where T1 : IComparable<T1>
