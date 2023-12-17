@@ -21,7 +21,7 @@ namespace Algorithm
 
             Json JSON = Json.Parse(json);
 
-            Print(JSON["demo"]);
+            Print(JSON["person"]["email"][1]);
             
         }
     }

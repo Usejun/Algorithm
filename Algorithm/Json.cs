@@ -1,4 +1,6 @@
-﻿using Algorithm.DataStructure;
+﻿using System;
+using System.Linq;
+using Algorithm.DataStructure;
 
 namespace Algorithm.JSON
 {
@@ -27,7 +29,7 @@ namespace Algorithm.JSON
 
         public Json GetJson()
         {
-            return new Json(json, (JObject)Parse());
+            return new Json(json, Parse());
         }
 
         JObject Parse()
@@ -41,7 +43,7 @@ namespace Algorithm.JSON
             else if (json[index] == 't' || json[index] == 'f') return ParseBoolean();
             else if (json[index] == 'n') return ParseNull();
 
-            return new JObject();
+            throw new JSONParsingException("Type error");
         }
 
         void SkipWhitespace()
@@ -61,7 +63,7 @@ namespace Algorithm.JSON
                 string key = jString.Value;
                 SkipWhitespace();
 
-                if (json[index] != ':') return obj;
+                if (json[index] != ':') throw new JSONParsingException("Not object type");
 
                 index++;
                 SkipWhitespace();
@@ -89,7 +91,7 @@ namespace Algorithm.JSON
                 return new JNumber(result);
             }
 
-            return null;
+            throw new JSONParsingException("Not number type");
         }
 
         JString ParseString()
@@ -145,7 +147,7 @@ namespace Algorithm.JSON
                 return new JNull();
             }
 
-            return null;
+            throw new JSONParsingException("Type error");
         }
     }
 
@@ -182,23 +184,137 @@ namespace Algorithm.JSON
     public class JObject
     {
         protected ValueType valueType;
-        Dictionary<string, JObject> values;    
+        List<(string Key, JObject JObj)> values;    
         
         public JObject()
         {
-            values = new Dictionary<string, JObject>();
+            values = new List<(string, JObject)>();
             valueType = ValueType.Object;
         }
 
-        public JObject this[string key]
+        private JObject Get(string key)
         {
-            get => values[key];
-            set => values[key] = value; 
+            foreach ((string _key, JObject jObj) in values)
+                if (_key == key)
+                    return jObj;
+
+            throw new JSONIndexingException("It's not a key to existence");
         }
 
-        public override string ToString()
+        private void Set(string key, JObject jObj)
         {
-            return string.Join("\n ", values.ToPairs());
+            if (values.Contains((key, jObj)))
+                Update(key, jObj);
+            else
+                values.Add((key, jObj));
+        }
+
+        private void Update(string key, JObject jObj)
+        {
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (values[i].Key == key)
+                {
+                    values[i] = (key, jObj);
+                    break;
+                }
+            }
+        }
+       
+        public JObject this[object key]
+        {
+            get
+            {
+                if (valueType == ValueType.Object && key is string strKey)
+                    return Get(strKey);
+                else if (valueType == ValueType.Array && key is int intKey)
+                    if (this is JArray jArray)
+                        return jArray[intKey];
+
+                throw new JSONIndexingException("It it not Indexable type");
+
+            }
+            set
+            {
+                if (valueType == ValueType.Object && key is string strKey)
+                {
+                    Set(strKey, value);
+                    return;
+                }
+                else if (valueType == ValueType.Array && key is int intKey)
+                    if (this is JArray jArray)
+                    {
+                        jArray[intKey] = value;
+                        return;
+                    }
+
+                throw new JSONIndexingException("It it not Indexable type");
+            }
+        }
+
+        public static implicit operator int(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.Number)
+                if (jObject is JNumber jNumber)
+                    return (int)jNumber;
+
+            throw new JSONConvertException("Not number type");
+        }
+
+        public static implicit operator long(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.Number)
+                if (jObject is JNumber jNumber)
+                    return (long)jNumber;
+
+            throw new JSONConvertException("Not number type");
+        }
+
+        public static implicit operator float(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.Number)
+                if (jObject is JNumber jNumber)
+                    return (float)jNumber;
+
+            throw new JSONConvertException("Not number type");
+        }
+
+        public static implicit operator double(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.Number)
+                if (jObject is JNumber jNumber)
+                    return (double)jNumber;
+
+            throw new JSONConvertException("Not number type");
+        }
+
+        public static implicit operator string(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.String)
+            {
+                if (jObject is JString jString)
+                    return (string)jString;
+            }
+
+            return jObject.ToString();
+        }
+
+        public static implicit operator bool(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.Boolean)
+                if (jObject is JBoolean jBoolean)
+                    return (bool)jBoolean;
+
+            throw new JSONConvertException("Not boolean type");
+        }
+
+        public static implicit operator List<JObject>(JObject jObject)
+        {
+            if (jObject.valueType == ValueType.String)
+                if (jObject is JArray jArray)
+                    return (List<JObject>)jArray;
+
+            throw new JSONConvertException("Not array type");
         }
     }
 
@@ -218,6 +334,11 @@ namespace Algorithm.JSON
         {
             return value.ToString();
         }
+
+        public static implicit operator int(JNumber jNumber) => (int)jNumber.value;
+        public static implicit operator long(JNumber jNumber) => (long)jNumber.value;
+        public static implicit operator float(JNumber jNumber) => (float)jNumber.value;
+        public static implicit operator double(JNumber jNumber) => jNumber.value;
     }
 
     public class JString : JObject
@@ -236,6 +357,8 @@ namespace Algorithm.JSON
         {
             return value;
         }
+
+        public static implicit operator string(JString jString) => jString.value;
     }
 
     public class JBoolean : JObject
@@ -254,6 +377,8 @@ namespace Algorithm.JSON
         {
             return value.ToString();
         }
+
+        public static implicit operator bool(JBoolean jBoolean) => jBoolean.value;
     }
 
     public class JArray : JObject
@@ -268,15 +393,42 @@ namespace Algorithm.JSON
             valueType = ValueType.Array;
         }
 
+        private bool OutOfRange(int index)
+        {
+            if (index < 0 || index >= values.Count)
+                return true;
+            return false;
+        }
+
         public override string ToString()
         {
-            return string.Join("\n", values);
+            return string.Join(", ", values);
         }
+
+        public JObject this[int index]
+        {
+            get
+            {
+                if (OutOfRange(index))
+                    throw new JSONIndexingException("Out of range");
+
+                return values[index];
+            }
+            set
+            {
+                if (OutOfRange(index))
+                    throw new JSONIndexingException("Out of range");
+
+                values[index] = value;
+            }
+        }
+
+        public static implicit operator List<JObject>(JArray jArray) => jArray.values; 
     }
 
     public class JNull : JObject
     {
-        public object Value => null;
+        public object Value => value;
 
         object value;
 
@@ -290,6 +442,37 @@ namespace Algorithm.JSON
         {
             return "null";
         }
+
+    }
+
+    public class JSONParsingException : Exception
+    {
+        public JSONParsingException() { }
+        public JSONParsingException(string message) : base(message) { }
+        public JSONParsingException(string message, Exception inner) : base(message, inner) { }
+        protected JSONParsingException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class JSONConvertException : Exception
+    {
+        public JSONConvertException() { }
+        public JSONConvertException(string message) : base(message) { }
+        public JSONConvertException(string message, Exception inner) : base(message, inner) { }
+        protected JSONConvertException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class JSONIndexingException : Exception
+    {
+        public JSONIndexingException() { }
+        public JSONIndexingException(string message) : base(message) { }
+        public JSONIndexingException(string message, Exception inner) : base(message, inner) { }
+        protected JSONIndexingException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 
 }
