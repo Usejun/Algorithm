@@ -62,8 +62,10 @@ namespace Algorithm.Text.JSON
                 string key = jString.Value;
                 SkipWhitespace();
 
-                if (json[index] != ':') throw new JSONParsingException("Not object type");
-
+                if (json[index] != ':')
+                {
+                    throw new JSONParsingException("Not object type");
+                }
                 index++;
                 SkipWhitespace();
 
@@ -97,7 +99,8 @@ namespace Algorithm.Text.JSON
         {
             index++;
             int start = index;
-            while (json[index] != '"') index++;            
+            while (!(json[index] == '"' && json[index - 1] != '\\')) 
+                index++;       
 
             JString jString = new JString(json.Substring(start, index - start));
             index++;
@@ -188,7 +191,7 @@ namespace Algorithm.Text.JSON
 
     public class JObject
     {
-        const int DEFAULTTEXTHEIGHT = 3;
+        protected const int DEFAULTTEXTHEIGHT = 2;
 
         public ValueType ValueType => valueType;
         protected ValueType valueType;
@@ -270,7 +273,7 @@ namespace Algorithm.Text.JSON
                     if (jObj.valueType == ValueType.Object)
                         Put(jObj, depth + 1);
                     else if (jObj.valueType == ValueType.Array)
-                        sb.Append(jObj.ToJSON(depth));
+                        sb.Append(jObj.ToJSON(depth + 1));
                     else
                         sb.Append(jObj.ToJSON());
 
@@ -294,18 +297,18 @@ namespace Algorithm.Text.JSON
 
             void Put(JObject jObject, int depth)
             {
-                sb.AppendLine("{");
+                sb.AppendLine("{");                
                 for (int i = 0; i < jObject.values.Count; i++)
                 {
                     (string key, JObject jObj) = jObject.values[i];
 
                     sb.Append(' ', (depth + 1) * DEFAULTTEXTHEIGHT);
-                    sb.Append($"{key}: ");
+                    sb.Append($"\"{key}\": ");
 
                     if (jObj.valueType == ValueType.Object)
                         Put(jObj, depth + 1);
                     else if (jObj.valueType == ValueType.Array)
-                        sb.Append(jObj.ToJSON(depth));
+                        sb.Append(jObj.ToJSON(depth + 1));
                     else
                         sb.Append(jObj.ToJSON());
 
@@ -501,14 +504,17 @@ namespace Algorithm.Text.JSON
         {
             StringBuffer sb = new StringBuffer();
 
-            sb.Append("[\n");
+            sb.Append("[");
+            if (values.Count != 0) sb.Append('\n');
             for (int i = 0; i < values.Count; i++)
             {
-                sb.Append(values[i]);
+                sb.Append(' ', DEFAULTTEXTHEIGHT);
+                sb.Append(values[i].ToJSON());
                 if (i != values.Count - 1)
                     sb.Append(',');
                 sb.Append('\n');
             }
+
             sb.Append(']');
 
             return sb.ToString();
@@ -518,12 +524,14 @@ namespace Algorithm.Text.JSON
         {
             StringBuffer sb = new StringBuffer();
 
-            sb.Append("[\n");
+            sb.Append("[");
+            if (values.Count != 0) sb.Append('\n');
             for (int i = 0; i < values.Count; i++)
             {
-                sb.Append(' ', (height + 1) * 3);
+                sb.Append(' ', (height + 1) * DEFAULTTEXTHEIGHT);
 
-                if (values[i].ValueType == ValueType.Object)
+                if (values[i].ValueType == ValueType.Object ||
+                    values[i].ValueType == ValueType.Array)
                     sb.Append(values[i].ToJSON(height + 1));
                 else
                     sb.Append(values[i]);
@@ -534,7 +542,7 @@ namespace Algorithm.Text.JSON
                 sb.Append('\n');
             }
 
-            sb.Append(' ', height * 3);
+            if (values.Count != 0) sb.Append(' ', height * DEFAULTTEXTHEIGHT);
             sb.Append(']');
 
             return sb.ToString();

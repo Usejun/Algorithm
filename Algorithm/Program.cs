@@ -6,6 +6,9 @@ using Algorithm.Datastructure;
 
 using static Algorithm.Util;
 using static Algorithm.Datastructure.Extensions;
+using System.Net.Http;
+using System.IO;
+using System;
 
 namespace Algorithm
 {
@@ -21,10 +24,22 @@ namespace Algorithm
         {
             Init();
 
-            StringBuffer sb = new StringBuffer("ABCABCABC");
+            var client = new HttpClient();
 
-            Print(sb);
+            var content = client.GetAsync("https://api.jikan.moe/v4/anime?q=mushouku&sfw").Result.Content;
+            var stream = content.ReadAsStreamAsync().Result;
+            Json json;
+            using (StreamReader sr = new StreamReader(stream))
+            {
+                var t = sr.ReadToEnd();
 
+                
+                //Print(t);
+
+
+                json = Json.Parse(t);
+                Print(json);
+            }
         }
     }
 }
