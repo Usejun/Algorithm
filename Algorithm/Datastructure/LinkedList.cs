@@ -94,7 +94,7 @@ namespace Algorithm.Datastructure
 
         public void Insert(int index, T value)
         {
-            if (!Available(index))
+            if (OutOfRange(index))
                 throw new Exception("Out of range");
 
             if (index >= count)
@@ -115,7 +115,7 @@ namespace Algorithm.Datastructure
 
         public void InsertRange(int index, params T[] values)
         {
-            if (!Available(index))
+            if (OutOfRange(index))
                 throw new Exception("Out of range");
 
             if (index >= count)
@@ -252,18 +252,35 @@ namespace Algorithm.Datastructure
 
         public LinkedNode GetNode(int index)
         {
-            LinkedNode node = front;
-            for (int i = 0; i < index; i++)
-                node = node.before;
+            if (OutOfRange(index))
+                throw new Exception("item is not Contains");
 
-            if (node == null) throw new Exception("item is not Contains");
+            if (index / 2 > count)
+            {
+                LinkedNode node = back;
+                for (int i = 0; i < index - 1; i++)
+                {
+                    node = node.after;
+                    if (node == null) throw new Exception("item is not Contains");
+                }
 
-            return node;
+                return node;
+            }
+            else
+            {
+                LinkedNode node = front;
+                for (int i = 0; i < index; i++)
+                {
+                    node = node.before;
+                    if (node == null) throw new Exception("item is not Contains");
+                }
+                return node;
+            }
         }
 
-        private bool Available(int index)
+        private bool OutOfRange(int index)
         {
-            return !IsEmpty && 0 < index && index < count;
+            return IsEmpty || 0 > index || index > count;
         }
 
         public T this[int index]

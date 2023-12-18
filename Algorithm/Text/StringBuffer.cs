@@ -1,10 +1,16 @@
 ﻿using Algorithm.Datastructure;
+using System.Runtime.InteropServices;
 
 namespace Algorithm.Text
 {
     public class StringBuffer
     {
+        public int Length => buffer.Count;
+
         List<char> buffer;
+        string pattern;
+        int[] pi;
+        List<int> patternPos;
 
         public StringBuffer()
         {
@@ -66,9 +72,134 @@ namespace Algorithm.Text
             Append("\n");
         }
 
+        public int IndexOf(string pattern)
+        {
+            if (this.pattern != pattern)
+                SetPattern(pattern);
+
+            return IndexByPattern();
+        }        
+
+        public bool Remove(string pattern)
+        {
+            if (IndexOf(pattern) == -1) return false;
+
+            for (int i = 0; i < pattern.Length; i++)
+                buffer.RemoveAt(patternPos[0]);
+
+            patternPos.RemoveAt(0);
+            return true;
+        }
+
+        public void Replace(string oldString, string newString)
+        {
+            if (pattern != oldString)
+                SetPattern(oldString);
+
+            int indexDiff = 0;
+
+            foreach (int index in patternPos)
+            {
+                Replace(index - indexDiff, oldString.Length, newString);
+                indexDiff += oldString.Length - newString.Length;
+            }
+        }
+
+        private void Replace(int startIndex, int length, string newString)
+        {
+            int lengthDiff = length - newString.Length;
+
+            if (length == lengthDiff)
+            {
+                for (int i = 0; i < length; i++)                
+                    buffer.RemoveAt(startIndex);                
+            }
+            else if (lengthDiff < 0)
+            {
+                int i = 0;
+                for (; i < length; i++)                
+                    buffer[startIndex + i] = newString[i];
+
+                for (int j = 0; j < -lengthDiff; j++)
+                    buffer.Insert(startIndex + i, newString[i + j]);
+            }
+            else if (lengthDiff == 0)
+            {
+                for (int i = 0; i < length; i++)                
+                    buffer[startIndex + i] = newString[i];                
+            }
+            else
+            {
+                int i = 0, len = newString.Length;                
+                for (; i < len; i++)
+                    buffer[startIndex + i] = newString[i];
+
+                for (int j = 0; j < lengthDiff; j++)
+                    buffer.RemoveAt(startIndex + i);
+            }
+        }
+        
+        public void SetPattern(string pattern)
+        {
+            this.pattern = pattern;
+            int len = pattern.Length;
+            patternPos = new List<int>();
+            pi = new int[Length];
+            int j = 0;
+
+            for (int i = 1; i < len; i++)
+            {
+                while (j > 0 && pattern[i] != pattern[j])
+                    j = pi[j - 1];
+                if (pattern[i] == pattern[j])
+                    pi[i] = ++j;
+            }
+
+            j = 0;
+
+            for (int i = 0; i < Length; i++)
+            {
+                while (j > 0 && buffer[i] != pattern[j])
+                    j = pi[j - 1];
+                if (buffer[i] == pattern[j])
+                    if (j == len - 1)
+                        patternPos.Add(i - len + 1);
+                    else j++;
+            }
+        }
+
+        private int IndexByPattern()
+        {
+            return patternPos.Count == 0 ? -1 : patternPos[0];
+        }
+
         public override string ToString()
         {
             return string.Join("", buffer);
+        }
+
+        public bool Equals(StringBuffer sb)
+        {
+            if (Length != sb.Length) return false;
+            for (int i = 0; i < Length; i++)
+                if (buffer[i] != sb[i])
+                    return false;
+            return true;            
+        }
+
+        public bool Equals(string str)
+        {
+            if (Length != str.Length) return false;
+            for (int i = 0; i < Length; i++)
+                if (buffer[i] != str[i])
+                    return false;
+            return true;
+        }
+
+        public char this[int index]
+        {
+            get => buffer[index];
+            set => buffer[index] = value;
         }
     }
 }
