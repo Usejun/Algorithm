@@ -100,9 +100,27 @@ namespace Algorithm.Text.JSON
             index++;
             int start = index;
             while (!(json[index] == '"' && json[index - 1] != '\\')) 
-                index++;       
+                index++;
 
-            JString jString = new JString(json.Substring(start, index - start));
+            string text = json.Substring(start, index - start);
+            string encodingText = "";
+            int textIndex = 0;
+            
+            while (textIndex < text.Length)
+            {
+                if (text[textIndex] == '\\' && text[textIndex + 1] == 'u')
+                {
+                    encodingText += Convert.ToChar(int.Parse(text.Substring(textIndex + 2, 4), System.Globalization.NumberStyles.HexNumber));
+                    textIndex += 6;
+                }
+                else
+                {
+                    encodingText += text[textIndex];
+                    textIndex++;
+                }
+            }
+
+            JString jString = new JString(encodingText);
             index++;
 
             return jString;

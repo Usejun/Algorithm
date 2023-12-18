@@ -63,6 +63,7 @@
     <Compile Include="Datastructure\List.cs" />
     <Compile Include="Datastructure\Interfaces.cs" />
     <Compile Include="Mathf.cs" />
+    <Compile Include="Net\Request.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sorts.cs" />
