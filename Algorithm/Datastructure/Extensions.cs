@@ -103,6 +103,42 @@ namespace Algorithm.Datastructure
             return convertedValues;
         }
 
+        public static T[] FilterAnd<T>(T[] array, params Func<T, bool>[] conditions)
+        {
+            List<T> list = new List<T>();
+
+            foreach (T t in array)
+            {
+                bool flag = true;
+                foreach (var condition in conditions)
+                    if (!condition(t))
+                    {
+                        flag = false;
+                        break;
+                    }
+
+                if (flag) list.Add(t);
+            }
+                      
+                
+            return list.ToArray();            
+        }
+
+        public static T[] FilterOr<T>(T[] array, params Func<T, bool>[] conditions)
+        {
+            List<T> list = new List<T>();
+
+            foreach (T t in array)         
+                foreach (var condition in conditions)
+                    if (condition(t))
+                    {
+                        list.Add(t);
+                        break;
+                    }          
+
+            return list.ToArray();
+        }
+
         public static Pair<int, T>[] ToPairs<T>(T[] array)
         {
             Pair<int, T>[] pairs = new Pair<int, T>[array.Length];
@@ -167,6 +203,19 @@ namespace Algorithm.Datastructure
 
             for (int i = 0; i < length; i++)
                 values[i] = new T();
+
+            return values;
+
+        }
+
+        public static T[,] Array<T>(int row, int column)
+            where T : new()
+        {
+            T[,] values = new T[column, row];
+
+            for (int i = 0; i < column; i++)
+                for (int j = 0; j < row; j++)
+                    values[i, j] = new T();
 
             return values;
 

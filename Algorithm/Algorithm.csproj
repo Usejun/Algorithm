@@ -67,8 +67,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sorts.cs" />
+    <Compile Include="Technique\Graph.cs" />
+    <Compile Include="Technique\Gruop.cs" />
+    <Compile Include="Technique\SegmentTree.cs" />
     <Compile Include="Text\StringBuffer.cs" />
-    <Compile Include="Technique.cs" />
+    <Compile Include="Technique\Techniques.cs" />
     <Compile Include="Text\Json.cs" />
     <Compile Include="Utility.cs" />
   </ItemGroup>

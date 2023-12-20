@@ -13,207 +13,179 @@ namespace Algorithm.Text.JSON
         Object
     }    
 
-    public class JsonParser
+    public class JObject
     {
-        int len;
-        int index;
-        string json;
-
-        public JsonParser(string json) 
+        private class JsonParser
         {
-            this.json = json;
-            len = json.Length;
-            index = 0;
-        }
+            private readonly int len;
+            private int index;
+            private readonly string json;
 
-        public Json GetJson()
-        {
-            return new Json(json, Parse());
-        }
+            public JsonParser(string json)
+            {
+                this.json = json ?? throw new JSONNullException();
+                len = json.Length;
+                index = 0;
+            }
 
-        JObject Parse()
-        {
-            SkipWhitespace();
+            public JObject GetJObject()
+            {
+                return Parse();
+            }
 
-            if (json[index] == '{') return ParseObject();
-            else if (json[index] == '[') return ParseArray();
-            else if (json[index] == '"') return ParseString();
-            else if (char.IsDigit(json[index])) return ParseNumber();
-            else if (json[index] == 't' || json[index] == 'f') return ParseBoolean();
-            else if (json[index] == 'n') return ParseNull();
-
-            throw new JSONParsingException("Type error");
-        }
-
-        void SkipWhitespace()
-        {
-            while (index < len && char.IsWhiteSpace(json[index])) index++;
-        }
-
-        JObject ParseObject()
-        {
-            JObject obj = new JObject();
-            index++;
-
-            while (json[index] != '}')
+            private JObject Parse()
             {
                 SkipWhitespace();
-                JString jString = ParseString();
-                string key = jString.Value;
-                SkipWhitespace();
 
-                if (json[index] != ':')
+                if (json[index] == '{') return ParseObject();
+                else if (json[index] == '[') return ParseArray();
+                else if (json[index] == '"') return ParseString();
+                else if (char.IsDigit(json[index])) return ParseNumber();
+                else if (json[index] == 't' || json[index] == 'f') return ParseBoolean();
+                else if (json[index] == 'n') return ParseNull();
+
+                throw new JSONParsingException("Type error");
+            }
+
+            private void SkipWhitespace()
+            {
+                while (index < len && char.IsWhiteSpace(json[index])) index++;
+            }
+
+            private JObject ParseObject()
+            {
+                JObject obj = new JObject();
+                index++;
+
+                while (json[index] != '}')
                 {
-                    throw new JSONParsingException("Not object type");
+                    SkipWhitespace();
+                    JString jString = ParseString();
+                    string key = jString.Value;
+                    SkipWhitespace();
+
+                    if (json[index] != ':')
+                    {
+                        throw new JSONParsingException("Not object type");
+                    }
+                    index++;
+                    SkipWhitespace();
+
+                    JObject value = Parse();
+                    obj[key] = value;
+
+                    SkipWhitespace();
+                    if (json[index] == ',') index++;
                 }
+
                 index++;
-                SkipWhitespace();
-
-                JObject value = Parse();
-                obj[key] = value;
-
-                SkipWhitespace();
-                if (json[index] == ',') index++;
+                return obj;
             }
 
-            index++;
-            return obj;
-        }
-
-        JNumber ParseNumber()
-        {
-            int start = index;
-            while (char.IsDigit(json[index]) || json[index] == '.') index++;
-
-            string numberString = json.Substring(start, index - start);
-
-            if (double.TryParse(numberString, out double result))
+            private JNumber ParseNumber()
             {
-                return new JNumber(result);
-            }
+                int start = index;
+                while (char.IsDigit(json[index]) || json[index] == '.') index++;
 
-            throw new JSONParsingException("Not number type");
-        }
+                string numberString = json.Substring(start, index - start);
 
-        JString ParseString()
-        {
-            index++;
-            int start = index;
-            while (!(json[index] == '"' && json[index - 1] != '\\')) 
-                index++;
-
-            string text = json.Substring(start, index - start);
-            string encodingText = "";
-            int textIndex = 0;
-            
-            while (textIndex < text.Length)
-            {
-                if (text[textIndex] == '\\' && text[textIndex + 1] == 'u')
+                if (double.TryParse(numberString, out double result))
                 {
-                    encodingText += Convert.ToChar(int.Parse(text.Substring(textIndex + 2, 4), System.Globalization.NumberStyles.HexNumber));
-                    textIndex += 6;
+                    return new JNumber(result);
+                }
+
+                throw new JSONParsingException("Not number type");
+            }
+
+            private JString ParseString()
+            {
+                index++;
+                int start = index;
+                while (!(json[index] == '"' && json[index - 1] != '\\'))
+                    index++;
+
+                string text = json.Substring(start, index - start);
+                string convertedText = ConvertUnicode(text);
+
+                JString jString = new JString(convertedText);
+                index++;
+
+                return jString;
+            }
+
+            private JArray ParseArray()
+            {
+                JArray array = new JArray();
+                index++;
+
+                while (json[index] != ']')
+                {
+                    SkipWhitespace();
+                    JObject value = Parse();
+                    array.Values.Add(value);
+
+                    SkipWhitespace();
+                    if (json[index] == ',') index++;
+                }
+
+                index++;
+                return array;
+            }
+
+            private JBoolean ParseBoolean()
+            {
+                if (json.Substring(index, 4) == "true")
+                {
+                    index += 4;
+                    return new JBoolean(true);
                 }
                 else
                 {
-                    encodingText += text[textIndex];
-                    textIndex++;
+                    index += 5;
+                    return new JBoolean(false);
                 }
             }
 
-            JString jString = new JString(encodingText);
-            index++;
-
-            return jString;
-        }
-
-        JArray ParseArray()
-        {
-            JArray array = new JArray(new List<JObject>());
-            index++;
-
-            while (json[index] != ']')
+            private JNull ParseNull()
             {
-                SkipWhitespace();
-                JObject value = Parse();
-                array.Values.Add(value);
+                if (json.Substring(index, 4) == "null")
+                {
+                    index += 4;
+                    return new JNull();
+                }
 
-                SkipWhitespace();
-                if (json[index] == ',') index++;
+                throw new JSONParsingException("Type error");
             }
 
-            index++;
-            return array;
-        }
+            private string ConvertUnicode(string text)
+            {
+                StringBuffer convertedText = new StringBuffer();
+                int textIndex = 0;
 
-        JBoolean ParseBoolean()
-        {
-            if (json.Substring(index, 4) == "true")
-            {
-                index += 4;
-                return new JBoolean(true);
-            }
-            else
-            {
-                index += 5;
-                return new JBoolean(false);
+                while (textIndex < text.Length)
+                {
+                    if (text[textIndex] == '\\' && text[textIndex + 1] == 'u')
+                    {
+                        convertedText.Append(Convert.ToChar(int.Parse(text.Substring(textIndex + 2, 4), System.Globalization.NumberStyles.HexNumber)));
+                        textIndex += 6;
+                    }
+                    else
+                    {
+                        convertedText.Append(text[textIndex]);
+                        textIndex++;
+                    }
+                }
+
+                return convertedText.ToString();
             }
         }
 
-        JNull ParseNull()
-        {
-            if (json.Substring(index, 4) == "null")
-            {
-                index += 4;
-                return new JNull();
-            }
-
-            throw new JSONParsingException("Type error");
-        }
-    }
-
-    public class Json
-    {
-        readonly string json;
-        JObject jObject;
-
-        public Json()
-        {
-            json = "";
-            jObject = new JObject();
-        }
-
-        public Json(string json, JObject jObject)
-        {
-            this.json = json;
-            this.jObject = jObject;
-        }
-
-        public JObject this[string key]
-        {
-            get => jObject[key];
-            set => jObject[key] = value;
-        }
-
-        public override string ToString()
-        {
-            return jObject.ToJSON();
-        }
-
-        public static Json Parse(string json)
-        {
-            JsonParser parser = new JsonParser(json);
-            
-            return parser.GetJson();
-        }
-    }
-
-    public class JObject
-    {
         protected const int DEFAULTTEXTHEIGHT = 2;
 
         public ValueType ValueType => valueType;
+
         protected ValueType valueType;
-        List<(string Key, JObject JObj)> values;    
+        private readonly List<(string Key, JObject JObj)> values;    
         
         public JObject()
         {
@@ -237,7 +209,7 @@ namespace Algorithm.Text.JSON
                     if (this is JArray jArray)
                         return jArray[intKey];
 
-                throw new JSONIndexingException("It it not Indexable type");
+                throw new JSONIndexingException("It's not Indexable type");
 
             }
             set
@@ -256,7 +228,9 @@ namespace Algorithm.Text.JSON
                         }
                     }
                     else
+                    {
                         values.Add((strKey, value));
+                    }
                     return;
                 }
                 else if (valueType == ValueType.Array && key is int intKey)
@@ -266,8 +240,115 @@ namespace Algorithm.Text.JSON
                         return;
                     }
 
-                throw new JSONIndexingException("It it not Indexable type");
+                throw new JSONIndexingException("It's not Indexable type");
             }
+        }
+
+        public JObject AddObject(string key)
+        {
+            values.Add((key, new JObject()));
+
+            return this;
+        }
+
+        public JObject AddObject(string key, params (string key, object value)[] _values)
+        {
+            JObject jObject = new JObject();
+
+            foreach ((string _key, object value) in _values)
+                jObject.Add(_key, value);
+
+            values.Add((key, jObject));
+
+            return this;
+        }
+
+        public JObject AddArray(string key)
+        {
+            values.Add((key, new JArray()));
+
+            return this;
+        }
+
+        public JObject AddArray(string key, params object[] valuse)
+        {
+            List<JObject> list = new List<JObject>();
+
+            foreach (object value in valuse)
+            {
+                if (value is double d)
+                    list.Add(new JNumber(d));
+                else if (value is int i)
+                    list.Add(new JNumber(i));
+                else if (value is long l)
+                    list.Add(new JNumber(l));
+                else if (value is float f)
+                    list.Add(new JNumber(f));
+                else if (value is string s)
+                    list.Add(new JString(s));
+                else if (value is bool b)
+                    list.Add(new JBoolean(b));
+                else if (value is null)
+                    list.Add(new JNull());
+                else
+                    list.Add(new JObject());
+            }
+
+            values.Add((key, new JArray(list)));
+
+            return this;
+        }
+
+        public virtual JObject Add(object value)
+        {
+            if (valueType == ValueType.Array && this is JArray jArray)
+            {
+                if (value is double d)
+                    jArray.Add(new JNumber(d));
+                else if (value is int i)
+                    jArray.Add(new JNumber(i));
+                else if (value is long l)
+                    jArray.Add(new JNumber(l));
+                else if (value is float f)
+                    jArray.Add(new JNumber(f));
+                else if (value is string s)
+                    jArray.Add(new JString(s));
+                else if (value is bool b)
+                    jArray.Add(new JBoolean(b));
+                else if (value is null)
+                    jArray.Add(new JNull());
+                else
+                    jArray.Add(new JObject());
+            }
+
+            return this;
+        }
+
+        public JObject Add(string key, object value)
+        {
+            if (valueType == ValueType.Object)
+            {
+                if (value is double d)
+                    values.Add((key, new JNumber(d)));
+                else if (value is int i)
+                    values.Add((key, new JNumber(i)));
+                else if (value is long l)
+                    values.Add((key, new JNumber(l)));
+                else if (value is float f)
+                    values.Add((key, new JNumber(f)));
+                else if (value is string s)
+                    values.Add((key, new JString(s)));
+                else if (value is bool b)
+                    values.Add((key, new JBoolean(b)));
+                else if (value is null)
+                    values.Add((key, new JNull()));
+                else if (value is List<JObject> li)
+                    values.Add((key, new JArray(li)));
+                else
+                    AddObject(key);
+            }
+
+            return this;
         }
 
         public virtual string ToJSON()
@@ -338,7 +419,7 @@ namespace Algorithm.Text.JSON
                 sb.Append(' ', depth * DEFAULTTEXTHEIGHT);
                 sb.Append('}');
             }
-        }
+        }       
 
         public static implicit operator int(JObject jObject)
         {
@@ -409,13 +490,18 @@ namespace Algorithm.Text.JSON
         {
             return ToJSON();
         } 
+
+        public static JObject Parse(string json)
+        {
+            return new JsonParser(json).GetJObject();
+        }
     }
 
     public class JNumber : JObject
     {
         public double Value => value;
 
-        double value;
+        private readonly double value;
 
         public JNumber(double value)
         {
@@ -448,7 +534,7 @@ namespace Algorithm.Text.JSON
     {
         public string Value => value;
 
-        string value;
+        private readonly string value;
 
         public JString(string value)
         {
@@ -466,14 +552,14 @@ namespace Algorithm.Text.JSON
             return $"\"{value}\"";
         }
 
-        public static implicit operator string(JString jString) => jString.value;
+        public static implicit operator string(JString jString) => $"{jString.value}";
     }
 
     public class JBoolean : JObject
     {
         public bool Value => value;
 
-        bool value;
+        private readonly bool value;
 
         public JBoolean(bool value)
         {
@@ -503,12 +589,42 @@ namespace Algorithm.Text.JSON
     {
         public List<JObject> Values => values;
 
-        List<JObject> values;
+        private readonly List<JObject> values;
+
+        public JArray()
+        {
+            values = new List<JObject>();
+            valueType = ValueType.Array;
+        }
 
         public JArray(List<JObject> values)
         {
             this.values = values;
             valueType = ValueType.Array;
+        }
+
+        public override JObject Add(object value)
+        {
+            if (value is double d)
+                values.Add(new JNumber(d));
+            else if (value is int i)
+                values.Add(new JNumber(i));
+            else if (value is long l)
+                values.Add(new JNumber(l));
+            else if (value is float f)
+                values.Add(new JNumber(f));
+            else if (value is string s)
+                values.Add(new JString(s));
+            else if (value is bool b)
+                values.Add(new JBoolean(b));
+            else if (value is null)
+                values.Add(new JNull());
+            else if (value is List<JObject> li)
+                values.Add(new JArray(li));
+            else
+                values.Add(new JObject());
+
+            return this;
         }
 
         private bool OutOfRange(int index)
@@ -552,7 +668,7 @@ namespace Algorithm.Text.JSON
                     values[i].ValueType == ValueType.Array)
                     sb.Append(values[i].ToJSON(height + 1));
                 else
-                    sb.Append(values[i]);
+                    sb.Append(values[i].ToJSON());
 
                 if (i != values.Count - 1)
                     sb.Append(',');
@@ -644,6 +760,16 @@ namespace Algorithm.Text.JSON
         public JSONIndexingException(string message) : base(message) { }
         public JSONIndexingException(string message, Exception inner) : base(message, inner) { }
         protected JSONIndexingException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class JSONNullException : Exception
+    {
+        public JSONNullException() { }
+        public JSONNullException(string message) : base(message) { }
+        public JSONNullException(string message, Exception inner) : base(message, inner) { }
+        protected JSONNullException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }

@@ -71,6 +71,14 @@ namespace Algorithm.Text
             Append("\n");
         }
 
+        public void Clear()
+        {
+            buffer = new List<char>();
+            pattern = "";
+            pi = null;
+            patternPos = new List<int>();
+        }
+
         public int IndexOf(string pattern)
         {
             if (this.pattern != pattern)
@@ -199,6 +207,6 @@ namespace Algorithm.Text
         {
             get => buffer[index];
             set => buffer[index] = value;
-        }
+        }        
     }
 }

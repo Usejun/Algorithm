@@ -65,6 +65,10 @@ namespace Algorithm.Datastructure
             foreach (var item in array)
                 yield return item;
         }
+        public override string ToString()
+        {
+            return string.Join(" ", ToArray());
+        }
 
         public abstract T[] ToArray();
         public abstract void Add(T value);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using Algorithm.Text;
 using System.Threading;
 using System.Diagnostics;
 using Algorithm.Datastructure;
@@ -10,11 +11,12 @@ namespace Algorithm
     public static class Util
     {
         public static Stopwatch Timer => sw;
+        public static StringBuffer Buffer => sb;
 
-        static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
-        static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);        
-        static readonly StringBuilder sb = new StringBuilder();
-        static readonly Stopwatch sw = new Stopwatch();
+        private static readonly BinaryWriter writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.Unicode);
+        private static readonly StreamReader reader = new StreamReader(Console.OpenStandardInput(), Encoding.Unicode);
+        private static readonly StringBuffer sb = new StringBuffer();
+        private static readonly Stopwatch sw = new Stopwatch();
 
         public static void Init()
         {
@@ -121,7 +123,7 @@ namespace Algorithm
 
         public static void Flush()
         {
-            Print(sb, end:"");
+            Print(sb.ToString(), end:"");
             BufferClear();
         }
 
@@ -234,5 +236,6 @@ namespace Algorithm
             T[] input = Inputs(parser);
             return (input[0], input[1], input[2], input[3], input[4], input[5], input[6], input[7], input[8], input[9]);
         }
+
     }
 }

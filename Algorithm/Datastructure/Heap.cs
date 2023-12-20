@@ -22,6 +22,9 @@ namespace Algorithm.Datastructure
             comparer = Comparer<T>.Default;
             capacity = 0;
             reverse = false;
+
+            Clear();
+
         }
 
         public Heap(IComparer<T> comparer = null, bool reverse = false, int capacity = 0, params T[] values)
