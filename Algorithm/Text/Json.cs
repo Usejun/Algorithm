@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
 using Algorithm.Datastructure;
 
 namespace Algorithm.Text.JSON
@@ -839,12 +838,12 @@ namespace Algorithm.Text.JSON
 
         public override string ToJSON()
         {
-            return "null";
+            return $"\"{key}\": null";
         }
 
         public override string ToJSON(int height)
         {
-            return "null";
+            return ToJSON();
         }
 
         public override string ToString()
