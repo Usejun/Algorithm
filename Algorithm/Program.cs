@@ -16,20 +16,6 @@ namespace Algorithm
         {
             Init();
 
-            JObject json = new JObject();
-
-
-            json.Add("id", 123123)
-                .Add("age", 10)
-                .Add("sex", "male")
-                .Add("lv", 0)
-                .AddArray("skills", "attack", "magic", "sword")
-                .AddObject("inventory")
-                .AddObject("ability", ("str", 0), ("int", 0), ("dex", 0), ("luk", 0));
-
-            json["inventory"].AddArray("item", "너덜너덜한 상의", "너덜너덜한 하의");
-
-            Util.Print(json.ToJSON());
 
 
         }

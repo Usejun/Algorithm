@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Linq.Expressions;
 using Algorithm.Datastructure;
 
 namespace Algorithm.Text.JSON
 {
-    public enum ValueType
+    public enum JType
     {
         Number,
         String,
@@ -13,6 +14,13 @@ namespace Algorithm.Text.JSON
         Object
     }    
 
+    public enum JAccess
+    {
+        Immutable,
+        OnlyValue,
+        All
+    }
+
     public class JObject
     {
         private class JsonParser
@@ -20,29 +28,31 @@ namespace Algorithm.Text.JSON
             private readonly int len;
             private int index;
             private readonly string json;
+            private readonly JAccess access;
 
-            public JsonParser(string json)
+            public JsonParser(string json, JAccess access)
             {
                 this.json = json ?? throw new JSONNullException();
                 len = json.Length;
                 index = 0;
+                this.access = access;
             }
 
             public JObject GetJObject()
             {
-                return Parse();
+                return Parse("");
             }
 
-            private JObject Parse()
+            private JObject Parse(string key)
             {
                 SkipWhitespace();
 
-                if (json[index] == '{') return ParseObject();
-                else if (json[index] == '[') return ParseArray();
-                else if (json[index] == '"') return ParseString();
-                else if (char.IsDigit(json[index])) return ParseNumber();
-                else if (json[index] == 't' || json[index] == 'f') return ParseBoolean();
-                else if (json[index] == 'n') return ParseNull();
+                if (json[index] == '{') return ParseObject(key);
+                else if (json[index] == '[') return ParseArray(key);
+                else if (json[index] == '"') return ParseString(key);
+                else if (char.IsDigit(json[index])) return ParseNumber(key);
+                else if (json[index] == 't' || json[index] == 'f') return ParseBoolean(key);
+                else if (json[index] == 'n') return ParseNull(key);
 
                 throw new JSONParsingException("Type error");
             }
@@ -52,15 +62,15 @@ namespace Algorithm.Text.JSON
                 while (index < len && char.IsWhiteSpace(json[index])) index++;
             }
 
-            private JObject ParseObject()
+            private JObject ParseObject(string _key)
             {
-                JObject obj = new JObject();
+                JObject obj = new JObject(_key, access);
                 index++;
 
                 while (json[index] != '}')
                 {
                     SkipWhitespace();
-                    JString jString = ParseString();
+                    JString jString = ParseString(_key);
                     string key = jString.Value;
                     SkipWhitespace();
 
@@ -71,7 +81,7 @@ namespace Algorithm.Text.JSON
                     index++;
                     SkipWhitespace();
 
-                    JObject value = Parse();
+                    JObject value = Parse(key);
                     obj[key] = value;
 
                     SkipWhitespace();
@@ -82,7 +92,7 @@ namespace Algorithm.Text.JSON
                 return obj;
             }
 
-            private JNumber ParseNumber()
+            private JNumber ParseNumber(string _key)
             {
                 int start = index;
                 while (char.IsDigit(json[index]) || json[index] == '.') index++;
@@ -91,13 +101,13 @@ namespace Algorithm.Text.JSON
 
                 if (double.TryParse(numberString, out double result))
                 {
-                    return new JNumber(result);
+                    return new JNumber(_key, result, access);
                 }
 
                 throw new JSONParsingException("Not number type");
             }
 
-            private JString ParseString()
+            private JString ParseString(string _key)
             {
                 index++;
                 int start = index;
@@ -107,21 +117,21 @@ namespace Algorithm.Text.JSON
                 string text = json.Substring(start, index - start);
                 string convertedText = ConvertUnicode(text);
 
-                JString jString = new JString(convertedText);
+                JString jString = new JString(_key, convertedText, access);
                 index++;
 
                 return jString;
             }
 
-            private JArray ParseArray()
+            private JArray ParseArray(string _key)
             {
-                JArray array = new JArray();
+                JArray array = new JArray(_key, access);
                 index++;
 
                 while (json[index] != ']')
                 {
                     SkipWhitespace();
-                    JObject value = Parse();
+                    JObject value = Parse("");
                     array.Values.Add(value);
 
                     SkipWhitespace();
@@ -132,26 +142,26 @@ namespace Algorithm.Text.JSON
                 return array;
             }
 
-            private JBoolean ParseBoolean()
+            private JBoolean ParseBoolean(string _key)
             {
                 if (json.Substring(index, 4) == "true")
                 {
                     index += 4;
-                    return new JBoolean(true);
+                    return new JBoolean(_key, true, access);
                 }
                 else
                 {
                     index += 5;
-                    return new JBoolean(false);
+                    return new JBoolean(_key, false, access);
                 }
             }
 
-            private JNull ParseNull()
+            private JNull ParseNull(string _key)
             {
                 if (json.Substring(index, 4) == "null")
                 {
                     index += 4;
-                    return new JNull();
+                    return new JNull(_key, access);
                 }
 
                 throw new JSONParsingException("Type error");
@@ -182,30 +192,36 @@ namespace Algorithm.Text.JSON
 
         protected const int DEFAULTTEXTHEIGHT = 2;
 
-        public ValueType ValueType => valueType;
+        public JAccess Access => Access;
+        public JType Type => type;
+        public string Key => key;
 
-        protected ValueType valueType;
-        private readonly List<(string Key, JObject JObj)> values;    
+        protected JAccess access;
+        protected JType type;
+        protected string key;
+        private readonly List<JObject> values;    
         
-        public JObject()
+        public JObject(string key = "", JAccess access = JAccess.All)
         {
-            values = new List<(string, JObject)>();
-            valueType = ValueType.Object;
+            values = new List<JObject>();
+            type = JType.Object;
+            this.key = key;
+            this.access = access;
         }
 
         public JObject this[object key]
         {
             get
             {
-                if (valueType == ValueType.Object && key is string strKey)
+                if (type == JType.Object && key is string strKey)
                 {
-                    foreach ((string _key, JObject jObj) in values)
-                        if (_key == strKey)
+                    foreach (JObject jObj in values)
+                        if (jObj.key == strKey)
                             return jObj;
 
                     throw new JSONIndexingException("It's not a key to existence");
                 }
-                else if (valueType == ValueType.Array && key is int intKey)
+                else if (type == JType.Array && key is int intKey)
                     if (this is JArray jArray)
                         return jArray[intKey];
 
@@ -214,27 +230,29 @@ namespace Algorithm.Text.JSON
             }
             set
             {
-                if (valueType == ValueType.Object && key is string strKey)
+                if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+                if (type == JType.Object && key is string strKey)
                 {
-                    if (values.Contains((strKey, value)))
+                    for (int i = 0; i < values.Count; i++)
                     {
-                        for (int i = 0; i < values.Count; i++)
+                        if (values[i].key == strKey)
                         {
-                            if (values[i].Key == strKey)
-                            {
-                                values[i] = (strKey, value);
-                                break;
-                            }
-                        }
+                            if (access == JAccess.OnlyValue)
+                                values[i].Update(value);
+                            else if (access == JAccess.All)
+                                values[i].Add(strKey, value);
+                            return;
+                        }                        
                     }
-                    else
-                    {
-                        values.Add((strKey, value));
-                    }
+
+                    if (access == JAccess.All)
+                        values.Add(value);
+                    
                     return;
                 }
-                else if (valueType == ValueType.Array && key is int intKey)
-                    if (this is JArray jArray)
+                else if (type == JType.Array && key is int intKey)
+                    if ((access == JAccess.OnlyValue || access == JAccess.All) && this is JArray jArray )
                     {
                         jArray[intKey] = value;
                         return;
@@ -244,110 +262,141 @@ namespace Algorithm.Text.JSON
             }
         }
 
-        public JObject AddObject(string key)
-        {
-            values.Add((key, new JObject()));
-
-            return this;
-        }
-
-        public JObject AddObject(string key, params (string key, object value)[] _values)
-        {
-            JObject jObject = new JObject();
-
-            foreach ((string _key, object value) in _values)
-                jObject.Add(_key, value);
-
-            values.Add((key, jObject));
-
-            return this;
-        }
-
-        public JObject AddArray(string key)
-        {
-            values.Add((key, new JArray()));
-
-            return this;
-        }
-
-        public JObject AddArray(string key, params object[] valuse)
-        {
-            List<JObject> list = new List<JObject>();
-
-            foreach (object value in valuse)
-            {
-                if (value is double d)
-                    list.Add(new JNumber(d));
-                else if (value is int i)
-                    list.Add(new JNumber(i));
-                else if (value is long l)
-                    list.Add(new JNumber(l));
-                else if (value is float f)
-                    list.Add(new JNumber(f));
-                else if (value is string s)
-                    list.Add(new JString(s));
-                else if (value is bool b)
-                    list.Add(new JBoolean(b));
-                else if (value is null)
-                    list.Add(new JNull());
-                else
-                    list.Add(new JObject());
-            }
-
-            values.Add((key, new JArray(list)));
-
-            return this;
-        }
-
         public virtual JObject Add(object value)
         {
-            if (valueType == ValueType.Array && this is JArray jArray)
-            {
-                if (value is double d)
-                    jArray.Add(new JNumber(d));
-                else if (value is int i)
-                    jArray.Add(new JNumber(i));
-                else if (value is long l)
-                    jArray.Add(new JNumber(l));
-                else if (value is float f)
-                    jArray.Add(new JNumber(f));
-                else if (value is string s)
-                    jArray.Add(new JString(s));
-                else if (value is bool b)
-                    jArray.Add(new JBoolean(b));
-                else if (value is null)
-                    jArray.Add(new JNull());
-                else
-                    jArray.Add(new JObject());
-            }
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+            if (type == JType.Array && this is JArray jArray)
+                jArray.Add(value);
 
             return this;
         }
 
         public JObject Add(string key, object value)
         {
-            if (valueType == ValueType.Object)
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+            if (type != JType.Object) return this;
+            
+            if (value is double d)
+                values.Add(new JNumber(key, d, access));
+            else if (value is int i)
+                values.Add(new JNumber(key, i, access));
+            else if (value is long l)
+                values.Add(new JNumber(key, l, access));
+            else if (value is float f)
+                values.Add(new JNumber(key, f, access));
+            else if (value is string s)
+                values.Add(new JString(key, s, access));
+            else if (value is bool b)
+                values.Add(new JBoolean(key, b, access));
+            else if (value is null)
+                values.Add(new JNull(key, access));
+            else if (value is List<JObject> li)
+                values.Add(new JArray(key, li, access));
+            else if (value is JObject j)
+                values.Add(j);
+            else
+                AddObject(key);
+            
+
+            return this;
+        }
+
+        public JObject AddObject(string key = "")   
+        {
+            values.Add(new JObject(key));
+
+            return this;
+        }
+
+        public JObject AddObject(string key = "", params (string key, object value)[] _values)
+        {
+            JObject jObject = new JObject(key, access);
+
+            foreach ((string _key, object value) in _values)
+                jObject.Add(_key, value);
+
+            values.Add(jObject);
+
+            return this;
+        }
+
+        public JObject AddArray(string key = "")
+        {
+            values.Add(new JArray(key: key, access: access));
+
+            return this;
+        }
+
+        public JObject AddArray(string key, params object[] valuse)
+        {
+            JArray jArray = new JArray(key, access);
+
+            foreach (object value in valuse)
+                jArray.Add(value);
+
+            values.Add(jArray);
+
+            return this;
+        }
+
+        public JObject Update(string key, object value)
+        {
+            if (access == JAccess.Immutable) throw new JSONAccessException("it's immutable");
+
+            if (type != JType.Object)
+                return this;
+
+            switch (value)
             {
-                if (value is double d)
-                    values.Add((key, new JNumber(d)));
-                else if (value is int i)
-                    values.Add((key, new JNumber(i)));
-                else if (value is long l)
-                    values.Add((key, new JNumber(l)));
-                else if (value is float f)
-                    values.Add((key, new JNumber(f)));
-                else if (value is string s)
-                    values.Add((key, new JString(s)));
-                else if (value is bool b)
-                    values.Add((key, new JBoolean(b)));
-                else if (value is null)
-                    values.Add((key, new JNull()));
-                else if (value is List<JObject> li)
-                    values.Add((key, new JArray(li)));
-                else
-                    AddObject(key);
+                case int i:
+                    this[key] = new JNumber(key, i, access);
+                    break;
+                case long l:
+                    this[key] = new JNumber(key, l, access);
+                    break;
+                case float f:
+                    this[key] = new JNumber(key, f, access);
+                    break;
+                case double d:
+                    this[key] = new JNumber(key, d, access);
+                    break;
+                case bool b:
+                    this[key] = new JBoolean(key, b, access);
+                    break;
+                case string s:
+                    this[key] = new JString(key, s, access);
+                    break;
+                case null:
+                    this[key] = new JNull(key, access);
+                    break;
+                default: break;
             }
 
+            return this;
+        }
+
+        public virtual JObject Update(object value)
+        {
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+            switch (type)
+            {
+                case JType.Number:
+                    if (this is JNumber jNumber)
+                        jNumber.Update(value);
+                    break;
+                case JType.String:
+                    if (this is JString jString)
+                        jString.Update(value);
+                    break;
+                case JType.Boolean:
+                    if (this is JBoolean jBoolean)
+                        jBoolean.Update(value);
+                    break;
+                default: break;                
+            }
             return this;
         }
 
@@ -364,15 +413,20 @@ namespace Algorithm.Text.JSON
                 sb.AppendLine("{");
                 for (int i = 0; i < jObject.values.Count; i++)
                 {
-                    (string key, JObject jObj) = jObject.values[i];
+                    JObject jObj = jObject.values[i];
 
                     sb.Append(' ', (depth + 1) * DEFAULTTEXTHEIGHT);
-                    sb.Append($"\"{key}\": ");
 
-                    if (jObj.valueType == ValueType.Object)
+                    if (jObj.type == JType.Object)
+                    {
+                        sb.Append($"\"{jObj.key}\": ");
                         Put(jObj, depth + 1);
-                    else if (jObj.valueType == ValueType.Array)
+                    }
+                    else if (jObj.type == JType.Array)
+                    {
+                        sb.Append($"\"{jObj.key}\": ");
                         sb.Append(jObj.ToJSON(depth + 1));
+                    }
                     else
                         sb.Append(jObj.ToJSON());
 
@@ -399,15 +453,20 @@ namespace Algorithm.Text.JSON
                 sb.AppendLine("{");                
                 for (int i = 0; i < jObject.values.Count; i++)
                 {
-                    (string key, JObject jObj) = jObject.values[i];
+                    JObject jObj = jObject.values[i];
 
                     sb.Append(' ', (depth + 1) * DEFAULTTEXTHEIGHT);
-                    sb.Append($"\"{key}\": ");
 
-                    if (jObj.valueType == ValueType.Object)
+                    if (jObj.type == JType.Object)
+                    {
+                        sb.Append($"\"{jObj.key}\": ");
                         Put(jObj, depth + 1);
-                    else if (jObj.valueType == ValueType.Array)
+                    }
+                    else if (jObj.type == JType.Array)
+                    {
+                        sb.Append($"\"{jObj.key}\": ");
                         sb.Append(jObj.ToJSON(depth + 1));
+                    }
                     else
                         sb.Append(jObj.ToJSON());
 
@@ -421,9 +480,14 @@ namespace Algorithm.Text.JSON
             }
         }       
 
+        public override string ToString()
+        {
+            return ToJSON();
+        } 
+
         public static implicit operator int(JObject jObject)
         {
-            if (jObject.valueType == ValueType.Number)
+            if (jObject.type == JType.Number)
                 if (jObject is JNumber jNumber)
                     return (int)jNumber;
 
@@ -432,7 +496,7 @@ namespace Algorithm.Text.JSON
 
         public static implicit operator long(JObject jObject)
         {
-            if (jObject.valueType == ValueType.Number)
+            if (jObject.type == JType.Number)
                 if (jObject is JNumber jNumber)
                     return (long)jNumber;
 
@@ -441,7 +505,7 @@ namespace Algorithm.Text.JSON
 
         public static implicit operator float(JObject jObject)
         {
-            if (jObject.valueType == ValueType.Number)
+            if (jObject.type == JType.Number)
                 if (jObject is JNumber jNumber)
                     return (float)jNumber;
 
@@ -450,7 +514,7 @@ namespace Algorithm.Text.JSON
 
         public static implicit operator double(JObject jObject)
         {
-            if (jObject.valueType == ValueType.Number)
+            if (jObject.type == JType.Number)
                 if (jObject is JNumber jNumber)
                     return (double)jNumber;
 
@@ -459,7 +523,7 @@ namespace Algorithm.Text.JSON
 
         public static implicit operator string(JObject jObject)
         {
-            if (jObject.valueType == ValueType.String)
+            if (jObject.type == JType.String)
             {
                 if (jObject is JString jString)
                     return (string)jString;
@@ -470,7 +534,7 @@ namespace Algorithm.Text.JSON
 
         public static implicit operator bool(JObject jObject)
         {
-            if (jObject.valueType == ValueType.Boolean)
+            if (jObject.type == JType.Boolean)
                 if (jObject is JBoolean jBoolean)
                     return (bool)jBoolean;
 
@@ -479,21 +543,16 @@ namespace Algorithm.Text.JSON
 
         public static implicit operator List<JObject>(JObject jObject)
         {
-            if (jObject.valueType == ValueType.String)
+            if (jObject.type == JType.Array)
                 if (jObject is JArray jArray)
                     return (List<JObject>)jArray;
 
             throw new JSONConvertException("Not array type");
         }
 
-        public override string ToString()
+        public static JObject Parse(string json, JAccess access = JAccess.All)
         {
-            return ToJSON();
-        } 
-
-        public static JObject Parse(string json)
-        {
-            return new JsonParser(json).GetJObject();
+            return new JsonParser(json, access).GetJObject();
         }
     }
 
@@ -503,15 +562,36 @@ namespace Algorithm.Text.JSON
 
         private readonly double value;
 
-        public JNumber(double value)
+        public JNumber(string key = "", double value = 0, JAccess access = JAccess.All)
         {
+            this.key = key;
             this.value = value;
-            valueType = ValueType.Number;
+            type = JType.Number;
+            this.access = access;
+        }
+
+        public override JObject Update(object value)
+        {
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+            if (value is int i)
+                value = i;
+            else if (value is long l)
+                value = l;
+            else if (value is double d)
+                value = d;
+            else if (value is float f)
+                value = f;
+            else
+                throw new JSONConvertException("not equal type");
+
+            return this;
         }
 
         public override string ToJSON()
         {
-            return $"{value}";
+            if (string.IsNullOrEmpty(key)) return $"{value}";
+            return $"\"{key}\": {value}";
         }
 
         public override string ToJSON(int height)
@@ -536,20 +616,35 @@ namespace Algorithm.Text.JSON
 
         private readonly string value;
 
-        public JString(string value)
+        public JString(string key = "", string value = "", JAccess access = JAccess.All)
         {
+            this.key = key;
             this.value = value;
-            valueType = ValueType.String;
+            type = JType.String;
+            this.access = access;
+        }
+
+        public override JObject Update(object value)
+        {
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+            if (value is string s)
+                value = s;
+            else
+                throw new JSONConvertException("not equal type");
+
+            return this;
         }
 
         public override string ToJSON()
         {
-            return $"\"{value}\"";
+            if (string.IsNullOrEmpty(key)) return $"\"{value}\"";
+            return $"\"{key}\": \"{value}\"";
         }
 
         public override string ToJSON(int height)
         {
-            return $"\"{value}\"";
+            return ToJSON();
         }
 
         public static implicit operator string(JString jString) => $"{jString.value}";
@@ -561,15 +656,30 @@ namespace Algorithm.Text.JSON
 
         private readonly bool value;
 
-        public JBoolean(bool value)
+        public JBoolean(string key = "", bool value = true, JAccess access = JAccess.All)
         {
+            this.key = key;
             this.value = value;
-            valueType = ValueType.Boolean;
+            type = JType.Boolean;
+            this.access = access;
+        }
+
+        public override JObject Update(object value)
+        {
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's immutable");
+
+            if (value is bool b)
+                value = b;
+            else
+                throw new JSONConvertException("not equal type");
+
+            return this;
         }
 
         public override string ToJSON()
         {
-            return value ? "true" : "false";
+            if (string.IsNullOrEmpty(key)) return value ? "true" : "false";
+            return value ? $"\"{key}\": true" : $"\"{key}\": false";
         }
 
         public override string ToJSON(int height)
@@ -591,38 +701,44 @@ namespace Algorithm.Text.JSON
 
         private readonly List<JObject> values;
 
-        public JArray()
+        public JArray(string key = "", JAccess access = JAccess.All)
         {
+            this.key = key;
             values = new List<JObject>();
-            valueType = ValueType.Array;
+            type = JType.Array;
+            this.access = access;
         }
 
-        public JArray(List<JObject> values)
+        public JArray(string key = "", List<JObject> values = null, JAccess access = JAccess.All)
         {
+            this.key = key;
             this.values = values;
-            valueType = ValueType.Array;
+            type = JType.Array;
+            this.access = access;
         }
 
         public override JObject Add(object value)
         {
             if (value is double d)
-                values.Add(new JNumber(d));
+                values.Add(new JNumber(value:d, access:access));
             else if (value is int i)
-                values.Add(new JNumber(i));
+                values.Add(new JNumber(value: i, access: access));
             else if (value is long l)
-                values.Add(new JNumber(l));
+                values.Add(new JNumber(value: l, access: access));
             else if (value is float f)
-                values.Add(new JNumber(f));
+                values.Add(new JNumber(value: f, access: access));
             else if (value is string s)
-                values.Add(new JString(s));
+                values.Add(new JString(value: s, access: access));
             else if (value is bool b)
-                values.Add(new JBoolean(b));
+                values.Add(new JBoolean(value: b, access: access));
             else if (value is null)
-                values.Add(new JNull());
+                values.Add(new JNull(access: access));
             else if (value is List<JObject> li)
-                values.Add(new JArray(li));
+                values.Add(new JArray(values:li, access: access));
+            else if (value is JObject j)
+                values.Add(j);
             else
-                values.Add(new JObject());
+                values.Add(new JObject(access: access));
 
             return this;
         }
@@ -643,7 +759,9 @@ namespace Algorithm.Text.JSON
             for (int i = 0; i < values.Count; i++)
             {
                 sb.Append(' ', DEFAULTTEXTHEIGHT);
-                sb.Append(values[i].ToJSON());
+                if (values[i].Type == JType.Object ||
+                    values[i].Type == JType.Array)
+                    sb.Append(values[i].ToJSON(1));
                 if (i != values.Count - 1)
                     sb.Append(',');
                 sb.Append('\n');
@@ -664,8 +782,8 @@ namespace Algorithm.Text.JSON
             {
                 sb.Append(' ', (height + 1) * DEFAULTTEXTHEIGHT);
 
-                if (values[i].ValueType == ValueType.Object ||
-                    values[i].ValueType == ValueType.Array)
+                if (values[i].Type == JType.Object ||
+                    values[i].Type == JType.Array)
                     sb.Append(values[i].ToJSON(height + 1));
                 else
                     sb.Append(values[i].ToJSON());
@@ -712,9 +830,11 @@ namespace Algorithm.Text.JSON
     {
         public object Value => null;
 
-        public JNull()
+        public JNull(string key = "", JAccess access = JAccess.All)
         {
-            valueType = ValueType.Null;
+            this.key = key;
+            type = JType.Null;
+            this.access = access;
         }
 
         public override string ToJSON()
@@ -770,6 +890,16 @@ namespace Algorithm.Text.JSON
         public JSONNullException(string message) : base(message) { }
         public JSONNullException(string message, Exception inner) : base(message, inner) { }
         protected JSONNullException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class JSONAccessException : Exception
+    {
+        public JSONAccessException() { }
+        public JSONAccessException(string message) : base(message) { }
+        public JSONAccessException(string message, Exception inner) : base(message, inner) { }
+        protected JSONAccessException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
