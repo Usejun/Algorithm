@@ -95,7 +95,7 @@ namespace Algorithm.Datastructure
         public void Insert(int index, T value)
         {
             if (OutOfRange(index))
-                throw new Exception("Out of range");
+                throw new CollectionIndexException("Out of range");
 
             if (index >= count)
             {
@@ -116,7 +116,7 @@ namespace Algorithm.Datastructure
         public void InsertRange(int index, params T[] values)
         {
             if (OutOfRange(index))
-                throw new Exception("Out of range");
+                throw new CollectionIndexException("Out of range");
 
             if (index >= count)
             {
@@ -150,7 +150,7 @@ namespace Algorithm.Datastructure
         public void RemoveFront()
         {
             if (IsEmpty)
-                throw new Exception("List is Empty");
+                throw new CollectionEmptyException("List is Empty");
             else if (count == 1)
             {
                 front = null;
@@ -173,7 +173,7 @@ namespace Algorithm.Datastructure
         public void RemoveBack()
         {
             if (count == 0)
-                throw new Exception("List is Empty");
+                throw new CollectionIndexException("List is Empty");
             else if (count == 1)
             {
                 front = null;
@@ -196,7 +196,7 @@ namespace Algorithm.Datastructure
         public void RemoveAt(int index)
         {
             if (count == 0)
-                throw new Exception("List is Empty");
+                throw new CollectionIndexException("List is Empty");
 
             LinkedNode node = GetNode(index);
 
@@ -253,7 +253,7 @@ namespace Algorithm.Datastructure
         public LinkedNode GetNode(int index)
         {
             if (OutOfRange(index))
-                throw new Exception("item is not Contains");
+                throw new CollectionExistException("item is not Contains");
 
             if (index / 2 > count)
             {
@@ -261,7 +261,7 @@ namespace Algorithm.Datastructure
                 for (int i = 0; i < index - 1; i++)
                 {
                     node = node.after;
-                    if (node == null) throw new Exception("item is not Contains");
+                    if (node == null) throw new CollectionExistException("item is not Contains");
                 }
 
                 return node;
@@ -272,7 +272,7 @@ namespace Algorithm.Datastructure
                 for (int i = 0; i < index; i++)
                 {
                     node = node.before;
-                    if (node == null) throw new Exception("item is not Contains");
+                    if (node == null) throw new CollectionExistException("item is not Contains");
                 }
                 return node;
             }

@@ -18,12 +18,6 @@ namespace Algorithm
         private static readonly StringBuffer sb = new StringBuffer();
         private static readonly Stopwatch sw = new Stopwatch();
 
-        public static void Init()
-        {
-            Console.InputEncoding = System.Text.Encoding.Unicode;
-            Console.OutputEncoding = System.Text.Encoding.Unicode;
-        }
-
         public static void Print()
         {
             writer.Write("\n");

@@ -13,7 +13,7 @@ namespace Algorithm.Datastructure
             if (comparer == null
                 && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
                 && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>))))
-                throw new Exception("This type does not have ICompable.");
+                throw new CollectionComparableException("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;
             source = new T[0];
@@ -27,7 +27,7 @@ namespace Algorithm.Datastructure
             Insert(BinarySearch(value), value);
         }
 
-        int BinarySearch(T value)
+        private int BinarySearch(T value)
         {
             int low = 0, mid = count - 1, high = count - 1;
 

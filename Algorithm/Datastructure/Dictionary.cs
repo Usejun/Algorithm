@@ -72,7 +72,7 @@ namespace Algorithm.Datastructure
             get
             {
                 if (!ContainsKey(key))
-                    throw new Exception("does not exist");
+                    throw new CollectionExistException("does not exist");
 
                 var pairs = list[Hash(key)];
 
@@ -80,7 +80,7 @@ namespace Algorithm.Datastructure
                     if (pairs[i].Key.Equals(key))
                         return pairs[i].Value;
 
-                throw new Exception("does not exist");
+                throw new CollectionExistException("does not exist");
             }
             set
             {

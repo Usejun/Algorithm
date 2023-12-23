@@ -66,6 +66,7 @@
     <Compile Include="Net\Request.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rand.cs" />
     <Compile Include="Sorts.cs" />
     <Compile Include="Technique\Graph.cs" />
     <Compile Include="Technique\Gruop.cs" />

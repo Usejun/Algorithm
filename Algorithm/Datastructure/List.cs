@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Reflection;
 
 namespace Algorithm.Datastructure
 {
@@ -74,11 +75,11 @@ namespace Algorithm.Datastructure
         public virtual void RemoveAt(int index)
         {
             if (index < 0 || index >= count)
-                throw new Exception("Out of range");
+                throw new CollectionIndexException("Out of range");
 
             for (int i = index; i < count; i++)
             {
-                if (index + 1 >= count) break;
+                if (i + 1 >= count) break;
                 source[i] = source[i + 1];
             }
 
@@ -104,18 +105,25 @@ namespace Algorithm.Datastructure
             return values;
         }
 
+        protected virtual bool OutOfRange(int index)
+        {
+            if (index < 0 || index >= count)
+                return true;
+            return false;
+        }
+
         public virtual T this[int index]
         {
             get
             {
-                if (index < 0 || index >= count)
-                    throw new Exception("Out of range");
+                if (OutOfRange(index))
+                    throw new CollectionIndexException("Out of range");
                 return source[index];
             }
             set
             {
-                if (index < 0 || index >= count)
-                    throw new Exception("Out of range");
+                if (OutOfRange(index))
+                    throw new CollectionIndexException("Out of range");
                 source[index] = value;
             }
         }

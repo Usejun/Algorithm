@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Algorithm.Datastructure
 {
@@ -17,7 +17,7 @@ namespace Algorithm.Datastructure
         {
             if ((!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
                 && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>))))
-                throw new Exception("This type does not have ICompable.");
+                throw new CollectionComparableException("This type does not have ICompable.");
 
             comparer = Comparer<T>.Default;
             capacity = 0;
@@ -32,7 +32,7 @@ namespace Algorithm.Datastructure
             if (comparer == null
                 && (!Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable))
                 && !Extensions.Contains(typeof(T).GetInterfaces(), typeof(IComparable<T>))))
-                throw new Exception("This type does not have ICompable.");
+                throw new CollectionComparableException("This type does not have ICompable.");
 
             this.comparer = comparer ?? Comparer<T>.Default;
             this.capacity = capacity;
@@ -72,7 +72,7 @@ namespace Algorithm.Datastructure
         public T Pop()
         {
             if (count == 0)
-                throw new Exception("Empty Heap");
+                throw new CollectionEmptyException("Heap is Empty");
 
             T value = heap[0];
 

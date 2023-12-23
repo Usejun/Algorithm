@@ -29,11 +29,11 @@ namespace Algorithm.Datastructure
             if (step == 0)
                 throw new Exception("step is not zero");
 
-            int[] values = new int[(max - min + 1) / Mathf.Abs(step)];
+            int[] values = new int[(max - min) / Mathf.Abs(step)];
 
             if (step > 0)
                 for (int i = 0; i < values.Length; i++)
-                    values[i] = i * step;
+                    values[i] = min + i * step;
             else
                 for (int i = 0; i < values.Length; i++)
                     values[i] = (max - 1) + i * step;
@@ -43,7 +43,6 @@ namespace Algorithm.Datastructure
 
         public static int[] Create(int length, int min, int max, bool duplication = false)
         {
-            Random r = new Random();
             if (duplication)
             {
                 if (max - min < length)
@@ -52,7 +51,7 @@ namespace Algorithm.Datastructure
                 Set<int> set = new Set<int>();
 
                 while (set.Count != length)
-                    set.Add(r.Next(min, max));
+                    set.Add(Rand.Int(min, max));
 
                 return set.ToArray();
             }
@@ -61,7 +60,7 @@ namespace Algorithm.Datastructure
                 int[] array = new int[length];
 
                 for (int i = 0; i < length; i++)
-                    array[i] = r.Next(min, max);
+                    array[i] = Rand.Int(min, max);
 
                 return array;
             }

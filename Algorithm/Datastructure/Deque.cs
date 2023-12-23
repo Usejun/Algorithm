@@ -97,7 +97,7 @@ namespace Algorithm.Datastructure
         public T RemoveFront()
         {
             if (count == 0)
-                throw new Exception("Deque is Empty");
+                throw new CollectionEmptyException("Deque is Empty");
 
             T item = front.Value;
 
@@ -122,7 +122,7 @@ namespace Algorithm.Datastructure
         public T RemoveBack()
         {
             if (count == 0)
-                throw new Exception("Deque is Empty");
+                throw new CollectionEmptyException("Deque is Empty");
 
             T item = back.Value;
 

@@ -82,4 +82,44 @@ namespace Algorithm.Datastructure
                 yield return item;
         }
     }
+
+    public class CollectionIndexException : Exception
+    {
+        public CollectionIndexException() { }
+        public CollectionIndexException(string message) : base(message) { }
+        public CollectionIndexException(string message, Exception inner) : base(message, inner) { }
+        protected CollectionIndexException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class CollectionEmptyException : Exception
+    {
+        public CollectionEmptyException() { }
+        public CollectionEmptyException(string message) : base(message) { }
+        public CollectionEmptyException(string message, Exception inner) : base(message, inner) { }
+        protected CollectionEmptyException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class CollectionComparableException : Exception
+    {
+        public CollectionComparableException() { }
+        public CollectionComparableException(string message) : base(message) { }
+        public CollectionComparableException(string message, Exception inner) : base(message, inner) { }
+        protected CollectionComparableException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class CollectionExistException : Exception
+    {
+        public CollectionExistException() { }
+        public CollectionExistException(string message) : base(message) { }
+        public CollectionExistException(string message, Exception inner) : base(message, inner) { }
+        protected CollectionExistException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
 }

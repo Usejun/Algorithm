@@ -35,7 +35,7 @@ namespace Algorithm.Datastructure
         public virtual T Dequeue()
         {
             if (IsEmpty)
-                throw new Exception("Stack is Empty");
+                throw new CollectionEmptyException("Queue is Empty");
 
             T value = source[front];
             front = (front + 1) % Length;
@@ -119,6 +119,33 @@ namespace Algorithm.Datastructure
 
             front = 0;
             back = count;
+        }
+
+        protected int GetIndex(int index)
+        {
+            int f = front;
+            int c = 0;
+            while (f != back)
+            {
+                f = (f + 1) % Length;
+                c++;
+                if (c == index)
+                    return f;
+            }
+
+            throw new CollectionIndexException("Out of Range");
+        }
+
+        public override T this[int index]
+        {
+            get
+            {
+               return source[GetIndex(index)];
+            }
+            set
+            {
+                source[GetIndex(index)] = value;
+            }
         }
     }
 }

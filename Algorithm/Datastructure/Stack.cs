@@ -32,7 +32,7 @@ namespace Algorithm.Datastructure
         public T Pop()
         {
             if (IsEmpty)
-                throw new Exception("Stack is Empty");
+                throw new CollectionEmptyException("Stack is Empty");
 
             T value = source[--front];
             count--;
@@ -89,5 +89,34 @@ namespace Algorithm.Datastructure
             return values;
         }
 
+        protected override bool OutOfRange(int index)
+        {
+            if (IsEmpty) return true;
+
+            if (0 <= index && index <= front)
+                return false;
+            return true;
+        }
+
+        public override T this[int index]
+        {
+            get
+            {
+                if (OutOfRange(index))
+                    throw new CollectionIndexException("Out of Range");
+
+                return source[index];
+            }
+            set
+            {
+                if (OutOfRange(index))
+                    throw new CollectionIndexException("Out of Range");
+
+                source[index] = value;
+            }
+
+        }
     }
+
+    
 }

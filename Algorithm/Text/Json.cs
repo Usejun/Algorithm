@@ -185,6 +185,8 @@ namespace Algorithm.Text.JSON
                     }
                 }
 
+                convertedText.Replace("\\/", "/");
+
                 return convertedText.ToString();
             }
         }

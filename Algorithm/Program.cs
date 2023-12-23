@@ -1,4 +1,5 @@
 ﻿using Algorithm;
+using Algorithm.Technique;
 using Algorithm.Text.JSON;
 using Algorithm.Datastructure;
 using Algorithm.Net;
@@ -17,13 +18,14 @@ namespace Algorithm
         {
             Init();
 
-            Request rq = new Request();
+            Queue<int> q = new Queue<int>(capacity:10000);
 
-            var json = JObject.Parse(rq.GetString("https://api.jikan.moe/v4/anime?q=Mushoku tensei&sfw"));
+            q.EnqueueRange(Extensions.Create(100, 0, 1000));
 
-            Util.Print(json);
-
-
+            while (!q.IsEmpty)
+            {
+                Util.Print(q[0]);
+            }
 
         }
     }
