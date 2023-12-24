@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Algorithm.Datastructure
+﻿namespace Algorithm.Datastructure
 {
     // 셋 
     public class Set<T> : Collection<T>, IHash<T>
@@ -21,8 +15,7 @@ namespace Algorithm.Datastructure
             size = 10000;
             list = new LinkedList<T>[size];
 
-            for (int i = 0; i < size; i++)
-                list[i] = new LinkedList<T>();
+            list = Extensions.Array<LinkedList<T>>(size);
         }
 
         public Set(int size)
@@ -30,8 +23,7 @@ namespace Algorithm.Datastructure
             this.size = size;
             list = new LinkedList<T>[size];
 
-            for (int i = 0; i < size; i++)
-                list[i] = new LinkedList<T>();
+            list = Extensions.Array<LinkedList<T>>(size);
         }
 
         public override void Add(T value)

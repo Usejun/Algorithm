@@ -63,7 +63,7 @@ namespace Algorithm.Text.JSON
 
             private JObject ParseObject(string _key)
             {
-                JObject obj = new JObject(_key, access);
+                JObject obj = new JObject(_key, JAccess.All);
                 index++;
 
                 while (json[index] != '}')
@@ -81,11 +81,14 @@ namespace Algorithm.Text.JSON
                     SkipWhitespace();
 
                     JObject value = Parse(key);
+                    value.access = access;
                     obj[key] = value;
 
                     SkipWhitespace();
                     if (json[index] == ',') index++;
                 }
+
+                obj.access = access;
 
                 index++;
                 return obj;
@@ -193,7 +196,7 @@ namespace Algorithm.Text.JSON
 
         protected const int DEFAULTTEXTHEIGHT = 2;
 
-        public JAccess Access => Access;
+        public JAccess Access => access;
         public JType Type => type;
         public string Key => key;
 
@@ -239,10 +242,7 @@ namespace Algorithm.Text.JSON
                     {
                         if (values[i].key == strKey)
                         {
-                            if (access == JAccess.OnlyValue)
-                                values[i].Update(value);
-                            else if (access == JAccess.All)
-                                values[i].Add(strKey, value);
+                            values[i].Update(value);
                             return;
                         }                        
                     }
@@ -265,7 +265,7 @@ namespace Algorithm.Text.JSON
 
         public virtual JObject Add(object value)
         {
-            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");            
 
             if (type == JType.Array && this is JArray jArray)
                 jArray.Add(value);
@@ -275,10 +275,18 @@ namespace Algorithm.Text.JSON
 
         public JObject Add(string key, object value)
         {
-            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
 
             if (type != JType.Object) return this;
-            
+
+            var kl = values.Convert(i => i.Key);
+            foreach (var k in kl)
+                if (k == key)
+                {
+                    this[key].Update(value);
+                    return this;
+                }
+
             if (value is double d)
                 values.Add(new JNumber(key, d, access));
             else if (value is int i)
@@ -304,8 +312,26 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
+        public JObject Remove(string key)
+        {
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (values[i].key == key)
+                {
+                    values.RemoveAt(i);
+                    return this;
+                }
+            }
+
+            return this;
+        }
+
         public JObject AddObject(string key = "")   
         {
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
+
             values.Add(new JObject(key));
 
             return this;
@@ -313,6 +339,8 @@ namespace Algorithm.Text.JSON
 
         public JObject AddObject(string key = "", params (string key, object value)[] _values)
         {
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
+
             JObject jObject = new JObject(key, access);
 
             foreach ((string _key, object value) in _values)
@@ -325,6 +353,8 @@ namespace Algorithm.Text.JSON
 
         public JObject AddArray(string key = "")
         {
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
+
             values.Add(new JArray(key: key, access: access));
 
             return this;
@@ -332,6 +362,8 @@ namespace Algorithm.Text.JSON
 
         public JObject AddArray(string key, params object[] valuse)
         {
+            if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
+
             JArray jArray = new JArray(key, access);
 
             foreach (object value in valuse)
@@ -396,7 +428,8 @@ namespace Algorithm.Text.JSON
                     if (this is JBoolean jBoolean)
                         jBoolean.Update(value);
                     break;
-                default: break;                
+                default:
+                    throw new JSONTypeException("not JObject");
             }
             return this;
         }
@@ -561,7 +594,7 @@ namespace Algorithm.Text.JSON
     {
         public double Value => value;
 
-        private readonly double value;
+        private double value;
 
         public JNumber(string key = "", double value = 0, JAccess access = JAccess.All)
         {
@@ -576,13 +609,15 @@ namespace Algorithm.Text.JSON
             if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
 
             if (value is int i)
-                value = i;
+                this.value = i;
             else if (value is long l)
-                value = l;
+                this.value = l;
             else if (value is double d)
-                value = d;
+                this.value = d;
             else if (value is float f)
-                value = f;
+                this.value = f;
+            else if (value is JNumber jn)
+                this.value = jn;
             else
                 throw new JSONConvertException("not equal type");
 
@@ -615,7 +650,7 @@ namespace Algorithm.Text.JSON
     {
         public string Value => value;
 
-        private readonly string value;
+        private string value;
 
         public JString(string key = "", string value = "", JAccess access = JAccess.All)
         {
@@ -630,7 +665,9 @@ namespace Algorithm.Text.JSON
             if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
 
             if (value is string s)
-                value = s;
+                this.value = s;
+            else if (value is JString js)
+                this.value = js;
             else
                 throw new JSONConvertException("not equal type");
 
@@ -655,7 +692,7 @@ namespace Algorithm.Text.JSON
     {
         public bool Value => value;
 
-        private readonly bool value;
+        private bool value;
 
         public JBoolean(string key = "", bool value = true, JAccess access = JAccess.All)
         {
@@ -670,7 +707,9 @@ namespace Algorithm.Text.JSON
             if (access == JAccess.Immutable) throw new JSONAccessException("It's immutable");
 
             if (value is bool b)
-                value = b;
+                this.value = b;
+            else if (value is JBoolean jb)
+                this.value = jb;
             else
                 throw new JSONConvertException("not equal type");
 
@@ -901,6 +940,16 @@ namespace Algorithm.Text.JSON
         public JSONAccessException(string message) : base(message) { }
         public JSONAccessException(string message, Exception inner) : base(message, inner) { }
         protected JSONAccessException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class JSONTypeException : Exception
+    {
+        public JSONTypeException() { }
+        public JSONTypeException(string message) : base(message) { }
+        public JSONTypeException(string message, Exception inner) : base(message, inner) { }
+        protected JSONTypeException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }

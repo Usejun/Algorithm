@@ -18,14 +18,24 @@ namespace Algorithm
         {
             Init();
 
-            Queue<int> q = new Queue<int>(capacity:10000);
+            var text = @"
+{
+    ""name"": ""clear"",
+    ""age"": 123,
+    ""copy"": true
+    ""obj"": {
+        ""key"": ""!@#"",
+        ""keys"": ""!@#@!#""
+    }
+}
 
-            q.EnqueueRange(Extensions.Create(100, 0, 1000));
+";
 
-            while (!q.IsEmpty)
-            {
-                Util.Print(q[0]);
-            }
+            var json = JObject.Parse(text, JAccess.OnlyValue);
+
+            json["age"].Update(123123);
+
+            Util.Print(json["obj"]["key"].Access);            
 
         }
     }
