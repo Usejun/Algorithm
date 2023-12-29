@@ -29,46 +29,68 @@ namespace Algorithm.Text
             buffer = new List<char>(capacity: capacity);
         }
 
-        public void Append(char c)
+        public StringBuffer Append(char c)
         {
             buffer.Add(c);
+            
+            return this;
         }
 
-        public void Append(char c, int repeat)
+        public StringBuffer Append(char c, int repeat)
         {
             for (int i = 0; i < repeat; i++)
                 buffer.Add(c);
+
+            return this;
         }
 
-        public void Append(object value)
+        public StringBuffer Append(object value)
         {
             if (!(value is null))
                 Append(value.ToString());
+
+            return this;
         }
 
-        public void Append(string text)
+        public StringBuffer Append(string text)
         {
             foreach (char c in text)
                 Append(c);
+
+            return this;
         }
 
-        public void AppendLine(char c)
+        public StringBuffer AppendLine(char c)
         {
             buffer.Add(c);
             buffer.Add('\n');
+            return this;
         }
 
-        public void AppendLine(object value)
+        public StringBuffer AppendLine(char c, int repeat)
+        {
+            for (int i = 0; i < repeat; i++)
+                buffer.Add(c);
+
+            buffer.Add('\n');
+            return this;
+        }
+
+        public StringBuffer AppendLine(object value)
         {
             if (!(value is null))
                 AppendLine(value.ToString());
+
+            return this;
         }
 
-        public void AppendLine(string text)
+        public StringBuffer AppendLine(string text)
         {
             foreach (char c in text)
                 Append(c);
             Append("\n");
+
+            return this;
         }
 
         public void Clear()

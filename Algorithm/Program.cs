@@ -1,8 +1,8 @@
 ﻿using Algorithm;
+using Algorithm.Net;
 using Algorithm.Technique;
 using Algorithm.Text.JSON;
 using Algorithm.Datastructure;
-using Algorithm.Net;
 
 namespace Algorithm
 {
@@ -18,25 +18,23 @@ namespace Algorithm
         {
             Init();
 
-            var text = @"
+            var t = @"
 {
-    ""name"": ""clear"",
-    ""age"": 123,
-    ""copy"": true
+    ""name"": ""key"",
+    ""value"": 123,
+    ""array"": [
+        ""hi"",
+        ""bye""
+        ]
     ""obj"": {
-        ""key"": ""!@#"",
-        ""keys"": ""!@#@!#""
-    }
-}
+        ""key"": ""kkk"",
+        ""val"": true
+        }
+}";
 
-";
+            var json = JObject.Parse(t);
 
-            var json = JObject.Parse(text, JAccess.OnlyValue);
-
-            json["age"].Update(123123);
-
-            Util.Print(json["obj"]["key"].Access);            
-
+            Util.Print(json["obj"]);
         }
     }
 }

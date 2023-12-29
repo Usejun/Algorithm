@@ -175,7 +175,7 @@ namespace Algorithm
             Print(time + "ms");
 
             return time;
-        }
+        }      
 
         public static (T, T) Two<T>(Func<string, T> parser)
         {
