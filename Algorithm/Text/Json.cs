@@ -49,7 +49,7 @@ namespace Algorithm.Text.JSON
                 if (json[index] == '{') return ParseObject(key);
                 else if (json[index] == '[') return ParseArray(key);
                 else if (json[index] == '"') return ParseString(key);
-                else if (char.IsDigit(json[index])) return ParseNumber(key);
+                else if (char.IsDigit(json[index]) || json[index] == '-') return ParseNumber(key);
                 else if (json[index] == 't' || json[index] == 'f') return ParseBoolean(key);
                 else if (json[index] == 'n') return ParseNull(key);
 
@@ -97,6 +97,7 @@ namespace Algorithm.Text.JSON
             private JNumber ParseNumber(string _key)
             {
                 int start = index;
+                if (json[start] == '-') index++;
                 while (char.IsDigit(json[index]) || json[index] == '.') index++;
 
                 string numberString = json.Substring(start, index - start);
@@ -328,7 +329,7 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public JObject AddObject(string key = "")   
+        public JObject AddObject(string key)   
         {
             if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
 
@@ -337,7 +338,7 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public JObject AddObject(string key = "", params (string key, object value)[] _values)
+        public JObject AddObject(string key, params (string key, object value)[] _values)
         {
             if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
 
@@ -351,7 +352,7 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public JObject AddArray(string key = "")
+        public JObject AddArray(string key)
         {
             if (access != JAccess.All) throw new JSONAccessException("It's is not All Access");
 
@@ -429,7 +430,7 @@ namespace Algorithm.Text.JSON
                         jBoolean.Update(value);
                     break;
                 default:
-                    throw new JSONTypeException("not JObject");
+                    throw new JSONTypeException("Unable to update");
             }
             return this;
         }

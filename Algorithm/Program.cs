@@ -18,23 +18,6 @@ namespace Algorithm
         {
             Init();
 
-            var t = @"
-{
-    ""name"": ""key"",
-    ""value"": 123,
-    ""array"": [
-        ""hi"",
-        ""bye""
-        ]
-    ""obj"": {
-        ""key"": ""kkk"",
-        ""val"": true
-        }
-}";
-
-            var json = JObject.Parse(t);
-
-            Util.Print(json["obj"]);
         }
     }
 }
