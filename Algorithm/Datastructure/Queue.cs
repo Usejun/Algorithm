@@ -6,8 +6,8 @@ namespace Algorithm.Datastructure
     // 큐 First in First Out
     public class Queue<T> : List<T>, IQueue<T>
     {
-        int front = 0;
-        int back = 0;
+        private int front = 0;
+        private int back = 0;
 
         public bool IsEmpty => count == 0;
         public override bool IsFull => back == front;

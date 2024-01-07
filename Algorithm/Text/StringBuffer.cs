@@ -6,10 +6,10 @@ namespace Algorithm.Text
     {
         public int Length => buffer.Count;
 
-        List<char> buffer;
-        string pattern;
-        int[] pi;
-        List<int> patternPos;
+        private List<char> buffer;
+        private string pattern;
+        private int[] pi;
+        private List<int> patternPos;
 
         public StringBuffer()
         {

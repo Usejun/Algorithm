@@ -36,8 +36,8 @@ namespace Algorithm.Datastructure
 
         public bool IsEmpty => count == 0;
 
-        LinkedNode front = null;
-        LinkedNode back = null;
+        private LinkedNode front = null;
+        private LinkedNode back = null;
 
         public LinkedList() { }
 

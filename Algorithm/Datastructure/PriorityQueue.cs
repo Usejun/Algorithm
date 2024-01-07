@@ -39,8 +39,8 @@ namespace Algorithm.Datastructure
         public override int Count => heap.Count;
         public PriorityQueueNode<TValue, TPriority> Top => heap.Top;
 
-        private Heap<PriorityQueueNode<TValue, TPriority>> heap;
-        private Dictionary<TPriority, List<TValue>> keyValues;
+        private readonly Heap<PriorityQueueNode<TValue, TPriority>> heap;
+        private readonly Dictionary<TPriority, List<TValue>> keyValues;
 
         public PriorityQueue()
         {

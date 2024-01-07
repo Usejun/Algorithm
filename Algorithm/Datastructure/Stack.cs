@@ -5,7 +5,7 @@ namespace Algorithm.Datastructure
     // 스택 First in Last Out
     public class Stack<T> : List<T>, IStack<T>
     {
-        int front = 0;
+        private int front = 0;
 
         public bool IsEmpty => front == 0;
         public override bool IsFull => front == Length;

@@ -7,11 +7,12 @@ namespace Algorithm.Datastructure
     public class Heap<T> : Collection<T>
     {
         public T Top => heap[0];
+        
+        private readonly bool reverse;
 
-        List<T> heap;
-        int capacity;
-        bool reverse;
-        IComparer<T> comparer;
+        private List<T> heap;
+        private readonly int capacity;
+        private readonly IComparer<T> comparer;
 
         public Heap()
         {

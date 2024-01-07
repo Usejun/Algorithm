@@ -5,6 +5,7 @@ using Algorithm.Text;
 using System.Threading;
 using System.Diagnostics;
 using Algorithm.Datastructure;
+using System.Threading.Tasks;
 
 namespace Algorithm
 {
@@ -68,6 +69,46 @@ namespace Algorithm
         public static void Print<T>(Collection<T> collection, string end = "\n", string sep = " ")
         {
             Print(collection.ToArray(), end, sep);
+        }
+
+        public static Task PrintAsync()
+        {
+            return Task.Run(() =>
+            {
+                Print();
+            });
+        }
+
+        public static Task PrintAsync(string text, string end = "\n")
+        {
+            return Task.Run(() =>
+            {
+                Print(text, end);
+            });
+        }
+
+        public static Task PrintAsync(object value, string end = "\n")
+        {
+            return Task.Run(() =>
+            {
+                Print(value, end);
+            });
+        }
+
+        public static Task PrintAsync(Array array, string end = "\n", string sep = " ")
+        {
+            return Task.Run(() =>
+            {
+                Print(array, end, sep);
+            });
+        }
+
+        public static Task PrintAsync<T>(Collection<T> collection, string end = "\n", string sep = " ")
+        {
+            return Task.Run(() =>
+            {
+                Print(collection, end, sep);
+            });
         }
 
         public static void Append(string text, string end = "\n")

@@ -34,25 +34,13 @@ namespace Algorithm.Datastructure
         {
             return new List<T>(values: ToArray());
         }
-        public virtual Pair<int, T>[] ToPairs()
+        public virtual List<Pair<int, T>> ToPairs()
         {
-            T[] values = ToArray();
-            Pair<int, T>[] pairs = new Pair<int, T>[count];
-
-            for (int i = 0; i < count; i++)
-                pairs[i] = new Pair<int, T>(i + 1, values[i]);
-
-            return pairs;
+            return new List<Pair<int, T>>(values: Extensions.ToPairs(ToArray()));
         }
-        public virtual T1[] Convert<T1>(Func<T, T1> converter)
+        public virtual List<T1> Convert<T1>(Func<T, T1> converter)
         {
-            T[] values = ToArray();
-            T1[] convertedValues = new T1[count];
-
-            for (int i = 0; i < count; i++)
-                convertedValues[i] = converter(values[i]);
-
-            return convertedValues;
+            return new List<T1>(values: Extensions.Convert(ToArray(), converter));
         }
         public virtual int Counting(Func<T, bool> match = null)
         {

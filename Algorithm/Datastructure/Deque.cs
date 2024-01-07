@@ -2,7 +2,7 @@
 
 namespace Algorithm.Datastructure
 {
-    // 데큐 Double-ended Queue
+    // 덱 Double-ended Queue
     public class Deque<T> : Collection<T>, IQueue<T>, IStack<T>
     {
         // 연결형 노드
@@ -41,8 +41,8 @@ namespace Algorithm.Datastructure
 
         public bool IsEmpty => count == 0;
 
-        LinkedNode front = null;
-        LinkedNode back = null;
+        private LinkedNode front = null;
+        private LinkedNode back = null;
 
         public Deque() { }
 

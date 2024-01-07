@@ -912,7 +912,7 @@ namespace Algorithm.Text.JSON
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
-
+    
     public class JSONConvertException : Exception
     {
         public JSONConvertException() { }

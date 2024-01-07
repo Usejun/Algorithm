@@ -6,8 +6,8 @@
         public TKey Key => key;
         public TValue Value => value;
 
-        TKey key;
-        TValue value;
+        private TKey key;
+        private TValue value;
 
         public Pair(TKey key, TValue value)
         {

@@ -6,7 +6,7 @@ namespace Algorithm.Datastructure
     // 오름차순으로 정렬된 리스트
     public class SortedList<T> : List<T>
     {
-        IComparer<T> comparer;
+        private readonly IComparer<T> comparer;
 
         public SortedList(IComparer<T> comparer = null)
         {
@@ -29,11 +29,11 @@ namespace Algorithm.Datastructure
 
         private int BinarySearch(T value)
         {
-            int low = 0, mid = count - 1, high = count - 1;
+            int low = 0, high = count - 1;
 
             while (low <= high)
             {
-                mid = Mathf.Mid(low, high);
+                int mid = Mathf.Mid(low, high);
 
                 if (comparer.Compare(source[mid], value) > 0)
                     high = mid - 1;

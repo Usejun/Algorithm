@@ -9,7 +9,7 @@
             return r.Next(min, max);
         }
 
-        public static double ZeroBetweenOne()
+        public static double OtoI()
         {
             return r.NextDouble();
         }

@@ -138,14 +138,9 @@ namespace Algorithm.Datastructure
             return list.ToArray();
         }
 
-        public static Pair<int, T>[] ToPairs<T>(T[] array)
+        public static Pair<int, T>[] ToPairs<T>(T[] array, int startIndex = 0)
         {
-            Pair<int, T>[] pairs = new Pair<int, T>[array.Length];
-
-            for (int i = 0; i < array.Length; i++)
-                pairs[i] = new Pair<int, T>(i + 1, array[i]);
-
-            return pairs;
+            return Union(Range(startIndex, array.Length + startIndex), array);
         }
 
         public static void Copy<T>(T[] baseArray, T[] sourceArray, int index, int length)
@@ -173,6 +168,40 @@ namespace Algorithm.Datastructure
             }
 
             return high;
+        }
+
+        public static int LowerBound<T>(T[] array, T value)
+            where T : IComparable<T>
+        {
+            int left = 0, mid = 0, right = array.Length - 1;
+
+            while (left < right)
+            {
+                mid = Mathf.Mid(left, right);
+                if (array[mid].CompareTo(value) < 0)
+                    left = mid + 1;
+                else
+                    right = mid;
+            }
+
+            return right;
+        }
+
+        public static int UpperBound<T>(T[] array, T value)
+           where T : IComparable<T>
+        {
+            int left = 0, mid = 0, right = array.Length - 1;
+
+            while (left < right)
+            {
+                mid = Mathf.Mid(left, right);
+                if (array[mid].CompareTo(value) <= 0)
+                    left = mid + 1;
+                else
+                    right = mid;
+            }
+
+            return right;
         }
 
         public static int IndexOf<T>(T[] array, T value)
@@ -218,6 +247,17 @@ namespace Algorithm.Datastructure
 
             return values;
 
+        }
+
+        public static Pair<T, T1>[] Union<T, T1>(T[] array1, T1[] array2)
+        {
+            int len = Mathf.Min(array1.Length, array2.Length);
+            Pair<T, T1>[] unionArray = new Pair<T, T1>[len];
+
+            for (int i = 0; i < len; i++)            
+                unionArray[i] = new Pair<T, T1>(array1[i], array2[i]);
+
+            return unionArray;
         }
     }
 }

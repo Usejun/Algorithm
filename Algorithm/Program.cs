@@ -4,6 +4,8 @@ using Algorithm.Technique;
 using Algorithm.Text.JSON;
 using Algorithm.Datastructure;
 
+using static Algorithm.Datastructure.Extensions;
+
 namespace Algorithm
 {
     internal class Program
@@ -14,11 +16,13 @@ namespace Algorithm
             System.Console.OutputEncoding = System.Text.Encoding.Unicode;
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
             Init();
 
-        }
+            var list = new List<int>(values: Range(10));
+
+        }    
     }
 }
     
