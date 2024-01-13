@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Datastructure\BST.cs" />
     <Compile Include="Datastructure\Collection.cs" />
     <Compile Include="Datastructure\Deque.cs" />
     <Compile Include="Datastructure\Dictionary.cs" />

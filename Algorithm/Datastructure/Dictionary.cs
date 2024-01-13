@@ -5,8 +5,8 @@ namespace Algorithm.Datastructure
     // 딕셔너리
     public class Dictionary<TKey, TValue> : Set<Pair<TKey, TValue>>, IHash<TKey>
     {
-        public TKey[] Keys => Convert(pair => pair.Key);
-        public TValue[] Values => Convert(pair => pair.Value);
+        public TKey[] Keys => Convert(pair => pair.Key).ToArray();
+        public TValue[] Values => Convert(pair => pair.Value).ToArray();
 
         public Dictionary() : base() { }
 

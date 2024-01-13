@@ -20,7 +20,16 @@ namespace Algorithm
         {
             Init();
 
-            var list = new List<int>(values: Range(10));
+            BST<int, int> bst = new BST<int, int>();
+
+            bst.Add(1, 2);
+            bst.Add(2, 3);
+            bst.Add(3, 4);
+            bst.Add(4, 5);
+            bst.Add(5, 6);
+            bst.Add(6, 7);
+
+            Util.Print(bst.FindRoute(6, 7));
 
         }    
     }

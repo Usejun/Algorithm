@@ -20,10 +20,8 @@ namespace Algorithm.Datastructure
             priority = Priority;
         }
 
-        public int CompareTo(PriorityQueueNode<TValue, TPriority> other) => CompareTo(other.Priority);
-
-        public int CompareTo(TPriority other) => (Priority as IComparable<TPriority>).CompareTo(other);
-
+        public int CompareTo(PriorityQueueNode<TValue, TPriority> other) => Priority.CompareTo(other.Priority);
+        
         public override string ToString()
         {
             return $"Value : {Value}, Priority : {Priority}";

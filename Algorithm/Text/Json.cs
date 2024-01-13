@@ -297,7 +297,7 @@ namespace Algorithm.Text.JSON
                         values.Add(new JNull(key, access));
                         break;
                     case List<JObject> li:
-                        values.Add(new JArray(key, li, access));
+                        values.Add(new JArray(li, key, access));
                         break;
                     case JObject j:
                         values.Add(j);
@@ -392,6 +392,9 @@ namespace Algorithm.Text.JSON
                 case string s:
                     this[key] = new JString(key, s, access);
                     break;
+                case List<JObject> li:
+                    this[key] = new JArray(li, key, access);
+                    break;
                 case null:
                     this[key] = new JNull(key, access);
                     break;
@@ -418,6 +421,10 @@ namespace Algorithm.Text.JSON
                 case JType.Boolean:
                     if (this is JBoolean jBoolean)
                         jBoolean.Update(value);
+                    break;
+                case JType.Array:
+                    if (this is JArray jArray)
+                        jArray.Update(value);
                     break;
                 default:
                     throw new JSONTypeException("Unable to update");
@@ -747,7 +754,19 @@ namespace Algorithm.Text.JSON
             this.access = access;
         }
 
-        public JArray(string key = "", List<JObject> values = null, JAccess access = JAccess.All)
+        public JArray(string key = "", JAccess access = JAccess.All, params object[] values)
+        {
+            this.key = key;
+            this.values = new List<JObject>();
+
+            foreach (var value in values)
+                Add(value);            
+
+            type = JType.Array;
+            this.access = access;
+        }
+
+        public JArray(List<JObject> values, string key = "", JAccess access = JAccess.All)
         {
             this.key = key;
             this.values = values;
@@ -781,7 +800,7 @@ namespace Algorithm.Text.JSON
                     values.Add(new JNull(access: access));
                     break;
                 case List<JObject> li:
-                    values.Add(new JArray(key, li, access));
+                    values.Add(new JArray(li, key, access));
                     break;
                 case JObject j:
                     values.Add(j);
@@ -789,6 +808,19 @@ namespace Algorithm.Text.JSON
                 default: throw new JSONTypeException("The type is not allowed.");
             }
 
+            return this;
+        }
+
+        public override JObject Update(object value)
+        {
+            if (access == JAccess.Immutable) throw new JSONAccessException("It's Immutable");
+
+            values.Clear();
+
+            if (value is Array array)            
+                foreach (object o in array)                
+                    Add(o);    
+            
             return this;
         }
 
