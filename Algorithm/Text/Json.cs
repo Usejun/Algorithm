@@ -69,7 +69,7 @@ namespace Algorithm.Text.JSON
                 while (json[index] != '}')
                 {
                     SkipWhitespace();
-                    JString jString = ParseString(_key);
+                    JString jString = ParseString("");
                     string key = jString.Value;
                     SkipWhitespace();
 
@@ -240,7 +240,9 @@ namespace Algorithm.Text.JSON
                     if (index == -1 && access == JAccess.All)
                         Add(strKey, value);
                     else if (index != -1)
-                        Update(strKey, value);             
+                        Update(strKey, value);
+
+                    return;
                 }
                 else if (type == JType.Array && this is JArray jArray && key is int intKey)
                 {
@@ -432,7 +434,7 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public virtual string ToJSON()
+        public virtual string ToText()
         {
             StringBuffer sb = new StringBuffer();
 
@@ -457,10 +459,10 @@ namespace Algorithm.Text.JSON
                     else if (jObj.type == JType.Array)
                     {
                         sb.Append($"\"{jObj.key}\": ");
-                        sb.Append(jObj.ToJSON(depth + 1));
+                        sb.Append(jObj.ToText(depth + 1));
                     }
                     else
-                        sb.Append(jObj.ToJSON());
+                        sb.Append(jObj.ToText());
 
                     if (i != jObject.values.Count - 1)
                         sb.Append(", ");
@@ -472,7 +474,7 @@ namespace Algorithm.Text.JSON
             }
         }
 
-        public virtual string ToJSON(int height)
+        public virtual string ToText(int height)
         {
             StringBuffer sb = new StringBuffer();
 
@@ -497,10 +499,10 @@ namespace Algorithm.Text.JSON
                     else if (jObj.type == JType.Array)
                     {
                         sb.Append($"\"{jObj.key}\": ");
-                        sb.Append(jObj.ToJSON(depth + 1));
+                        sb.Append(jObj.ToText(depth + 1));
                     }
                     else
-                        sb.Append(jObj.ToJSON());
+                        sb.Append(jObj.ToText());
 
                     if (i != jObject.values.Count - 1)
                         sb.Append(", ");
@@ -514,7 +516,7 @@ namespace Algorithm.Text.JSON
 
         public override string ToString()
         {
-            return ToJSON();
+            return ToText();
         } 
 
         public static implicit operator int(JObject jObject)
@@ -629,15 +631,15 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public override string ToJSON()
+        public override string ToText()
         {
             if (string.IsNullOrEmpty(key)) return $"{value}";
             return $"\"{key}\": {value}";
         }
 
-        public override string ToJSON(int height)
+        public override string ToText(int height)
         {
-            return ToJSON(); 
+            return ToText(); 
         }
 
         public override string ToString()
@@ -679,15 +681,15 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public override string ToJSON()
+        public override string ToText()
         {
             if (string.IsNullOrEmpty(key)) return $"\"{value}\"";
             return $"\"{key}\": \"{value}\"";
         }
 
-        public override string ToJSON(int height)
+        public override string ToText(int height)
         {
-            return ToJSON();
+            return ToText();
         }
 
         public static implicit operator string(JString jString) => $"{jString.value}";
@@ -721,20 +723,20 @@ namespace Algorithm.Text.JSON
             return this;
         }
 
-        public override string ToJSON()
+        public override string ToText()
         {
             if (string.IsNullOrEmpty(key)) return value ? "true" : "false";
             return value ? $"\"{key}\": true" : $"\"{key}\": false";
         }
 
-        public override string ToJSON(int height)
+        public override string ToText(int height)
         {
-            return ToJSON();
+            return ToText();
         }
 
         public override string ToString()
         {
-            return ToJSON();
+            return ToText();
         }
 
         public static implicit operator bool(JBoolean jBoolean) => jBoolean.value;
@@ -831,7 +833,7 @@ namespace Algorithm.Text.JSON
             return false;
         }
 
-        public override string ToJSON()
+        public override string ToText()
         {
             StringBuffer sb = new StringBuffer();
 
@@ -842,7 +844,7 @@ namespace Algorithm.Text.JSON
                 sb.Append(' ', DEFAULTTEXTHEIGHT);
                 if (values[i].Type == JType.Object ||
                     values[i].Type == JType.Array)
-                    sb.Append(values[i].ToJSON(1));
+                    sb.Append(values[i].ToText(1));
                 if (i != values.Count - 1)
                     sb.Append(',');
                 sb.Append('\n');
@@ -853,7 +855,7 @@ namespace Algorithm.Text.JSON
             return sb.ToString();
         }
 
-        public override string ToJSON(int height)
+        public override string ToText(int height)
         {
             StringBuffer sb = new StringBuffer();
 
@@ -865,9 +867,9 @@ namespace Algorithm.Text.JSON
 
                 if (values[i].Type == JType.Object ||
                     values[i].Type == JType.Array)
-                    sb.Append(values[i].ToJSON(height + 1));
+                    sb.Append(values[i].ToText(height + 1));
                 else
-                    sb.Append(values[i].ToJSON());
+                    sb.Append(values[i].ToText());
 
                 if (i != values.Count - 1)
                     sb.Append(',');
@@ -883,7 +885,7 @@ namespace Algorithm.Text.JSON
 
         public override string ToString()
         {
-            return ToJSON();            
+            return ToText();            
         }
 
         public JObject this[int index]
@@ -918,14 +920,14 @@ namespace Algorithm.Text.JSON
             this.access = access;
         }
 
-        public override string ToJSON()
+        public override string ToText()
         {
             return $"\"{key}\": null";
         }
 
-        public override string ToJSON(int height)
+        public override string ToText(int height)
         {
-            return ToJSON();
+            return ToText();
         }
 
         public override string ToString()
