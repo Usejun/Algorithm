@@ -99,17 +99,22 @@ namespace Algorithm
             return min;
         }
 
-        public static double Pow(int a, int b)
+        public static double Pow(double a, double b)
         {
-            if (b == 0)
-                return 1;
+            if (b == 0) return 0;
+            if (b == 1) return a;
+            if (b%2==1) return a * Pow(a, b - 1);
+            double p = Pow(a, b / 2);
+            return p * p;
+        }
 
-            double pow = a;
-
-            for (int i = 1; i < b; i++)
-                pow *= a;
-            
-            return pow;
+        public static double Pow(double a, double b, double m)
+        {
+            if (b == 0) return 0;
+            if (b == 1) return a % m;
+            if (b % 2 == 1) return a * Pow(a, b - 1) % m;
+            double p = Pow(a, b / 2);
+            return p * p % m;
         }
 
         public static int Abs(int a)
@@ -131,6 +136,8 @@ namespace Algorithm
         {
             return a < 0 ? -a : a;
         }
+
+        public static double Gcd(int a, int b) => b == 0 ? a : Gcd(b, a % b);
 
         public static double Round(double a, int digits)
         {

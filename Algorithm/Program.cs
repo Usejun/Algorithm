@@ -20,25 +20,8 @@ namespace Algorithm
         {
             Init();
 
-            string text = @"
-{
-  ""name"": ""Usejun"",
-  ""age"": 888,
-  ""height"": 11111111,
-  ""skill"": {
-    ""Psychokinesis"": false,
-    ""Prognosis"": false
-  },
-  ""test"": [
-    1,
-    2,
-    3
-  ]
-}";
-
-            JObject json = JObject.Parse(text);
-
-            Util.Print(json);
+            var a = Array<List<int>>(10, 10);
+            
 
         }    
     }
