@@ -86,10 +86,6 @@ namespace Algorithm.Datastructure
             {
                 if (!ContainsKey(key))
                 {
-                    Add(key, value);
-                }
-                else
-                {
                     var newPair = new Pair<TKey, TValue>(key, value);
 
                     var pairs = list[Hash(key)];
@@ -97,6 +93,8 @@ namespace Algorithm.Datastructure
 
                     oldPair.Value = newPair;
                 }
+                
+                throw new CollectionExistException("does not exist");
             }
         }
 
