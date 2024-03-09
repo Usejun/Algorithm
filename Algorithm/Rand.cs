@@ -8,11 +8,5 @@
         {
             return r.Next(min, max);
         }
-
-        public static double OtoI()
-        {
-            return r.NextDouble();
-        }
-
     }
 }

@@ -4,8 +4,6 @@ using System.Text;
 using Algorithm.Text;
 using System.Threading;
 using System.Diagnostics;
-using Algorithm.Datastructure;
-using System.Threading.Tasks;
 
 namespace Algorithm
 {
@@ -71,46 +69,6 @@ namespace Algorithm
             Print(collection.ToArray(), end, sep);
         }
 
-        public static Task PrintAsync()
-        {
-            return Task.Run(() =>
-            {
-                Print();
-            });
-        }
-
-        public static Task PrintAsync(string text, string end = "\n")
-        {
-            return Task.Run(() =>
-            {
-                Print(text, end);
-            });
-        }
-
-        public static Task PrintAsync(object value, string end = "\n")
-        {
-            return Task.Run(() =>
-            {
-                Print(value, end);
-            });
-        }
-
-        public static Task PrintAsync(Array array, string end = "\n", string sep = " ")
-        {
-            return Task.Run(() =>
-            {
-                Print(array, end, sep);
-            });
-        }
-
-        public static Task PrintAsync<T>(Collection<T> collection, string end = "\n", string sep = " ")
-        {
-            return Task.Run(() =>
-            {
-                Print(collection, end, sep);
-            });
-        }
-
         public static void Append(string text, string end = "\n")
         {
             sb.Append(text);
@@ -159,17 +117,12 @@ namespace Algorithm
         public static void Flush()
         {
             Print(sb.ToString(), end:"");
-            BufferClear();
+            Buffer.Clear();
         }
 
-        public static void StreamClear()
+        public static void Clear()
         {
             Console.Clear();
-        }
-
-        public static void BufferClear()
-        {
-            sb.Clear();
         }
 
         public static string Input()
