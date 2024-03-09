@@ -13,7 +13,7 @@ namespace Algorithm.Text
 
         public StringBuffer()
         {
-            buffer = new List<char>(0);
+            buffer = new List<char>();
         }
 
         public StringBuffer(string text)

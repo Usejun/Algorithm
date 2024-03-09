@@ -4,6 +4,7 @@ using System.Text;
 using Algorithm.Text;
 using System.Threading;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Algorithm
 {
@@ -35,38 +36,11 @@ namespace Algorithm
             Print(value?.ToString() ?? "", end: end);
         }
 
-        public static void Print(Array array, string end = "\n", string sep = " ")
+        public static void Print<T>(IEnumerable<T> enumerable, string end = "\n", string sep = " ")
         {
-            int count = array.Length;
-
-            Put(0, new int[array.Rank]);
-
-            void Put(int dimension, int[] indices)
-            {
-                if (dimension == array.Rank - 1)
-                {
-                    for (int i = 0; i < array.GetLength(dimension); i++)
-                    {
-                        indices[dimension] = i;
-                        count--;
-                        Print(array.GetValue(indices), end: count == 0 ? "" : sep);
-                    }
-                    Print("", end);
-                }
-                else
-                {
-                    for (int i = 0; i < array.GetLength(dimension); i++)
-                    {
-                        indices[dimension] = i;
-                        Put(dimension + 1, indices);
-                    }
-                }
-            }
-        }
-
-        public static void Print<T>(Collection<T> collection, string end = "\n", string sep = " ")
-        {
-            Print(collection.ToArray(), end, sep);
+            foreach (var item in enumerable)
+                Print(item, sep);
+            Print();
         }
 
         public static void Append(string text, string end = "\n")
@@ -80,38 +54,10 @@ namespace Algorithm
             Append(value?.ToString() ?? "", end: end);
         }
 
-        public static void Append(Array array, string end = "\n", string sep = " ")
+        public static void Append<T>(IEnumerable<T> enumerable, string end = "\n", string sep = " ")
         {
-            int count = array.Length;
-
-            Put(0, new int[array.Rank]);
-
-            void Put(int dimension, int[] indices)
-            {
-                if (dimension == array.Rank - 1)
-                {
-                    for (int i = 0; i < array.GetLength(dimension); i++)
-                    {
-                        indices[dimension] = i;
-                        count--;
-                        Append(array.GetValue(indices), end: count == 0 ? "" : sep);
-                    }
-                    Append("", end);
-                }
-                else
-                {
-                    for (int i = 0; i < array.GetLength(dimension); i++)
-                    {
-                        indices[dimension] = i;
-                        Put(dimension + 1, indices);
-                    }
-                }
-            }
-        }
-
-        public static void Append<T>(Collection<T> collection, string end = "\n", string sep = " ")
-        {
-            Append(string.Join(sep, collection.ToArray()), end);
+            foreach (var item in enumerable)
+                Append(item, sep);
         }
 
         public static void Flush()

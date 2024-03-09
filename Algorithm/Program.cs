@@ -1,10 +1,7 @@
 ﻿using Algorithm;
-using Algorithm.Net;
 using Algorithm.Technique;
 using Algorithm.Text.JSON;
 using Algorithm.Datastructure;
-
-using static Algorithm.Datastructure.Extensions;
 
 namespace Algorithm
 {
@@ -18,11 +15,7 @@ namespace Algorithm
 
         static void Main()
         {
-            Init();
-
-            var a = Array<List<int>>(10, 10);
-            
-
+            Init();            
         }    
     }
 }
