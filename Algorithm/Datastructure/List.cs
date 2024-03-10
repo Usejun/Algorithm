@@ -5,11 +5,12 @@ using System.Collections.Generic;
 
 namespace Algorithm.Datastructure
 {
-    public class List<T> : IList<T>, ICloneable, IComparable<List<T>>
+    public class List<T> : Iterator<T>, IList<T>, ICloneable, IComparable<List<T>>
     {
-        public int Count { get; private set; }
         public bool IsFull => items.Length <= Count;
         public bool IsReadOnly => true;
+
+        private T[] items;
 
         public T this[int index] 
         {
@@ -28,8 +29,6 @@ namespace Algorithm.Datastructure
                 items[index] = value;
             }
         }
-
-        private T[] items;
 
         public List() 
         {
@@ -121,7 +120,7 @@ namespace Algorithm.Datastructure
                 array[arrayIndex + i] = items[i];            
         }
 
-        public T[] ToArray()
+        public override T[] ToArray()
         {
             T[] result = new T[Count];
 
@@ -205,7 +204,7 @@ namespace Algorithm.Datastructure
             return new List<T>(this);
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public override IEnumerator<T> GetEnumerator()
         {
             for (int i = 0; i < Count; i++)            
                 yield return items[i];            
@@ -270,26 +269,18 @@ namespace Algorithm.Datastructure
                 result.AddRange(a);
 
             return result;
-        }
+        }    
+    }
 
-        public static List<T> Create(int length, T value = default)
-        {
-            List<T> result = new List<T>(length);
 
-            for (int i = 0; i < length; i++)
-                result.Add(value);
-
-            return result;            
-        }
-
-        public static List<List<T>> Create(int row, int column, T value = default)
-        {
-            List<List<T>> result = new List<List<T>>(row);
-
-            for (int i = 0; i < row; i++)            
-                result.Add(Create(column, value));                                
-
-            return result;
-        }
+    [Serializable]
+    public class EnumerableEmptyException : Exception
+    {
+        public EnumerableEmptyException() { }
+        public EnumerableEmptyException(string message) : base(message) { }
+        public EnumerableEmptyException(string message, Exception inner) : base(message, inner) { }
+        protected EnumerableEmptyException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

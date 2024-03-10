@@ -47,7 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Datastructure\Iterator.cs" />
     <Compile Include="Datastructure\List.cs" />
+    <Compile Include="Datastructure\Queue.cs" />
     <Compile Include="Mathf.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -15,7 +15,14 @@ namespace Algorithm
 
         static void Main()
         {
-            Init();            
+            Init();
+
+            List<string> q = new List<string>();
+
+            q.AddRange("hello", "my", "name", "is", "good");
+
+            Util.Print();
+            Util.Print(q);
         }    
     }
 }
