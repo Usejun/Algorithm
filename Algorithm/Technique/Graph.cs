@@ -7,9 +7,9 @@ namespace Algorithm.Technique
         public int Length => length;
         public int Count => count;
 
-        List<(int to, int edge)>[] node;
-        int length;
-        int count;
+        private List<(int to, int edge)>[] node;
+        private int length;
+        private int count;
 
         public Graph(int length)
         {

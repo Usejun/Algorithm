@@ -1,4 +1,5 @@
 ﻿using Algorithm;
+using Algorithm.Sort;
 using Algorithm.Technique;
 using Algorithm.Text.JSON;
 using Algorithm.Datastructure;
@@ -13,16 +14,22 @@ namespace Algorithm
             System.Console.OutputEncoding = System.Text.Encoding.Unicode;
         }
 
-        static void Main()
+        public static void Main()
         {
             Init();
 
-            List<string> q = new List<string>();
+            PriorityQueue<int, int> pq = new PriorityQueue<int, int>(true);
 
-            q.AddRange("hello", "my", "name", "is", "good");
+            pq.Enqueue(12, 2);
+            pq.Enqueue(2, 3);
+            pq.Enqueue(3, 4);
+            pq.Enqueue(5, 1);
+            pq.Enqueue(-1, 2);
+            pq.Enqueue(-12, 3);
 
-            Util.Print();
-            Util.Print(q);
+            while (!pq.IsEmpty)
+                Util.Print(pq.Dequeue().Value);
+           
         }    
     }
 }

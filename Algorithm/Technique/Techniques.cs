@@ -1,140 +1,148 @@
 ﻿using Algorithm.Datastructure;
+using Algorithm.Sort;
 
 namespace Algorithm.Technique
 {
-    //public static class Techniques
-    //{
-    //    public static int INF = 10000001;
+    public static class Techniques
+    {
+        public static int INF = 10000001;
 
-    //    public static void Flyod(int[,] source)
-    //    {
-    //        int length = source.GetLength(0);
+        public static void Flyod(int[,] source)
+        {
+            int length = source.GetLength(0);
 
-    //        for (int k = 0; k < length; k++)
-    //            for (int i = 0; i < length; i++)
-    //                for (int j = 0; j < length; j++)
-    //                    if (source[i, j] > source[i, k] + source[k, j])
-    //                        source[i, j] = source[i, k] + source[k, j];
-    //    }
+            for (int k = 0; k < length; k++)
+                for (int i = 0; i < length; i++)
+                    for (int j = 0; j < length; j++)
+                        if (source[i, j] > source[i, k] + source[k, j])
+                            source[i, j] = source[i, k] + source[k, j];
+        }
 
-    //    public static int[] Dijkstra(int start, int[,] source)
-    //    {
-    //        int length = source.GetLength(0);
-    //        int[] distance = new int[length];  
-    //        bool[] visit = new bool[length];
+        public static int[] Dijkstra(int start, int[,] source)
+        {
+            int length = source.GetLength(0);
+            int[] distance = new int[length];
+            bool[] visit = new bool[length];
 
-    //        for (int i = 0; i < length; i++)
-    //            distance[i] = source[start, i];
+            for (int i = 0; i < length; i++)
+                distance[i] = source[start, i];
 
-    //        distance[start] = 0;
-    //        visit[start] = true;
+            distance[start] = 0;
+            visit[start] = true;
 
-    //        for (int i = 0; i < length - 1; i++)
-    //        {
-    //            int node = SmallestNode();
-    //            visit[node] = true;
+            for (int i = 0; i < length - 1; i++)
+            {
+                int node = SmallestNode();
+                visit[node] = true;
 
-    //            for (int j = 0; j < length; j++)
-    //                if (!visit[j])
-    //                    if (distance[j] > distance[node] + source[node, j])
-    //                        distance[j] = distance[node] + source[node, j];
-    //        }
+                for (int j = 0; j < length; j++)
+                    if (!visit[j])
+                        if (distance[j] > distance[node] + source[node, j])
+                            distance[j] = distance[node] + source[node, j];
+            }
 
-    //        return distance;
+            return distance;
 
-    //        int SmallestNode()
-    //        {
-    //            int min = INF + 1;
-    //            int index = -1;
+            int SmallestNode()
+            {
+                int min = INF + 1;
+                int index = -1;
 
-    //            for (int i = 0; i < length; i++)
-    //                if (!visit[i] && distance[i] < min)
-    //                {
-    //                    min = distance[i];
-    //                    index = i;
-    //                }
+                for (int i = 0; i < length; i++)
+                    if (!visit[i] && distance[i] < min)
+                    {
+                        min = distance[i];
+                        index = i;
+                    }
 
-    //            return index;
-    //        }
-    //    }
+                return index;
+            }
+        }
 
-    //    public static int[] Dijkstra(int start, Graph graph)
-    //    {
-    //        int length = graph.Length;            
-    //        int[] distance = Extensions.Convert(Extensions.Range(length), i => INF);
-    //        PriorityQueue<(int n, int v), int> pq = new PriorityQueue<(int n, int v), int>();
+        public static int[] Dijkstra(int start, Graph graph)
+        {
+            int length = graph.Length;
+            int[] distance = new int[length];
 
-    //        distance[start] = 0;
-    //        pq.Enqueue((start, 0), 0);
+            for (int i = 0; i < length; i++)
+                distance[i] = INF;
 
-    //        while (!pq.IsEmpty) 
-    //        {
-    //            (int n, int v) = pq.Dequeue().Value;
+            PriorityQueue<int, (int n, int v)> pq = new PriorityQueue<int, (int n, int v)>();
 
-    //            if (distance[n] < v) continue;
+            distance[start] = 0;
+            pq.Enqueue(0, (start, 0));
 
-    //            foreach ((int next, int nextV) in graph[n])
-    //            {
-    //                if (nextV + v < distance[next])
-    //                {
-    //                    distance[next] = nextV + v;
-    //                    pq.Enqueue((next, nextV + v), nextV + v);
-    //                }
-    //            }
-    //        }
+            while (!pq.IsEmpty)
+            {
+                (int n, int v) = pq.Dequeue().Value;
 
-    //        return distance;
-    //    }
+                if (distance[n] < v) continue;
 
-    //    public static int[] Bellman(int start, Graph graph)
-    //    {
-    //        int length = graph.Length;
-    //        int[] distance = Extensions.Convert(Extensions.Range(length + 1), i => INF);
-    //        var edge = graph.AllNode();
+                foreach ((int next, int nextV) in graph[n])
+                {
+                    if (nextV + v < distance[next])
+                    {
+                        distance[next] = nextV + v;
+                        pq.Enqueue(nextV + v, (next, nextV + v));
+                    }
+                }
+            }
 
-    //        distance[start] = 0;
+            return distance;
+        }
 
-    //        for (int i = 0; i < length; i++)
-    //        {
-    //            foreach ((int s, int e, int t) in edge)
-    //            {
-    //                if (distance[s] != INF && distance[e] > distance[s] + t)
-    //                {
-    //                    distance[e] = distance[s] + t;
-    //                    if (i == length - 1)                        
-    //                        return new int[] { -1 };                        
-    //                }
-    //            }
-    //        }
-    //        return distance;                        
-    //    }
+        public static int[] Bellman(int start, Graph graph)
+        {
+            int length = graph.Length;
+            int[] distance = new int[length];
 
-    //    public static Graph Kruskal(Graph graph)
-    //    {
-    //        int length = graph.Length;
-    //        int count = graph.Count;
+            for (int i = 0; i < length; i++)
+                distance[i] = INF;
+            var edge = graph.AllNode();
 
-    //        Group group = new Group(length);
-    //        Graph mst = new Graph(length);
-    //        var edges = graph.AllNode();            
+            distance[start] = 0;
 
-    //        Extensions.Sort(edges, i => i.edge);
+            for (int i = 0; i < length; i++)
+            {
+                foreach ((int s, int e, int t) in edge)
+                {
+                    if (distance[s] != INF && distance[e] > distance[s] + t)
+                    {
+                        distance[e] = distance[s] + t;
+                        if (i == length - 1)
+                            return new int[] { -1 };
+                    }
+                }
+            }
+            return distance;
+        }
 
-    //        for (int i = 0; i < count; i++)
-    //        {
-    //            (int from, int index, int node) = edges[i];
+        public static Graph Kruskal(Graph graph)
+        {
+            int length = graph.Length;
+            int count = graph.Count;
 
-    //            if (group.Find(from) == group.Find(index)) continue;
+            Group group = new Group(length);
+            Graph mst = new Graph(length);
+            var edges = graph.AllNode();
 
-    //            mst.Connect(from, index, node);
+            Sorts.TimSort(edges, i => i.edge);
 
-    //            group.Union(from, index);
+            for (int i = 0; i < count; i++)
+            {
+                (int from, int index, int node) = edges[i];
 
-    //            if (mst.Count == length - 1) break;
-    //        }
+                if (group.Find(from) == group.Find(index)) continue;
 
-    //        return mst;
-    //    }
-    //}
+                mst.Connect(from, index, node);
+
+                group.Union(from, index);
+
+                if (mst.Count == length - 1) break;
+            }
+
+            return mst;
+        }
+    }
 }
     

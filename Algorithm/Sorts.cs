@@ -15,7 +15,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)            
                 return;
 
-            comparer = Comparer<T>.Create((i, j) => order(i).CompareTo(order(j)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int index = 0;
             T min; // 최솟값
@@ -47,7 +47,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int i, j;
 
@@ -71,7 +71,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int i, j;
 
@@ -100,7 +100,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             int i, j;
 
@@ -144,7 +144,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             QuickSort(0, array.Length - 1);
 
@@ -188,7 +188,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             // 임시 배열을 선언
             T[] sorted = new T[array.Length + 1];
@@ -242,7 +242,7 @@ namespace Algorithm.Sort
             if (array.Length < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             for (int i = 1; i < array.Length; i++)
             {
@@ -291,7 +291,7 @@ namespace Algorithm.Sort
             if (n < 2)
                 return;
 
-            comparer = Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
+            comparer = comparer ?? Comparer<T>.Create((k, q) => order(k).CompareTo(order(q)));
 
             for (int i = 0; i < n; i += RUN)
                 Insertion(i, Mathf.Min(i + RUN - 1, n - 1));

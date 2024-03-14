@@ -599,7 +599,7 @@ namespace Algorithm.Text.JSON
         public JNumber(string key = "", double value = 0, JAccess access = JAccess.All)
         {
             this.key = key;
-            this.value = value;
+            this.value = Math.Round(value, 4);
             type = JType.Number;
             this.access = access;
         }

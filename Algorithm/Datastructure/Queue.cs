@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Algorithm.Datastructure
 {
-    public class Queue<T> : Iterator<T>, IEnumerable<T>, IEnumerable, ICloneable, IComparable<Queue<T>>
+    public class Queue<T> : Iterator<T>
     {
         public bool IsFull => Count == items.Length;
+        public bool IsEmpty => Count == 0;
 
         private T[] items;
 
@@ -61,8 +61,8 @@ namespace Algorithm.Datastructure
 
         public T Dequeue()
         {
-            if (Count == 0)
-                throw new EnumerableEmptyException("Queue is Empty");
+            if (IsEmpty)
+                throw new QueueException("Queue is Empty");
 
             T item = items[front];
             front = (front + 1) % items.Length;
@@ -72,6 +72,9 @@ namespace Algorithm.Datastructure
 
         public T[] DequeueRange(int length)
         {
+            if (length > Count)
+                throw new QueueException("Length is bigger than queue count");
+
             T[] items = new T[length];
 
             for (int i = 0; i < length; i++)
@@ -98,6 +101,13 @@ namespace Algorithm.Datastructure
         {
             return IndexOf(value) != -1;
         }
+        
+        public void Clear()
+        {
+            front = 0;
+            back = 0;
+            Count = 0;
+        }
 
         protected void Resize()
         {
@@ -120,28 +130,12 @@ namespace Algorithm.Datastructure
             return new List<T>(this);
         }
 
-        public object Clone()
+        public override object Clone()
         {
             return new Queue<T>(this);
         }
 
-        public int CompareTo(Queue<T> other)
-        {
-            return Count - other.Count;
-        }
-
         public override IEnumerator<T> GetEnumerator()
-        {
-            int front = this.front;
-
-            for (int i = 0; i < Count; i++)
-            {
-                yield return items[front];
-                front = (front + 1) % items.Length;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
         {
             int front = this.front;
 
@@ -178,41 +172,24 @@ namespace Algorithm.Datastructure
         public static Queue<T> operator *(Queue<T> a, int b)
         {
             Queue<T> result = new Queue<T>();
+            T[] items = a.ToArray();
 
             while (b-- > 0)
-                result.EnqueueRange(a);
+                result.EnqueueRange(items);
 
             return result;
         }
+    }
 
-        public static Queue<T> operator *(Queue<T> a, long b)
-        {
-            Queue<T> result = new Queue<T>();
 
-            while (b-- > 0)
-                result.EnqueueRange(a);
-
-            return result;
-        }
-
-        public static Queue<T> operator *(Queue<T> a, float b)
-        {
-            Queue<T> result = new Queue<T>();
-
-            while (b-- > 0)
-                result.EnqueueRange(a);
-
-            return result;
-        }
-
-        public static Queue<T> operator *(Queue<T> a, double b)
-        {
-            Queue<T> result = new Queue<T>();
-
-            while (b-- > 0)
-                result.EnqueueRange(a);
-
-            return result;
-        }
+    [Serializable]
+    public class QueueException : Exception
+    {
+        public QueueException() { }
+        public QueueException(string message) : base(message) { }
+        public QueueException(string message, Exception inner) : base(message, inner) { }
+        protected QueueException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Algorithm.Datastructure
 {
-    public class List<T> : Iterator<T>, IList<T>, ICloneable, IComparable<List<T>>
+    public class List<T> : Iterator<T>, IList<T>
     {
         public bool IsFull => items.Length <= Count;
         public bool IsReadOnly => true;
@@ -199,7 +199,7 @@ namespace Algorithm.Datastructure
             items = resized;
         }
 
-        public object Clone()
+        public override object Clone()
         {
             return new List<T>(this);
         }
@@ -216,11 +216,6 @@ namespace Algorithm.Datastructure
                 yield return items[i];
         }
 
-        public int CompareTo(List<T> other)
-        {
-            return Count - other.Count;
-        }
-
         public static List<T> operator +(List<T> a, List<T> b)
         {
             List<T> result = new List<T>();
@@ -234,53 +229,12 @@ namespace Algorithm.Datastructure
         public static List<T> operator *(List<T> a, int b)
         {
             List<T> result = new List<T>();
+            T[] items = a.ToArray();
 
-            while(b-- > 0)
-                result.AddRange(a);           
+            while (b-- > 0)
+                result.AddRange(items);           
 
             return result;
         }
-
-        public static List<T> operator *(List<T> a, long b)
-        {
-            List<T> result = new List<T>();
-
-            while (b-- > 0)
-                result.AddRange(a);
-
-            return result;
-        }
-
-        public static List<T> operator *(List<T> a, float b)
-        {
-            List<T> result = new List<T>();
-
-            while (b-- > 0)
-                result.AddRange(a);
-
-            return result;
-        }
-
-        public static List<T> operator *(List<T> a, double b)
-        {
-            List<T> result = new List<T>();
-
-            while (b-- > 0)
-                result.AddRange(a);
-
-            return result;
-        }    
-    }
-
-
-    [Serializable]
-    public class EnumerableEmptyException : Exception
-    {
-        public EnumerableEmptyException() { }
-        public EnumerableEmptyException(string message) : base(message) { }
-        public EnumerableEmptyException(string message, Exception inner) : base(message, inner) { }
-        protected EnumerableEmptyException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }
